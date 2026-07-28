@@ -1,0 +1,1451 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'practice_notifier.dart';
+import 'package:go_router/go_router.dart';
+import '../../profile/presentation/profile_notifier.dart';
+import '../../profile/domain/profile_model.dart';
+import '../../leaderboard/presentation/leaderboard_notifier.dart';
+import '../../leaderboard/domain/leaderboard_model.dart';
+import '../../../core/network/api_client.dart';
+import '../../auth/presentation/auth_notifier.dart';
+
+class PracticeDashboardScreen extends ConsumerStatefulWidget {
+  const PracticeDashboardScreen({super.key});
+
+  @override
+  ConsumerState<PracticeDashboardScreen> createState() => _PracticeDashboardScreenState();
+}
+
+class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScreen> {
+  final ScrollController _scrollController = ScrollController();
+  int _currentNavIndex = 0;
+  
+  // Dummy static syllabus maps for selection options
+  final List<Map<String, String>> _subjects = [
+    {'id': 'sub-physics', 'title': 'Physics'},
+    {'id': 'sub-chemistry', 'title': 'Chemistry'},
+    {'id': 'sub-math', 'title': 'Higher Math'},
+  ];
+
+  final Map<String, List<Map<String, String>>> _chapters = {
+    'sub-physics': [
+      {'id': 'ch-vector', 'title': 'Vectors'},
+      {'id': 'ch-mechanics', 'title': 'Newtonian Mechanics'},
+    ],
+    'sub-chemistry': [
+      {'id': 'ch-organic', 'title': 'Organic Chemistry'},
+      {'id': 'ch-electro', 'title': 'Electrochemistry'},
+    ],
+    'sub-math': [
+      {'id': 'ch-matrix', 'title': 'Matrices & Determinants'},
+      {'id': 'ch-calculus', 'title': 'Calculus'},
+    ],
+  };
+
+  String? _selectedSubjectId;
+  String? _selectedChapterId;
+  String _selectedDifficulty = 'MEDIUM';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    
+    // Select defaults
+    _selectedSubjectId = _subjects.first['id'];
+    _selectedChapterId = _chapters[_selectedSubjectId]!.first['id'];
+    
+    // Initial fetch trigger
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _triggerFetch();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      ref.read(practiceProvider.notifier).fetchNextPage();
+    }
+  }
+
+  void _triggerFetch() {
+    ref.read(practiceProvider.notifier).updateFilters(
+      subjectId: _selectedSubjectId,
+      chapterId: _selectedChapterId,
+      difficulty: _selectedDifficulty,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(practiceProvider);
+    final profileAsync = ref.watch(userProfileProvider);
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+
+    // Auto-logout and redirect on 401 Unauthorized exceptions
+    if (profileAsync is AsyncError) {
+      final error = (profileAsync as AsyncError).error;
+      if (error is NetworkException && error.statusCode == 401) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(authProvider.notifier).logout();
+          context.go('/login');
+        });
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+          ),
+        );
+      }
+    }
+
+    // Redirect to onboarding if not set up yet
+    if (profileAsync.value != null) {
+      final userData = profileAsync.value!;
+      if (userData.profile?.className == null || userData.profile!.className!.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.go('/onboarding');
+        });
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+          ),
+        );
+      }
+    }
+
+    ref.listen<AsyncValue<UserData>>(userProfileProvider, (previous, next) {
+      if (next.hasError) {
+        final error = next.error;
+        if (error is NetworkException && error.statusCode == 401) {
+          ref.read(authProvider.notifier).logout();
+          context.go('/login');
+        }
+      }
+    });
+
+    final theme = Theme.of(context);
+
+    // List of page view bodies matching each bottom navigation index
+    final List<Widget> views = [
+      _buildHomeDashboardView(state, theme, profileAsync, leaderboardAsync),
+      _buildQuestionBankView(theme),
+      _buildExamListView(theme),
+      _buildHistoryListView(theme),
+      _buildProgressView(theme),
+    ];
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: _currentNavIndex == 0
+          ? AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leadingWidth: 90,
+              // Left: Streak counter widget showing 🔥 ১ matching the screenshot
+              leading: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0ECE6), // Light theme green tint of rgb(1, 122, 71)
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFB9D8C9)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('🔥', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 4),
+                        Text(
+                          profileAsync.maybeWhen(
+                            data: (user) => '${user.profile?.currentStreak ?? 1}',
+                            orElse: () => '১',
+                          ),
+                          style: const TextStyle(
+                            color: Color(0xFF017A47),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Center: App logo
+              title: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black12, width: 1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Pidot',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+              // Right: Circular profile avatar image
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      context.push('/profile');
+                    },
+                    child: profileAsync.value != null
+                        ? CircleAvatar(
+                            radius: 18,
+                            backgroundColor: const Color(0xFFF18881),
+                            backgroundImage: (profileAsync.value?.profile?.avatarKey != null &&
+                                    profileAsync.value!.profile!.avatarKey!.isNotEmpty)
+                                ? NetworkImage(profileAsync.value!.profile!.avatarKey!)
+                                : null,
+                            child: (profileAsync.value?.profile?.avatarKey != null &&
+                                    profileAsync.value!.profile!.avatarKey!.isNotEmpty)
+                                ? null
+                                : const Text(
+                                    '👨‍🎓',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                          )
+                        : const CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Color(0xFF673AB7),
+                            child: Icon(Icons.person, color: Colors.white, size: 16),
+                          ),
+                  ),
+                ),
+              ],
+            )
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              title: Text(
+                _currentNavIndex == 1
+                    ? 'প্রশ্নব্যাংক'
+                    : _currentNavIndex == 2
+                        ? 'মক পরীক্ষা'
+                        : _currentNavIndex == 3
+                            ? 'হিস্ট্রি'
+                            : 'প্রোগ্রেস',
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              centerTitle: true,
+            ),
+      body: IndexedStack(
+        index: _currentNavIndex,
+        children: views,
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: const Color(0xFFE0ECE6), // Light theme green tint capsule
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF017A47),
+              );
+            }
+            return const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF495057),
+            );
+          }),
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentNavIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentNavIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.home, color: Color(0xFF017A47)),
+              label: 'হোম',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.inventory_2_outlined, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.inventory_2, color: Color(0xFF017A47)),
+              label: 'প্রশ্নব্যাংক',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.edit_outlined, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.edit, color: Color(0xFF017A47)),
+              label: 'পরীক্ষা',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.bookmark_outline, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.bookmark, color: Color(0xFF017A47)),
+              label: 'হিস্ট্রি',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.speed_outlined, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.speed, color: Color(0xFF017A47)),
+              label: 'প্রোগ্রেস',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // View 0: Home Dashboard matching the new screenshot
+  Widget _buildHomeDashboardView(state, ThemeData theme, profileAsync, leaderboardAsync) {
+    final profile = profileAsync.value?.profile;
+    final myUserId = profileAsync.value?.id;
+
+    // Read league name dynamically from active user's entry in the leaderboard list if found
+    String leagueName = 'আয়রন লীগ';
+    if (leaderboardAsync.value != null && myUserId != null) {
+      final myEntry = leaderboardAsync.value!.firstWhere(
+        (e) => e.userId == myUserId,
+        orElse: () => LeaderboardEntryModel(
+          rank: 0,
+          userId: '',
+          username: '',
+          fullName: '',
+          xp: 0,
+          level: profile?.level ?? 1,
+          solvedQuestionsCount: 0,
+          league: 'IRON',
+        ),
+      );
+      switch (myEntry.league.toUpperCase()) {
+        case 'BRONZE': leagueName = 'ব্রোঞ্জ লীগ'; break;
+        case 'SILVER': leagueName = 'সিলভার লীগ'; break;
+        case 'GOLD': leagueName = 'গোল্ড লীগ'; break;
+        case 'PLATINUM': leagueName = 'প্লাটিনাম লীগ'; break;
+        default: leagueName = 'আয়রন লীগ'; break;
+      }
+    } else if (profile != null) {
+      final lvl = profile.level;
+      if (lvl == 1) leagueName = 'ব্রোঞ্জ লীগ';
+      else if (lvl == 2) leagueName = 'সিলভার লীগ';
+      else if (lvl == 3) leagueName = 'গোল্ড লীগ';
+      else if (lvl == 4) leagueName = 'প্লাটিনাম লীগ';
+    }
+
+    final userName = profile?.fullName ?? 'Rabbi failure';
+    final userScore = profile?.xp ?? 3981;
+    final starPoints = profile != null ? (profile.xp % 100) : 0;
+    final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.0;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Premium Green Gradient Mesh Banner
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+            child: Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF004D40), Color(0xFF00796B), Color(0xFF003D33)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFD9746E), Color(0xFFF18881)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'PREMIUM',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'সীমাহীন অনুশীলনের জন্য Pidot প্রিমিয়াম নাও এখনই',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Get now',
+                            style: TextStyle(
+                              color: Color(0xFF004D40),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Mascot circular frame representation
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                    ),
+                    child: const Center(
+                      child: Text('🦖', style: TextStyle(fontSize: 52)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 2. Action Grid Buttons Row of 4 items with Subtitles
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: Row(
+              children: [
+                _buildGridAction(
+                  iconWidget: QuestionBankIcon(color: Colors.orange[800]!),
+                  color: Colors.orange[800]!,
+                  label: 'প্রশ্নব্যাংক',
+                  subtitle: 'অধ্যায় ভিত্তিক',
+                  onTap: () => setState(() => _currentNavIndex = 1),
+                ),
+                _buildGridAction(
+                  iconWidget: const QuickPracticeIcon(color: Color(0xFFF18881)),
+                  color: const Color(0xFFF18881),
+                  label: 'দ্রুত প্র্যাকটিস',
+                  subtitle: '১ ক্লিকে শুরু',
+                  onTap: () {},
+                ),
+                _buildGridAction(
+                  iconWidget: MockExamIcon(color: Colors.redAccent[700]!),
+                  color: Colors.redAccent[700]!,
+                  label: 'মক পরীক্ষা',
+                  subtitle: 'টাইমার সহ',
+                  onTap: () => setState(() => _currentNavIndex = 2),
+                ),
+                _buildGridAction(
+                  iconWidget: const AIGuideIcon(color: Color(0xFFF18881)),
+                  color: const Color(0xFFF18881),
+                  label: 'Pidot AI',
+                  subtitle: 'স্মার্ট গাইড',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+
+          // 4. Daily Streak Tracker Card
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFECEFF1), width: 1.2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('🔥', style: TextStyle(fontSize: 18)),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'স্ট্রিক মাইলস্টোন',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '${profile?.currentStreak ?? 1} দিন একটানা!',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF017A47),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(7, (index) {
+                      final dayNames = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র'];
+                      // Map index to weekday (Sat=0, Sun=1, Mon=2, Tue=3, Wed=4, Thu=5, Fri=6)
+                      final currentDayIndex = (DateTime.now().weekday + 1) % 7; 
+                      
+                      // Highlight days that are completed.
+                      final backendHistory = profileAsync.value?.streakHistory;
+                      final isCompleted = (backendHistory != null && index < backendHistory.length)
+                          ? backendHistory[index]
+                          : (index <= currentDayIndex && (currentDayIndex - index) < (profile?.currentStreak ?? 1));
+                      final isToday = index == currentDayIndex;
+
+                      return Column(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: isCompleted
+                                  ? const Color(0xFF017A47).withOpacity(0.08)
+                                  : (isToday ? Colors.grey[100] : Colors.transparent),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isCompleted
+                                    ? const Color(0xFF017A47)
+                                    : (isToday ? Colors.grey[400]! : Colors.grey[300]!),
+                                width: isToday ? 2 : 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                isCompleted ? '🔥' : '⚡',
+                                style: TextStyle(
+                                  fontSize: isCompleted ? 15 : 12,
+                                  color: isCompleted ? null : Colors.grey[400],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            dayNames[index],
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                              color: isToday ? const Color(0xFF017A47) : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. Active Leaderboard Section matching the new screenshot
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFECEFF1), width: 1.2),
+              ),
+              child: Column(
+                children: [
+                  // Leaderboard header title row
+                  Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'লিডারবোর্ড',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF017A47).withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                leagueName,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF017A47),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[500]),
+                      ],
+                    ),
+                  ),
+                  
+                  // Star progress track bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FA),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFECEFF1)),
+                      ),
+                      child: Row(
+                        children: [
+                          Text('$starPoints XP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF017A47))),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: LinearProgressIndicator(
+                                value: progressVal,
+                                minHeight: 6,
+                                backgroundColor: Colors.grey[200],
+                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  
+                  // Leaderboard list items loaded from API
+                  if (leaderboardAsync is AsyncLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty)) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.0),
+                      child: Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+                    ),
+                  ] else if (leaderboardAsync is AsyncError || leaderboardAsync.value == null) ...[
+                    _buildLeaderboardRow(
+                      name: userName,
+                      score: userScore,
+                      avatarText: '😎',
+                      avatarBg: const Color(0xFF81C784),
+                      isCurrentUser: true,
+                    ),
+                  ] else ...[
+                    Builder(
+                      builder: (context) {
+                        final entries = leaderboardAsync.value!;
+                        // Convert entries to LeaderboardPlayer models
+                        final List<LeaderboardPlayer> allPlayers = entries.map<LeaderboardPlayer>((e) {
+                          final isMe = e.userId == myUserId;
+                          return LeaderboardPlayer(
+                            name: e.fullName.isNotEmpty ? e.fullName : 'Student',
+                            score: e.xp,
+                            avatarText: e.avatarKey != null ? '🖼️' : (e.fullName.isNotEmpty ? e.fullName[0].toUpperCase() : '👨‍🎓'),
+                            avatarBg: isMe ? const Color(0xFF81C784) : const Color(0xFF26A69A),
+                            isCurrentUser: isMe,
+                          );
+                        }).toList();
+
+                        // If current user is not in the global ZSET list yet, insert them
+                        final hasMe = allPlayers.any((p) => p.isCurrentUser);
+                        if (!hasMe && profile != null) {
+                          allPlayers.add(
+                            LeaderboardPlayer(
+                              name: userName,
+                              score: userScore,
+                              avatarText: '😎',
+                              avatarBg: const Color(0xFF81C784),
+                              isCurrentUser: true,
+                            ),
+                          );
+                        }
+
+                        // Sort players by score
+                        allPlayers.sort((a, b) => b.score.compareTo(a.score));
+                        int myIndex = allPlayers.indexWhere((p) => p.isCurrentUser);
+
+                        List<LeaderboardPlayer> displayPlayers = [];
+                        if (allPlayers.length < 3) {
+                          displayPlayers = allPlayers.where((p) => p.isCurrentUser).toList();
+                        } else if (myIndex == 0) {
+                          displayPlayers = [allPlayers[0], allPlayers[1], allPlayers[2]];
+                        } else if (myIndex == allPlayers.length - 1) {
+                          displayPlayers = [allPlayers[myIndex - 2], allPlayers[myIndex - 1], allPlayers[myIndex]];
+                        } else if (myIndex != -1) {
+                          displayPlayers = [allPlayers[myIndex - 1], allPlayers[myIndex], allPlayers[myIndex + 1]];
+                        } else {
+                          displayPlayers = allPlayers.take(3).toList();
+                        }
+
+                        return Column(
+                          children: [
+                            ...displayPlayers.map((player) {
+                              return _buildLeaderboardRow(
+                                name: player.name,
+                                score: player.score,
+                                avatarText: player.avatarText,
+                                avatarBg: player.avatarBg,
+                                isCurrentUser: player.isCurrentUser,
+                              );
+                            }),
+                          ],
+                        );
+                      }
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGridAction({
+    required Widget iconWidget,
+    required Color color,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withOpacity(0.12), width: 1.2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: iconWidget,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Row helper for building individual leaderboard entries
+  Widget _buildLeaderboardRow({
+    required String name,
+    required int score,
+    required String avatarText,
+    required Color avatarBg,
+    required bool isCurrentUser,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isCurrentUser ? const Color(0xFF017A47).withOpacity(0.08) : Colors.transparent,
+        border: isCurrentUser
+            ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
+            : null,
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: avatarBg,
+            backgroundImage: (avatarText.startsWith('http') || (avatarText.length > 5 && avatarText.contains('/')))
+                ? NetworkImage(avatarText)
+                : null,
+            child: (avatarText.startsWith('http') || (avatarText.length > 5 && avatarText.contains('/')))
+                ? null
+                : Text(avatarText, style: const TextStyle(fontSize: 20)),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$score XP',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Color(0xFF017A47),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // View 1: Question Bank View
+  Widget _buildQuestionBankView(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'প্রশ্ন খুঁজুন...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: theme.cardColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 4,
+              itemBuilder: (context, index) {
+                final titles = [
+                  'কিসের মানের পরিবর্তনের জন্য লেন্সের ফোকাস দূরত্ব পরিবর্তিত হয়?',
+                  'নিচের কোনটি লরেন্টজ বলের সঠিক সমীকরণ?',
+                  'একটি তারের রোধ ১০ ওহম হলে তারটি টেনে দ্বিগুণ করলে রোধ কত হবে?',
+                  'স্থির তড়িৎক্ষেত্রে অসীম থেকে একটি আধানকে আনতে কৃতকাজ কী?'
+                ];
+                final subjects = ['পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান'];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    title: Text(titles[index], style: const TextStyle(fontWeight: FontWeight.w500)),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(subjects[index], style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // View 2: Mock Exam List View
+  Widget _buildExamListView(ThemeData theme) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        final titles = [
+          'HSC পদার্থবিজ্ঞান ১ম পত্র পূর্ণাঙ্গ মডেল টেস্ট',
+          'তড়িৎ রসায়ন ও রসায়ন ২য় পত্র অধ্যায় ভিত্তিক টেস্ট',
+          'উচ্চতর গণিত ১ম পত্র ক্যালকুলাস প্র্যাকটিস কুইজ'
+        ];
+        final marks = ['১০০ নম্বর', '২৫ নম্বর', '৪০ নম্বর'];
+        final times = ['২ ঘণ্টা', '৩০ মিনিট', '৪৫ মিনিট'];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titles[index], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.assignment_outlined, size: 16, color: theme.colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Text(marks[index], style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 16),
+                    Icon(Icons.timer_outlined, size: 16, color: theme.colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Text(times[index], style: const TextStyle(fontSize: 13)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.push('/exam/exam-id-123'); // Navigates to active exam runner
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF005C39),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('পরীক্ষা শুরু করুন', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // View 3: Exam Completion History View
+  Widget _buildHistoryListView(ThemeData theme) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        final titles = [
+          'ভেক্টর ও নিউটনীয় বলবিদ্যা প্র্যাকটিস কুইজ',
+          'জৈব রসায়ন পরিচিতি শর্ট টেস্ট',
+          'ম্যাট্রিক্স ও নির্ণায়ক অধ্যায় টেস্ট'
+        ];
+        final marks = ['স্কোর: ১৮/২০', 'স্কোর: ৭/১০', 'স্কোর: ২৫/২৫'];
+        final dates = ['১৮ জুলাই, ২০২৬', '১৬ জুলাই, ২০২৬', '১০ জুলাই, ২০২৬'];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: const Color(0xFFE8F5E9),
+              child: Icon(Icons.check, color: theme.colorScheme.primary),
+            ),
+            title: Text(titles[index], style: const TextStyle(fontWeight: FontWeight.w500)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(dates[index], style: const TextStyle(fontSize: 12)),
+            ),
+            trailing: Text(marks[index], style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+          ),
+        );
+      },
+    );
+  }
+
+  // View 4: Student Progress Metrics with Graphs
+  Widget _buildProgressView(ThemeData theme) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Streaks multiplier card
+          Card(
+            color: const Color(0xFFFFF3E0),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 32)),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '৭ দিনের স্ট্রিক!',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
+                      ),
+                      Text(
+                        'প্রতিদিন পরীক্ষা দিয়ে স্ট্রিক সচল রাখুন।',
+                        style: TextStyle(fontSize: 13, color: Colors.orange[800]),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // XP & Level stats card
+          Row(
+            children: [
+              Expanded(
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        const Text('মোট XP অর্জন', style: TextStyle(fontSize: 13, color: Colors.black54)),
+                        const SizedBox(height: 8),
+                        Text(
+                          '১২৫০ XP',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        const Text('কারেন্ট লেভেল', style: TextStyle(fontSize: 13, color: Colors.black54)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'লেভেল ৫',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Text('সাপ্তাহিক কর্মদক্ষতা গ্রাফ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          // Performance Line Chart utilizing fl_chart
+          Container(
+            height: 200,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: LineChart(
+              LineChartData(
+                gridData: const FlGridData(show: false),
+                titlesData: const FlTitlesData(show: false),
+                borderData: FlBorderData(show: false),
+                minX: 0,
+                maxX: 6,
+                minY: 0,
+                maxY: 10,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: const [
+                      FlSpot(0, 3),
+                      FlSpot(1, 4),
+                      FlSpot(2, 3.5),
+                      FlSpot(3, 5),
+                      FlSpot(4, 6.5),
+                      FlSpot(5, 7.5),
+                      FlSpot(6, 9),
+                    ],
+                    isCurved: true,
+                    color: const Color(0xFF005C39),
+                    barWidth: 4,
+                    dotData: const FlDotData(show: true),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: const Color(0xFF005C39).withOpacity(0.1),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+class LeaderboardPlayer {
+  final String name;
+  final int score;
+  final String avatarText;
+  final Color avatarBg;
+  final bool isCurrentUser;
+
+  LeaderboardPlayer({
+    required this.name,
+    required this.score,
+    required this.avatarText,
+    required this.avatarBg,
+    this.isCurrentUser = false,
+  });
+}
+
+class QuestionBankIcon extends StatelessWidget {
+  final Color color;
+  const QuestionBankIcon({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 2,
+            left: 5,
+            child: Container(
+              width: 14,
+              height: 18,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 5,
+            left: 2,
+            child: FloatingWidget(
+              child: Container(
+                width: 14,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 2.5, vertical: 3),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 8, height: 1.5, color: Colors.white),
+                    Container(width: 6, height: 1.5, color: Colors.white),
+                    Container(width: 4, height: 1.5, color: Colors.white),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class QuickPracticeIcon extends StatelessWidget {
+  final Color color;
+  const QuickPracticeIcon({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 0,
+            child: PulseWidget(
+              child: Icon(Icons.flash_on, size: 24, color: color),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 2,
+            child: Container(width: 3, height: 3, decoration: BoxDecoration(color: color.withOpacity(0.5), shape: BoxShape.circle)),
+          ),
+          Positioned(
+            top: 4,
+            right: 2,
+            child: Container(width: 2.5, height: 2.5, decoration: BoxDecoration(color: color.withOpacity(0.5), shape: BoxShape.circle)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MockExamIcon extends StatelessWidget {
+  final Color color;
+  const MockExamIcon({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 2,
+            left: 4,
+            child: Container(
+              width: 15,
+              height: 19,
+              decoration: BoxDecoration(
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 1,
+            left: 8,
+            child: Container(
+              width: 7,
+              height: 3,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 7,
+            left: 8,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(width: 7, height: 1.5, color: color),
+                const SizedBox(height: 2),
+                Container(width: 5, height: 1.5, color: color),
+                const SizedBox(height: 2),
+                Container(width: 7, height: 1.5, color: color),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: 1.5),
+              ),
+              child: Center(
+                child: RotateWidget(
+                  duration: const Duration(seconds: 4),
+                  child: Transform.translate(
+                    offset: const Offset(0, -1.5),
+                    child: Container(
+                      width: 1.2,
+                      height: 3.5,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AIGuideIcon extends StatelessWidget {
+  final Color color;
+  const AIGuideIcon({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          RotateWidget(
+            duration: const Duration(seconds: 8),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 1,
+                  left: 5,
+                  child: Container(width: 3.5, height: 3.5, decoration: BoxDecoration(color: color.withOpacity(0.6), shape: BoxShape.circle)),
+                ),
+                Positioned(
+                  bottom: 2,
+                  right: 5,
+                  child: Container(width: 3.5, height: 3.5, decoration: BoxDecoration(color: color.withOpacity(0.6), shape: BoxShape.circle)),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 1,
+                  child: Container(width: 2.5, height: 2.5, decoration: BoxDecoration(color: color.withOpacity(0.4), shape: BoxShape.circle)),
+                ),
+              ],
+            ),
+          ),
+          PulseWidget(
+            child: Icon(Icons.auto_awesome, size: 18, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Micro-animation Loop Helper Widgets
+class FloatingWidget extends StatefulWidget {
+  final Widget child;
+  const FloatingWidget({required this.child});
+
+  @override
+  State<FloatingWidget> createState() => _FloatingWidgetState();
+}
+
+class _FloatingWidgetState extends State<FloatingWidget> {
+  double _value = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: _value),
+      duration: const Duration(seconds: 1),
+      onEnd: () {
+        setState(() {
+          _value = _value == 0.0 ? 3.0 : 0.0;
+        });
+      },
+      builder: (context, offset, child) {
+        return Transform.translate(
+          offset: Offset(0, -offset),
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class PulseWidget extends StatefulWidget {
+  final Widget child;
+  const PulseWidget({required this.child});
+
+  @override
+  State<PulseWidget> createState() => _PulseWidgetState();
+}
+
+class _PulseWidgetState extends State<PulseWidget> {
+  double _scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 1.0, end: _scale),
+      duration: const Duration(milliseconds: 900),
+      onEnd: () {
+        setState(() {
+          _scale = _scale == 1.0 ? 1.15 : 1.0;
+        });
+      },
+      builder: (context, scale, child) {
+        return Transform.scale(
+          scale: scale,
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
+
+class RotateWidget extends StatefulWidget {
+  final Widget child;
+  final Duration duration;
+  const RotateWidget({required this.child, this.duration = const Duration(seconds: 4)});
+
+  @override
+  State<RotateWidget> createState() => _RotateWidgetState();
+}
+
+class _RotateWidgetState extends State<RotateWidget> {
+  double _angle = 0.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: _angle),
+      duration: widget.duration,
+      onEnd: () {
+        setState(() {
+          _angle += 6.28318;
+        });
+      },
+      builder: (context, angle, child) {
+        return Transform.rotate(
+          angle: angle,
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
+  }
+}
