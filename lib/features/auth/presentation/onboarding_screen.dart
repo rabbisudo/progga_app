@@ -17,7 +17,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String? _selectedClass;
   String? _selectedGroup;
   String? _selectedBatch;
+  String _selectedGender = 'ছেলে'; // 'ছেলে' (MALE) or 'মেয়ে' (FEMALE)
+  DateTime? _selectedBirthday;
+  
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _institutionController = TextEditingController();
+  
   bool _isSubmitting = false;
   bool _isTalking = true;
   Timer? _talkingTimer;
@@ -46,6 +52,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     _talkingTimer?.cancel();
     _nameController.dispose();
+    _addressController.dispose();
+    _institutionController.dispose();
     super.dispose();
   }
 
@@ -55,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isTalking = false;
       _step++;
     });
-    if (_step == 5) {
+    if (_step == 6) {
       _startTalkingTimer();
     }
   }
@@ -67,7 +75,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _isTalking = false;
         _step--;
       });
-      if (_step == 0 || _step == 5) {
+      if (_step == 0 || _step == 6) {
         _startTalkingTimer();
       }
     }
@@ -83,6 +91,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       await ref.read(userProfileProvider.notifier).updateProfileDetails({
         'fullName': _nameController.text.trim(),
+        'gender': _selectedGender == 'মেয়ে' ? 'FEMALE' : 'MALE',
+        'birthday': _selectedBirthday?.toIso8601String(),
+        'address': _addressController.text.trim(),
+        'institution': _institutionController.text.trim(),
         'className': _selectedClass,
         'targetExam': _selectedGroup ?? '',
         'batch': _selectedBatch ?? '',
@@ -116,23 +128,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         mascotState = 'wave';
         break;
       case 1:
+        speechText = 'তোমার ব্যক্তিগত তথ্য দাও বন্ধু!';
+        mascotState = 'write';
+        break;
+      case 2:
+        speechText = 'তোমার শিক্ষা প্রতিষ্ঠানের নাম কি?';
+        mascotState = 'read';
+        break;
+      case 3:
         speechText = 'তুমি কোন শ্রেণীতে পড়ো?';
         mascotState = 'read';
         break;
-      case 2:
+      case 4:
         speechText = 'তোমার বিভাগ কোনটি?';
         mascotState = 'write';
         break;
-      case 3:
+      case 5:
         speechText = 'তোমার পরীক্ষার ব্যাচ কোনটি?';
         mascotState = 'think';
         break;
-      case 4:
-        speechText = 'তোমার নাম কি বন্ধু?';
-        mascotState = 'think';
-        break;
-      case 5:
-        speechText = 'স্বাগতম ${_nameController.text.trim()}!\nPidot-এর সাথে তোমার চর্চা শুরু হোক!';
+      case 6:
+        speechText = 'স্বাগতম ${_nameController.text.trim()}!\nProgga-এর সাথে তোমার চর্চা শুরু হোক!';
         mascotState = 'welcome';
         break;
     }
@@ -243,27 +259,197 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (_step == 1) {
+      // Step 1: Personal Info (Name, Birthday, Gender, Address)
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              onChanged: (val) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'পূর্ণ নাম',
+                hintText: 'যেমন - তানভীর আহমেদ',
+                filled: true,
+                fillColor: const Color(0xFFECEFF1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedBirthday ?? DateTime(2006, 1, 1),
+                        firstDate: DateTime(1970),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null) {
+                        setState(() => _selectedBirthday = picked);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECEFF1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.cake, color: Color(0xFF017A47), size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _selectedBirthday != null
+                                  ? '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'
+                                  : 'জন্মতারিখ',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Gender Selector
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECEFF1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: ['ছেলে', 'মেয়ে'].map((g) {
+                      final isSelected = _selectedGender == g;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedGender = g),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF017A47) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            g,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _addressController,
+              decoration: InputDecoration(
+                labelText: 'বর্তমান ঠিকানা',
+                hintText: 'যেমন - ঢাকা, বাংলাদেশ',
+                filled: true,
+                fillColor: const Color(0xFFECEFF1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _nameController.text.trim().isNotEmpty ? _nextStep : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF017A47),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('পরবর্তী', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_step == 2) {
+      // Step 2: Educational Institution
+      return Column(
+        children: [
+          TextField(
+            controller: _institutionController,
+            onChanged: (val) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: 'শিক্ষা প্রতিষ্ঠানের নাম',
+              hintText: 'যেমন - ঢাকা কলেজ / মতিঝিল আইডিয়াল',
+              filled: true,
+              fillColor: const Color(0xFFECEFF1),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _nextStep,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF017A47),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text(
+                'পরবর্তী',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_step == 3) {
+      // Step 3: Class Selection
       final options = [
         {'title': 'ক্লাস ৬-৮', 'icon': Icons.menu_book, 'color': const Color(0xFFFFF9C4)},
         {'title': 'এসএসসি / দাখিল', 'icon': Icons.backpack, 'color': const Color(0xFFE3F2FD)},
         {'title': 'এইচএসসি / আলিম / অ্যাডমিশন', 'icon': Icons.school, 'color': const Color(0xFFECEFF1)},
+        {'title': 'বিএসসি / অনার্স', 'icon': Icons.business, 'color': const Color(0xFFE1BEE7)},
         {'title': 'বিসিএস / জবস', 'icon': Icons.work, 'color': const Color(0xFFFFE0B2)},
       ];
 
       return Column(
         children: options.map((opt) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
+            padding: const EdgeInsets.only(bottom: 10.0),
             child: InkWell(
               onTap: () {
                 setState(() {
                   _selectedClass = opt['title'] as String;
-                  // If Class 6-8 or BCS/Jobs is selected, skip group selection step
                   if (_selectedClass == 'ক্লাস ৬-৮' || _selectedClass == 'বিসিএস / জবস') {
                     _selectedGroup = null;
-                    _step = 3; // Jump directly to batch
+                    _selectedBatch = null;
+                    _step = 6; // Jump straight to summary
+                  } else if (_selectedClass == 'বিএসসি / অনার্স') {
+                    _selectedGroup = null;
+                    _step = 5; // Jump to batch selection
                   } else {
-                    _step = 2; // Jump to group selection
+                    _step = 4; // Jump to group selection (SSC / HSC / Dakhil / Alim)
                   }
                 });
               },
@@ -282,9 +468,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         color: opt['color'] as Color,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(opt['icon'] as IconData, color: const Color(0xFF017A47), size: 24),
+                      child: Icon(opt['icon'] as IconData, color: const Color(0xFF017A47), size: 22),
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         opt['title'] as String,
@@ -300,7 +486,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    if (_step == 2) {
+    if (_step == 4) {
+      // Step 4: Group Selection
       final groups = [
         {'title': 'বিজ্ঞান', 'icon': Icons.biotech, 'color': const Color(0xFFE8F5E9)},
         {'title': 'মানবিক', 'icon': Icons.public, 'color': const Color(0xFFFFF3E0)},
@@ -315,7 +502,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               onTap: () {
                 setState(() {
                   _selectedGroup = grp['title'] as String;
-                  _step = 3;
+                  _step = 5; // Jump to batch
                 });
               },
               child: Container(
@@ -351,12 +538,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    if (_step == 3) {
+    if (_step == 5) {
+      // Step 5: Batch Selection
       List<String> batches = [];
       if (_selectedClass == 'এসএসসি / দাখিল') {
-        batches = ['কলেজ অ্যাডমিশন', 'এসএসসি ২০২৭', 'এসএসসি ২০২৮'];
+        batches = ['এসএসসি ২০২৬', 'এসএসসি ২০২৭', 'কলেজ অ্যাডমিশন'];
       } else if (_selectedClass == 'এইচএসসি / আলিম / অ্যাডমিশন') {
-        batches = ['ভার্সিটি অ্যাডমিশন', 'এইচএসসি ২০২৬', 'এইচএসসি ২০২৭'];
+        batches = ['এইচএসসি ২০২৬', 'এইচএসসি ২০২৭', 'ভার্সিটি অ্যাডমিশন'];
+      } else if (_selectedClass == 'বিএসসি / অনার্স') {
+        batches = ['চলতি সেশন', 'অনার্স ১ম বর্ষ', 'অনার্স ২য় বর্ষ', 'অনার্স ৩য় বর্ষ', 'অনার্স ৪র্থ বর্ষ'];
       } else {
         batches = ['জব প্রিপারেশন', 'চলতি সেশন'];
       }
@@ -367,12 +557,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             padding: const EdgeInsets.only(bottom: 12.0),
             child: SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 50,
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
                     _selectedBatch = batch;
-                    _step = 4;
+                    _step = 6; // Jump to summary
                   });
                 },
                 style: OutlinedButton.styleFrom(
@@ -393,58 +583,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    if (_step == 4) {
-      return Column(
-        children: [
-          TextField(
-            controller: _nameController,
-            onChanged: (val) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: 'উদা - জেমস বন্ড',
-              filled: true,
-              fillColor: const Color(0xFFECEFF1),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFF017A47), width: 2.0),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFCFD8DC), width: 1.2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: (_nameController.text.trim().isNotEmpty)
-                  ? _nextStep
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF017A47),
-                disabledBackgroundColor: Colors.grey[500],
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Text(
-                'পরবর্তী',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    // Step 5: Summary and Final Welcome Screen
+    // Step 6: Summary and Final Welcome Screen
     return Column(
       children: [
         Container(
@@ -458,11 +597,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildSummaryRow('নাম:', _nameController.text.trim()),
+              const Divider(),
+              _buildSummaryRow('লিঙ্গ:', _selectedGender),
+              if (_selectedBirthday != null) const Divider(),
+              if (_selectedBirthday != null)
+                _buildSummaryRow('জন্মতারিখ:', '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'),
+              if (_addressController.text.trim().isNotEmpty) const Divider(),
+              if (_addressController.text.trim().isNotEmpty)
+                _buildSummaryRow('ঠিকানা:', _addressController.text.trim()),
+              if (_institutionController.text.trim().isNotEmpty) const Divider(),
+              if (_institutionController.text.trim().isNotEmpty)
+                _buildSummaryRow('প্রতিষ্ঠানের নাম:', _institutionController.text.trim()),
+              const Divider(),
               _buildSummaryRow('শ্রেণী:', _selectedClass ?? 'নির্বাচন করা হয়নি'),
               if (_selectedGroup != null) const Divider(),
               if (_selectedGroup != null) _buildSummaryRow('বিভাগ:', _selectedGroup!),
-              const Divider(),
-              _buildSummaryRow('ব্যাচ:', _selectedBatch ?? 'নির্বাচন করা হয়নি'),
+              if (_selectedBatch != null) const Divider(),
+              if (_selectedBatch != null) _buildSummaryRow('ব্যাচ:', _selectedBatch!),
             ],
           ),
         ),

@@ -83,6 +83,37 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
+                // Personal & Academic Information Card
+                const Text(
+                  'ব্যক্তিগত ও অ্যাকাডেমিক তথ্য',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoTile(Icons.person, 'লিঙ্গ', profile.gender == 'FEMALE' ? 'মেয়ে' : 'ছেলে'),
+                        if (profile.birthday != null) const Divider(),
+                        if (profile.birthday != null) _buildInfoTile(Icons.cake, 'জন্মতারিখ', profile.birthday!.split('T')[0]),
+                        if (profile.address != null && profile.address!.isNotEmpty) const Divider(),
+                        if (profile.address != null && profile.address!.isNotEmpty) _buildInfoTile(Icons.home, 'ঠিকানা', profile.address!),
+                        if (profile.institution != null && profile.institution!.isNotEmpty) const Divider(),
+                        if (profile.institution != null && profile.institution!.isNotEmpty) _buildInfoTile(Icons.school, 'প্রতিষ্ঠান', profile.institution!),
+                        if (profile.className != null && profile.className!.isNotEmpty) const Divider(),
+                        if (profile.className != null && profile.className!.isNotEmpty) _buildInfoTile(Icons.class_, 'শ্রেণী', profile.className!),
+                        if (profile.targetExam != null && profile.targetExam!.isNotEmpty) const Divider(),
+                        if (profile.targetExam != null && profile.targetExam!.isNotEmpty) _buildInfoTile(Icons.category, 'বিভাগ', profile.targetExam!),
+                        if (profile.batch != null && profile.batch!.isNotEmpty) const Divider(),
+                        if (profile.batch != null && profile.batch!.isNotEmpty) _buildInfoTile(Icons.group, 'ব্যাচ', profile.batch!),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 // Settings toggles
                 const Text(
                   'Account Settings',
@@ -142,7 +173,7 @@ class ProfileScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Pidot',
+                                'Progga',
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
@@ -184,6 +215,26 @@ class ProfileScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF017A47)),
+          const SizedBox(width: 12),
+          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

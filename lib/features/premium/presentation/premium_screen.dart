@@ -18,14 +18,16 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
   final List<Map<String, dynamic>> _plans = [
     {
       'id': 'plan-monthly',
-      'name': 'Pidot Premium Monthly',
-      'price': 499.0,
+      'name': 'Progga Premium Monthly',
+      'price': 199.0,
       'cycle': 'Month',
       'features': ['Unlimited Exam Attempts', 'AI Diagnostics Report', 'Incorrect Retries Portal'],
+      'period': 'প্রতি মাসে বিলিং',
+      'isPopular': false,
     },
     {
-      'id': 'plan-yearly',
-      'name': 'Pidot Premium Annual',
+      'id': 'progga_annual',
+      'name': 'Progga Premium Annual',
       'price': 3999.0,
       'cycle': 'Year',
       'features': ['All Monthly Features', 'Priority AI Tutor Support', '20% Discount Save Match'],

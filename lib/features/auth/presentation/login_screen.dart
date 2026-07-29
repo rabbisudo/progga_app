@@ -55,7 +55,7 @@ class LoginScreen extends ConsumerWidget {
               
               const Center(
                 child: Text(
-                  'Pidot',
+                  'Progga',
                   style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.bold,
@@ -87,7 +87,7 @@ class LoginScreen extends ConsumerWidget {
                   onPressed: () async {
                     try {
                       final GoogleSignIn googleSignIn = GoogleSignIn(
-                        clientId: '706766426977-v2277fm2poq1gi23gr8mf2l3dvcfs0vl.apps.googleusercontent.com',
+                        serverClientId: '781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com',
                         scopes: ['email', 'profile'],
                       );
                       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();

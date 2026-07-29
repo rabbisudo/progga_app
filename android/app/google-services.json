@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "781610946731",
+    "project_id": "proggaexam",
+    "storage_bucket": "proggaexam.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:781610946731:android:2722f3e599393c935227ee",
+        "android_client_info": {
+          "package_name": "com.progga.ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "781610946731-jctcpoeddgph32r5o1mhfb0e7ak2bnn8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.progga.ai",
+            "certificate_hash": "a4291d67fc4c9fbb63fd2afb270e657c1317bea7"
+          }
+        },
+        {
+          "client_id": "781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2w65YB__OrbfnSXky92J0Wg6-rDhpJJ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

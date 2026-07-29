@@ -188,7 +188,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
-                    'Pidot',
+                    'Progga',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -355,93 +355,31 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Premium Green Gradient Mesh Banner
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-            child: Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF004D40), Color(0xFF00796B), Color(0xFF003D33)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFD9746E), Color(0xFFF18881)],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'PREMIUM',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.1,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'সীমাহীন অনুশীলনের জন্য Pidot প্রিমিয়াম নাও এখনই',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Get now',
-                            style: TextStyle(
-                              color: Color(0xFF004D40),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Mascot circular frame representation
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                    ),
-                    child: const Center(
-                      child: Text('🦖', style: TextStyle(fontSize: 52)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // 1. Multiple Swipeable Banner Slider
+          const BannerSliderWidget(
+            banners: [
+              {
+                'title': 'সীমাহীন অনুশীলনের জন্য Progga প্রিমিয়াম নাও এখনই',
+                'badgeText': 'PREMIUM',
+                'targetUrl': '/premium',
+                'colors': [Color(0xFF004D40), Color(0xFF00796B), Color(0xFF003D33)],
+                'icon': '🦖',
+              },
+              {
+                'title': 'এইচএসসি ও ভর্তি পরীক্ষা স্পেশাল মক টেস্ট প্রতিযোগিতা',
+                'badgeText': 'LIVE EXAM',
+                'targetUrl': '/premium',
+                'colors': [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                'icon': '🏆',
+              },
+              {
+                'title': 'অধ্যায়ভিত্তিক প্রশ্নব্যাংক ও সমাধান ফ্রি আনলক করো',
+                'badgeText': 'FREE OFFER',
+                'targetUrl': '/premium',
+                'colors': [Color(0xFFD84315), Color(0xFFF4511E)],
+                'icon': '📚',
+              },
+            ],
           ),
 
           // 2. Action Grid Buttons Row of 4 items with Subtitles
@@ -473,7 +411,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 _buildGridAction(
                   iconWidget: const AIGuideIcon(color: Color(0xFFF18881)),
                   color: const Color(0xFFF18881),
-                  label: 'Pidot AI',
+                  label: 'Progga AI',
                   subtitle: 'স্মার্ট গাইড',
                   onTap: () {},
                 ),
@@ -1449,3 +1387,183 @@ class _RotateWidgetState extends State<RotateWidget> {
     );
   }
 }
+
+class BannerSliderWidget extends StatefulWidget {
+  final List<Map<String, dynamic>> banners;
+  const BannerSliderWidget({super.key, required this.banners});
+
+  @override
+  State<BannerSliderWidget> createState() => _BannerSliderWidgetState();
+}
+
+class _BannerSliderWidgetState extends State<BannerSliderWidget> {
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.banners.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 160,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemCount: widget.banners.length,
+            itemBuilder: (context, index) {
+              final banner = widget.banners[index];
+              final String title = banner['title'] ?? '';
+              final String badgeText = banner['badgeText'] ?? 'OFFER';
+              final String? imageUrl = banner['imageUrl'];
+              final String targetUrl = banner['targetUrl'] ?? '/premium';
+              final List<Color> gradientColors = banner['colors'] ?? [const Color(0xFF004D40), const Color(0xFF00796B)];
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                child: GestureDetector(
+                  onTap: () {
+                    context.push(targetUrl);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      gradient: imageUrl == null
+                          ? LinearGradient(
+                              colors: gradientColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      image: imageUrl != null && imageUrl.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(imageUrl),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFD9746E), Color(0xFFF18881)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  badgeText,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.1,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.25,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: () => context.push(targetUrl),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 0,
+                                  minimumSize: const Size(0, 30),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Get now',
+                                  style: TextStyle(
+                                    color: Color(0xFF004D40),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(banner['icon'] ?? '🦖', style: const TextStyle(fontSize: 38)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        if (widget.banners.length > 1)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              widget.banners.length,
+              (i) => AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                width: _currentIndex == i ? 18 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: _currentIndex == i ? const Color(0xFF00796B) : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
