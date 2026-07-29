@@ -91,7 +91,7 @@ _$UserDataImpl _$$UserDataImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       email: json['email'] as String,
       username: json['username'] as String,
-      role: json['role'] as String,
+      role: json['role'] as String? ?? 'USER',
       isActive: json['isActive'] as bool,
       createdAt: json['createdAt'] as String,
       profile: json['profile'] == null

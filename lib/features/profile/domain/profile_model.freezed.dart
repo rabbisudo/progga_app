@@ -1109,7 +1109,7 @@ class _$UserDataImpl implements _UserData {
       {required this.id,
       required this.email,
       required this.username,
-      required this.role,
+      this.role = 'USER',
       required this.isActive,
       required this.createdAt,
       this.profile,
@@ -1126,6 +1126,7 @@ class _$UserDataImpl implements _UserData {
   @override
   final String username;
   @override
+  @JsonKey()
   final String role;
   @override
   final bool isActive;
@@ -1199,7 +1200,7 @@ abstract class _UserData implements UserData {
       {required final String id,
       required final String email,
       required final String username,
-      required final String role,
+      final String role,
       required final bool isActive,
       required final String createdAt,
       final UserProfile? profile,

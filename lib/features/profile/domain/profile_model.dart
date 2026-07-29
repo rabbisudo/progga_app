@@ -53,7 +53,7 @@ class UserData with _$UserData {
     required String id,
     required String email,
     required String username,
-    required String role,
+    @Default('USER') String role,
     required bool isActive,
     required String createdAt,
     UserProfile? profile,
