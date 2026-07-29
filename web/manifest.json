@@ -1,6 +1,6 @@
 {
-    "name": "pidot_mobile",
-    "short_name": "pidot_mobile",
+    "name": "progga_mobile",
+    "short_name": "progga_mobile",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

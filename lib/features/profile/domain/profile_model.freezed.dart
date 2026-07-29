@@ -26,11 +26,17 @@ mixin _$UserProfile {
   String? get avatarKey => throw _privateConstructorUsedError;
   String? get coverPhotoKey => throw _privateConstructorUsedError;
   String? get bio => throw _privateConstructorUsedError;
+  String? get birthday => throw _privateConstructorUsedError;
+  String? get gender => throw _privateConstructorUsedError;
+  String? get address => throw _privateConstructorUsedError;
   String? get institution => throw _privateConstructorUsedError;
   String? get className => throw _privateConstructorUsedError;
   String? get batch => throw _privateConstructorUsedError;
   String? get board => throw _privateConstructorUsedError;
   String? get targetExam => throw _privateConstructorUsedError;
+  String? get classId => throw _privateConstructorUsedError;
+  String? get groupId => throw _privateConstructorUsedError;
+  String? get batchId => throw _privateConstructorUsedError;
   double? get targetGPA => throw _privateConstructorUsedError;
   String get country => throw _privateConstructorUsedError;
   String get language => throw _privateConstructorUsedError;
@@ -70,11 +76,17 @@ abstract class $UserProfileCopyWith<$Res> {
       String? avatarKey,
       String? coverPhotoKey,
       String? bio,
+      String? birthday,
+      String? gender,
+      String? address,
       String? institution,
       String? className,
       String? batch,
       String? board,
       String? targetExam,
+      String? classId,
+      String? groupId,
+      String? batchId,
       double? targetGPA,
       String country,
       String language,
@@ -115,11 +127,17 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? avatarKey = freezed,
     Object? coverPhotoKey = freezed,
     Object? bio = freezed,
+    Object? birthday = freezed,
+    Object? gender = freezed,
+    Object? address = freezed,
     Object? institution = freezed,
     Object? className = freezed,
     Object? batch = freezed,
     Object? board = freezed,
     Object? targetExam = freezed,
+    Object? classId = freezed,
+    Object? groupId = freezed,
+    Object? batchId = freezed,
     Object? targetGPA = freezed,
     Object? country = null,
     Object? language = null,
@@ -165,6 +183,18 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           ? _value.bio
           : bio // ignore: cast_nullable_to_non_nullable
               as String?,
+      birthday: freezed == birthday
+          ? _value.birthday
+          : birthday // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
       institution: freezed == institution
           ? _value.institution
           : institution // ignore: cast_nullable_to_non_nullable
@@ -184,6 +214,18 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
       targetExam: freezed == targetExam
           ? _value.targetExam
           : targetExam // ignore: cast_nullable_to_non_nullable
+              as String?,
+      classId: freezed == classId
+          ? _value.classId
+          : classId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      groupId: freezed == groupId
+          ? _value.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      batchId: freezed == batchId
+          ? _value.batchId
+          : batchId // ignore: cast_nullable_to_non_nullable
               as String?,
       targetGPA: freezed == targetGPA
           ? _value.targetGPA
@@ -280,11 +322,17 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       String? avatarKey,
       String? coverPhotoKey,
       String? bio,
+      String? birthday,
+      String? gender,
+      String? address,
       String? institution,
       String? className,
       String? batch,
       String? board,
       String? targetExam,
+      String? classId,
+      String? groupId,
+      String? batchId,
       double? targetGPA,
       String country,
       String language,
@@ -323,11 +371,17 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? avatarKey = freezed,
     Object? coverPhotoKey = freezed,
     Object? bio = freezed,
+    Object? birthday = freezed,
+    Object? gender = freezed,
+    Object? address = freezed,
     Object? institution = freezed,
     Object? className = freezed,
     Object? batch = freezed,
     Object? board = freezed,
     Object? targetExam = freezed,
+    Object? classId = freezed,
+    Object? groupId = freezed,
+    Object? batchId = freezed,
     Object? targetGPA = freezed,
     Object? country = null,
     Object? language = null,
@@ -373,6 +427,18 @@ class __$$UserProfileImplCopyWithImpl<$Res>
           ? _value.bio
           : bio // ignore: cast_nullable_to_non_nullable
               as String?,
+      birthday: freezed == birthday
+          ? _value.birthday
+          : birthday // ignore: cast_nullable_to_non_nullable
+              as String?,
+      gender: freezed == gender
+          ? _value.gender
+          : gender // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
       institution: freezed == institution
           ? _value.institution
           : institution // ignore: cast_nullable_to_non_nullable
@@ -392,6 +458,18 @@ class __$$UserProfileImplCopyWithImpl<$Res>
       targetExam: freezed == targetExam
           ? _value.targetExam
           : targetExam // ignore: cast_nullable_to_non_nullable
+              as String?,
+      classId: freezed == classId
+          ? _value.classId
+          : classId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      groupId: freezed == groupId
+          ? _value.groupId
+          : groupId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      batchId: freezed == batchId
+          ? _value.batchId
+          : batchId // ignore: cast_nullable_to_non_nullable
               as String?,
       targetGPA: freezed == targetGPA
           ? _value.targetGPA
@@ -483,11 +561,17 @@ class _$UserProfileImpl implements _UserProfile {
       this.avatarKey,
       this.coverPhotoKey,
       this.bio,
+      this.birthday,
+      this.gender,
+      this.address,
       this.institution,
       this.className,
       this.batch,
       this.board,
       this.targetExam,
+      this.classId,
+      this.groupId,
+      this.batchId,
       this.targetGPA,
       required this.country,
       required this.language,
@@ -524,6 +608,12 @@ class _$UserProfileImpl implements _UserProfile {
   @override
   final String? bio;
   @override
+  final String? birthday;
+  @override
+  final String? gender;
+  @override
+  final String? address;
+  @override
   final String? institution;
   @override
   final String? className;
@@ -533,6 +623,12 @@ class _$UserProfileImpl implements _UserProfile {
   final String? board;
   @override
   final String? targetExam;
+  @override
+  final String? classId;
+  @override
+  final String? groupId;
+  @override
+  final String? batchId;
   @override
   final double? targetGPA;
   @override
@@ -574,7 +670,7 @@ class _$UserProfileImpl implements _UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, institution: $institution, className: $className, batch: $batch, board: $board, targetExam: $targetExam, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
+    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, birthday: $birthday, gender: $gender, address: $address, institution: $institution, className: $className, batch: $batch, board: $board, targetExam: $targetExam, classId: $classId, groupId: $groupId, batchId: $batchId, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
   }
 
   @override
@@ -591,6 +687,10 @@ class _$UserProfileImpl implements _UserProfile {
             (identical(other.coverPhotoKey, coverPhotoKey) ||
                 other.coverPhotoKey == coverPhotoKey) &&
             (identical(other.bio, bio) || other.bio == bio) &&
+            (identical(other.birthday, birthday) ||
+                other.birthday == birthday) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            (identical(other.address, address) || other.address == address) &&
             (identical(other.institution, institution) ||
                 other.institution == institution) &&
             (identical(other.className, className) ||
@@ -599,6 +699,9 @@ class _$UserProfileImpl implements _UserProfile {
             (identical(other.board, board) || other.board == board) &&
             (identical(other.targetExam, targetExam) ||
                 other.targetExam == targetExam) &&
+            (identical(other.classId, classId) || other.classId == classId) &&
+            (identical(other.groupId, groupId) || other.groupId == groupId) &&
+            (identical(other.batchId, batchId) || other.batchId == batchId) &&
             (identical(other.targetGPA, targetGPA) ||
                 other.targetGPA == targetGPA) &&
             (identical(other.country, country) || other.country == country) &&
@@ -644,11 +747,17 @@ class _$UserProfileImpl implements _UserProfile {
         avatarKey,
         coverPhotoKey,
         bio,
+        birthday,
+        gender,
+        address,
         institution,
         className,
         batch,
         board,
         targetExam,
+        classId,
+        groupId,
+        batchId,
         targetGPA,
         country,
         language,
@@ -692,11 +801,17 @@ abstract class _UserProfile implements UserProfile {
       final String? avatarKey,
       final String? coverPhotoKey,
       final String? bio,
+      final String? birthday,
+      final String? gender,
+      final String? address,
       final String? institution,
       final String? className,
       final String? batch,
       final String? board,
       final String? targetExam,
+      final String? classId,
+      final String? groupId,
+      final String? batchId,
       final double? targetGPA,
       required final String country,
       required final String language,
@@ -733,6 +848,12 @@ abstract class _UserProfile implements UserProfile {
   @override
   String? get bio;
   @override
+  String? get birthday;
+  @override
+  String? get gender;
+  @override
+  String? get address;
+  @override
   String? get institution;
   @override
   String? get className;
@@ -742,6 +863,12 @@ abstract class _UserProfile implements UserProfile {
   String? get board;
   @override
   String? get targetExam;
+  @override
+  String? get classId;
+  @override
+  String? get groupId;
+  @override
+  String? get batchId;
   @override
   double? get targetGPA;
   @override
