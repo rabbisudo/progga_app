@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../profile/presentation/profile_notifier.dart';
+import '../../academics/data/academics_repository.dart';
+import '../../academics/domain/academics_model.dart';
 import 'auth_notifier.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -17,6 +19,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String? _selectedClass;
   String? _selectedGroup;
   String? _selectedBatch;
+  AcademicClassModel? _selectedClassModel;
+  SubjectGroupModel? _selectedGroupModel;
+  AcademicBatchModel? _selectedBatchModel;
   String _selectedGender = 'ছেলে'; // 'ছেলে' (MALE) or 'মেয়ে' (FEMALE)
   DateTime? _selectedBirthday;
   
@@ -95,9 +100,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         'birthday': _selectedBirthday?.toIso8601String(),
         'address': _addressController.text.trim(),
         'institution': _institutionController.text.trim(),
-        'className': _selectedClass,
-        'targetExam': _selectedGroup ?? '',
-        'batch': _selectedBatch ?? '',
+        'className': _selectedClassModel?.name ?? _selectedClass,
+        'classId': _selectedClassModel?.id,
+        'groupId': _selectedGroupModel?.id,
+        'batchId': _selectedBatchModel?.id,
+        'targetExam': _selectedGroupModel?.name ?? _selectedGroup ?? '',
+        'batch': _selectedBatchModel?.name ?? _selectedBatch ?? '',
       });
       if (mounted) {
         context.go('/home');
@@ -424,32 +432,134 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (_step == 3) {
-      // Step 3: Class Selection
-      final options = [
-        {'title': 'ক্লাস ৬-৮', 'icon': Icons.menu_book, 'color': const Color(0xFFFFF9C4)},
-        {'title': 'এসএসসি / দাখিল', 'icon': Icons.backpack, 'color': const Color(0xFFE3F2FD)},
-        {'title': 'এইচএসসি / আলিম / অ্যাডমিশন', 'icon': Icons.school, 'color': const Color(0xFFECEFF1)},
-        {'title': 'বিএসসি / অনার্স', 'icon': Icons.business, 'color': const Color(0xFFE1BEE7)},
-        {'title': 'বিসিএস / জবস', 'icon': Icons.work, 'color': const Color(0xFFFFE0B2)},
-      ];
+      // Step 3: Class Selection (Fetched dynamically from API)
+      final activeClassesAsync = ref.watch(activeClassesProvider);
+
+      return activeClassesAsync.when(
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+          ),
+        ),
+        error: (err, stack) => Column(
+          children: [
+            Text('ক্লাস সমূহের তালিকা লোড করতে সমস্যা হয়েছে: $err', style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref.refresh(activeClassesProvider),
+              child: const Text('পুনরায় চেষ্টা করো'),
+            ),
+          ],
+        ),
+        data: (classes) {
+          if (classes.isEmpty) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black26),
+              ),
+              child: const Text(
+                'বর্তমানে কোনো অ্যাক্টিভ ক্লাস নেই। এডমিন প্যানেল থেকে তৈরি করার পর এখানে দেখাবে।',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            );
+          }
+
+          return Column(
+            children: classes.map((cls) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedClassModel = cls;
+                      _selectedClass = cls.name;
+                      _selectedGroupModel = null;
+                      _selectedGroup = null;
+                      _selectedBatchModel = null;
+                      _selectedBatch = null;
+
+                      if (cls.hasGroup && cls.groups.isNotEmpty) {
+                        _step = 4; // Jump to group selection
+                      } else if (cls.hasBatch && cls.batches.isNotEmpty) {
+                        _step = 5; // Jump to batch selection
+                      } else {
+                        _step = 6; // Jump straight to summary
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFCFD8DC), width: 1.2),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE8F5E9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.school, color: Color(0xFF017A47), size: 22),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            cls.name,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        },
+      );
+    }
+
+    if (_step == 4) {
+      // Step 4: Group Selection (Dynamic from selected Class)
+      final groups = _selectedClassModel?.groups ?? [];
+
+      if (groups.isEmpty) {
+        return Column(
+          children: [
+            const Text('এই ক্লাসের জন্য কোনো সাবজেক্ট গ্রুপ পাওয়া যায়নি।'),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => setState(() => _step = 3),
+              child: const Text('পেছনে যাও'),
+            ),
+          ],
+        );
+      }
 
       return Column(
-        children: options.map((opt) {
+        children: groups.map((grp) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 10.0),
+            padding: const EdgeInsets.only(bottom: 12.0),
             child: InkWell(
               onTap: () {
                 setState(() {
-                  _selectedClass = opt['title'] as String;
-                  if (_selectedClass == 'ক্লাস ৬-৮' || _selectedClass == 'বিসিএস / জবস') {
-                    _selectedGroup = null;
-                    _selectedBatch = null;
-                    _step = 6; // Jump straight to summary
-                  } else if (_selectedClass == 'বিএসসি / অনার্স') {
-                    _selectedGroup = null;
+                  _selectedGroupModel = grp;
+                  _selectedGroup = grp.name;
+                  _selectedBatchModel = null;
+                  _selectedBatch = null;
+
+                  if (_selectedClassModel?.hasBatch == true && (grp.batches.isNotEmpty || _selectedClassModel!.batches.isNotEmpty)) {
                     _step = 5; // Jump to batch selection
                   } else {
-                    _step = 4; // Jump to group selection (SSC / HSC / Dakhil / Alim)
+                    _step = 6; // Jump to summary
                   }
                 });
               },
@@ -464,68 +574,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: opt['color'] as Color,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFF3E0),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(opt['icon'] as IconData, color: const Color(0xFF017A47), size: 22),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        opt['title'] as String,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      );
-    }
-
-    if (_step == 4) {
-      // Step 4: Group Selection
-      final groups = [
-        {'title': 'বিজ্ঞান', 'icon': Icons.biotech, 'color': const Color(0xFFE8F5E9)},
-        {'title': 'মানবিক', 'icon': Icons.public, 'color': const Color(0xFFFFF3E0)},
-        {'title': 'বাণিজ্য', 'icon': Icons.calculate, 'color': const Color(0xFFF3E5F5)},
-      ];
-
-      return Column(
-        children: groups.map((grp) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedGroup = grp['title'] as String;
-                  _step = 5; // Jump to batch
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFCFD8DC), width: 1.2),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: grp['color'] as Color,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(grp['icon'] as IconData, color: const Color(0xFF017A47), size: 24),
+                      child: const Icon(Icons.biotech, color: Color(0xFF017A47), size: 24),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
                       child: Text(
-                        grp['title'] as String,
+                        grp.name,
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
                     ),
@@ -539,20 +597,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (_step == 5) {
-      // Step 5: Batch Selection
-      List<String> batches = [];
-      if (_selectedClass == 'এসএসসি / দাখিল') {
-        batches = ['এসএসসি ২০২৬', 'এসএসসি ২০২৭', 'কলেজ অ্যাডমিশন'];
-      } else if (_selectedClass == 'এইচএসসি / আলিম / অ্যাডমিশন') {
-        batches = ['এইচএসসি ২০২৬', 'এইচএসসি ২০২৭', 'ভার্সিটি অ্যাডমিশন'];
-      } else if (_selectedClass == 'বিএসসি / অনার্স') {
-        batches = ['চলতি সেশন', 'অনার্স ১ম বর্ষ', 'অনার্স ২য় বর্ষ', 'অনার্স ৩য় বর্ষ', 'অনার্স ৪র্থ বর্ষ'];
-      } else {
-        batches = ['জব প্রিপারেশন', 'চলতি সেশন'];
+      // Step 5: Batch Selection (Dynamic from selected Group or Class)
+      List<AcademicBatchModel> availableBatches = [];
+      if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
+        availableBatches = _selectedGroupModel!.batches;
+      } else if (_selectedClassModel != null && _selectedClassModel!.batches.isNotEmpty) {
+        availableBatches = _selectedClassModel!.batches;
+      }
+
+      if (availableBatches.isEmpty) {
+        return Column(
+          children: [
+            const Text('বর্তমানে কোনো অ্যাক্টিভ ব্যাচ পাওয়া যায়নি।'),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => setState(() => _step = 6),
+              child: const Text('ব্যাচ ছাড়াই এগিয়ে যাও'),
+            ),
+          ],
+        );
       }
 
       return Column(
-        children: batches.map((batch) {
+        children: availableBatches.map((batch) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: SizedBox(
@@ -561,7 +628,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    _selectedBatch = batch;
+                    _selectedBatchModel = batch;
+                    _selectedBatch = batch.name;
                     _step = 6; // Jump to summary
                   });
                 },
@@ -573,7 +641,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                 ),
                 child: Text(
-                  batch,
+                  batch.name,
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ),
