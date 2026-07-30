@@ -54,7 +54,6 @@ class SubjectGroupModel {
 class AcademicClassModel {
   final String id;
   final String name;
-  final String code;
   final bool hasGroup;
   final bool hasBatch;
   final bool isActive;
@@ -64,7 +63,6 @@ class AcademicClassModel {
   AcademicClassModel({
     required this.id,
     required this.name,
-    required this.code,
     required this.hasGroup,
     required this.hasBatch,
     required this.isActive,
@@ -78,7 +76,6 @@ class AcademicClassModel {
     return AcademicClassModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      code: json['code'] as String,
       hasGroup: json['hasGroup'] as bool? ?? false,
       hasBatch: json['hasBatch'] as bool? ?? false,
       isActive: json['isActive'] as bool? ?? true,
