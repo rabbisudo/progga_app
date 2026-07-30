@@ -35,7 +35,7 @@ class QuestionModel with _$QuestionModel {
     required String questionText,
     String? imageKey,
     String? latexFormula,
-    required String difficulty,
+    String? difficulty,
     required String subjectId,
     required String chapterId,
     String? topicId,
