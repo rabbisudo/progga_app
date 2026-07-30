@@ -11,7 +11,12 @@ class LeaderboardRepository {
   Future<List<LeaderboardEntryModel>> fetchLeaderboard() async {
     try {
       final response = await _apiClient.dio.get('/leaderboards/global');
-      final rawList = response.data as List<dynamic>;
+      List<dynamic> rawList = [];
+      if (response.data is List) {
+        rawList = response.data as List<dynamic>;
+      } else if (response.data is Map && response.data['rankings'] is List) {
+        rawList = response.data['rankings'] as List<dynamic>;
+      }
       return rawList.map((e) => LeaderboardEntryModel.fromJson(e)).toList();
     } on DioException catch (e) {
       throw _apiClient.handleError(e);
