@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'leaderboard_notifier.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../domain/leaderboard_model.dart';
+import '../../../core/network/api_client.dart';
+import '../../auth/presentation/auth_notifier.dart';
 
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
@@ -12,6 +14,23 @@ class LeaderboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final leaderboardAsync = ref.watch(leaderboardProvider);
     final profileAsync = ref.watch(userProfileProvider);
+
+    if (leaderboardAsync is AsyncError) {
+      final error = leaderboardAsync.error;
+      if (error is NetworkException && error.statusCode == 401) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.invalidate(userProfileProvider);
+          ref.read(authProvider.notifier).logout();
+          context.go('/login');
+        });
+        return const Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+          ),
+        );
+      }
+    }
 
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
@@ -237,131 +256,138 @@ class LeaderboardScreen extends ConsumerWidget {
               Expanded(
                 child: Stack(
                   children: [
-                    ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      itemCount: entries.length,
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        final isMe = entry.userId == myUserId;
+                    RefreshIndicator(
+                      color: const Color(0xFF017A47),
+                      onRefresh: () async {
+                        ref.invalidate(leaderboardProvider);
+                        ref.invalidate(userProfileProvider);
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        itemCount: entries.length,
+                        itemBuilder: (context, index) {
+                          final entry = entries[index];
+                          final isMe = entry.userId == myUserId;
 
-                        final String name = entry.fullName.isNotEmpty ? entry.fullName : entry.username;
-                        final String? avatar = entry.avatarKey;
+                          final String name = entry.fullName.isNotEmpty ? entry.fullName : entry.username;
+                          final String? avatar = entry.avatarKey;
 
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: isMe ? const Color(0xFFE2EBE4) : Colors.white,
-                            border: isMe
-                                ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
-                                : null,
-                          ),
-                          child: Row(
-                            children: [
-                              // Avatar image with status indicator dot
-                              Stack(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 22,
-                                    backgroundColor: isMe
-                                        ? const Color(0xFF81C784)
-                                        : const Color(0xFF017A47).withOpacity(0.12),
-                                    backgroundImage: avatar != null && avatar.isNotEmpty
-                                        ? NetworkImage(avatar)
-                                        : null,
-                                    child: (avatar == null || avatar.isEmpty)
-                                        ? Text(
-                                            name.isNotEmpty ? name[0].toUpperCase() : '👤',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isMe ? Colors.white : const Color(0xFF017A47),
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      width: 10,
-                                      height: 10,
-                                      decoration: BoxDecoration(
-                                        color: index % 2 == 1 ? const Color(0xFF4CAF50) : Colors.grey.shade400,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white, width: 1.5),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 14),
-
-                              // Name
-                              Expanded(
-                                child: Row(
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isMe ? const Color(0xFFE2EBE4) : Colors.white,
+                              border: isMe
+                                  ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
+                                  : null,
+                            ),
+                            child: Row(
+                              children: [
+                                // Avatar image with status indicator dot
+                                Stack(
                                   children: [
-                                    Flexible(
-                                      child: Text(
-                                        name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
-                                          color: Colors.black87,
+                                    CircleAvatar(
+                                      radius: 22,
+                                      backgroundColor: isMe
+                                          ? const Color(0xFF81C784)
+                                          : const Color(0xFF017A47).withOpacity(0.12),
+                                      backgroundImage: avatar != null && avatar.isNotEmpty
+                                          ? NetworkImage(avatar)
+                                          : null,
+                                      child: (avatar == null || avatar.isEmpty)
+                                          ? Text(
+                                              name.isNotEmpty ? name[0].toUpperCase() : '👤',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isMe ? Colors.white : const Color(0xFF017A47),
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: index % 2 == 1 ? const Color(0xFF4CAF50) : Colors.grey.shade400,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.white, width: 1.5),
                                         ),
                                       ),
                                     ),
-                                    if (index == 1) ...[
-                                      const SizedBox(width: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.blue.shade700,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: const Text(
-                                          'P',
+                                  ],
+                                ),
+                                const SizedBox(width: 14),
+
+                                // Name
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            fontStyle: FontStyle.italic,
+                                            fontSize: 15,
+                                            fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
+                                            color: Colors.black87,
                                           ),
                                         ),
                                       ),
+                                      if (index == 1) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.shade700,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'P',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ],
+                                  ),
+                                ),
+
+                                // Rank & Points Column
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${entry.rank}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(entry.xp / 10.0).toStringAsFixed(1)} পয়েন্ট',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-
-                              // Rank & Points Column
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${entry.rank}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${(entry.xp / 10.0).toStringAsFixed(1)} পয়েন্ট',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
 
                     // Floating Timer Pill (Bottom Right) matching screenshot

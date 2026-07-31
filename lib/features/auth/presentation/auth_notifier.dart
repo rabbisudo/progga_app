@@ -82,9 +82,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /**
-   * Logs out user and purges cached session data.
+   * Logs out user, invalidates JWT token on backend, and purges cached session data.
    */
   Future<void> logout() async {
+    try {
+      final token = await _storage.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        await _apiClient.dio.post('/auth/logout');
+      }
+    } catch (_) {}
+
     await _storage.clearTokens();
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
