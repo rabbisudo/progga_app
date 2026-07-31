@@ -9,6 +9,7 @@ import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
+import '../../academics/data/academics_repository.dart';
 
 class PracticeDashboardScreen extends ConsumerStatefulWidget {
   const PracticeDashboardScreen({super.key});
@@ -355,6 +356,98 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Dynamic Active Academic Class & Group Card
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF004D40), Color(0xFF00695C)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF004D40).withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Text('🎓', style: TextStyle(fontSize: 18)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                profile?.className ?? 'Class 12 / HSC 2026',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'গ্রুপ/বিভাগ: ${profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান বিভাগ'}',
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => context.push('/profile'),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white30, width: 0.8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text(
+                            'পরিবর্তন',
+                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(width: 3),
+                          Icon(Icons.edit_outlined, color: Colors.white, size: 12),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // 1. Multiple Swipeable Banner Slider
           const BannerSliderWidget(
             banners: [
@@ -800,16 +893,61 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     );
   }
 
-  // View 1: Question Bank View
+  // View 1: Question Bank View (Dynamic for User Class & Group)
   Widget _buildQuestionBankView(ThemeData theme) {
+    final profile = ref.watch(userProfileProvider).value?.profile;
+    final className = profile?.className ?? 'HSC 2026';
+    final groupName = profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান';
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Class & Group Dynamic Filter Indicator
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF017A47).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF017A47).withOpacity(0.2)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.school, size: 16, color: Color(0xFF017A47)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$className • $groupName',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF017A47),
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => context.push('/profile'),
+                  child: const Text(
+                    'ফিল্টার বদলান ➔',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF017A47),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           TextField(
             decoration: InputDecoration(
-              hintText: 'প্রশ্ন খুঁজুন...',
+              hintText: '$className - $groupName প্রশ্ন খুঁজুন...',
               prefixIcon: const Icon(Icons.search),
               filled: true,
               fillColor: theme.cardColor,
@@ -837,7 +975,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     title: Text(titles[index], style: const TextStyle(fontWeight: FontWeight.w500)),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(subjects[index], style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
+                      child: Text('$className • ${subjects[index]}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   ),
@@ -850,58 +988,215 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     );
   }
 
-  // View 2: Mock Exam List View
+  // View 2: Mock Exam List View (Dynamic for User Class & Group)
   Widget _buildExamListView(ThemeData theme) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        final titles = [
-          'HSC পদার্থবিজ্ঞান ১ম পত্র পূর্ণাঙ্গ মডেল টেস্ট',
-          'তড়িৎ রসায়ন ও রসায়ন ২য় পত্র অধ্যায় ভিত্তিক টেস্ট',
-          'উচ্চতর গণিত ১ম পত্র ক্যালকুলাস প্র্যাকটিস কুইজ'
-        ];
-        final marks = ['১০০ নম্বর', '২৫ নম্বর', '৪০ নম্বর'];
-        final times = ['২ ঘণ্টা', '৩০ মিনিট', '৪৫ মিনিট'];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(titles[index], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.assignment_outlined, size: 16, color: theme.colorScheme.primary),
-                    const SizedBox(width: 4),
-                    Text(marks[index], style: const TextStyle(fontSize: 13)),
-                    const SizedBox(width: 16),
-                    Icon(Icons.timer_outlined, size: 16, color: theme.colorScheme.primary),
-                    const SizedBox(width: 4),
-                    Text(times[index], style: const TextStyle(fontSize: 13)),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.push('/exam/exam-id-123'); // Navigates to active exam runner
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF005C39),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    final profile = ref.watch(userProfileProvider).value?.profile;
+    final className = profile?.className ?? 'HSC 2026';
+    final groupName = profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান';
+
+    final curriculumAsync = ref.watch(studentCurriculumProvider);
+
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          color: const Color(0xFFF8F9FA),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text('🎓', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  Text(
+                    'নির্বাচিত: $className ($groupName)',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF017A47),
                     ),
-                    child: const Text('পরীক্ষা শুরু করুন', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () => context.push('/profile'),
+                child: const Text(
+                  'পরিবর্তন ➔',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF017A47),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+        Expanded(
+          child: curriculumAsync.when(
+            loading: () => const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Color(0xFF017A47)),
+                  SizedBox(height: 12),
+                  Text(
+                    'আপনার বিষয়ের পরীক্ষা প্রস্তুত হচ্ছে...',
+                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            error: (err, stack) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                    const SizedBox(height: 12),
+                    Text(
+                      'পরীক্ষা লোড করতে সমস্যা হয়েছে: $err',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => ref.refresh(studentCurriculumProvider),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
+                      child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            data: (subjects) {
+              if (subjects.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('📚', style: TextStyle(fontSize: 44)),
+                        const SizedBox(height: 12),
+                        Text(
+                          '$className ($groupName)-এর জন্য কোনো বিষয় পাওয়া যায়নি।',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'প্রোফাইল থেকে অন্য বিষয়/ক্লাস নির্বাচন করুন।',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => context.push('/profile'),
+                          icon: const Icon(Icons.edit, size: 16, color: Colors.white),
+                          label: const Text('ক্লাস পরিবর্তন করুন', style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: subjects.length,
+                itemBuilder: (context, index) {
+                  final subject = subjects[index] as Map<String, dynamic>;
+                  final subjectName = subject['name'] ?? 'বিষয়';
+                  final iconStr = subject['icon'] ?? '📚';
+                  final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+                  final chapterCount = chapters.length;
+
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(iconStr, style: const TextStyle(fontSize: 20)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    subjectName,
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF017A47).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '$chapterCount টি অধ্যায়',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF017A47),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Icon(Icons.assignment_outlined, size: 15, color: theme.colorScheme.primary),
+                              const SizedBox(width: 4),
+                              const Text('৫০ নম্বর', style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 16),
+                              Icon(Icons.timer_outlined, size: 15, color: theme.colorScheme.primary),
+                              const SizedBox(width: 4),
+                              const Text('৪০ মিনিট', style: TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref.read(practiceProvider.notifier).updateFilters(
+                                  subjectId: subject['id'],
+                                  chapterId: chapters.isNotEmpty ? chapters.first['id'] : null,
+                                );
+                                context.push('/exam/${subject['id']}');
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF005C39),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: Text(
+                                '$subjectName পরীক্ষা শুরু করুন',
+                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

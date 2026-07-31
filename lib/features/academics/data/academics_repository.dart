@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../domain/academics_model.dart';
+import '../../profile/presentation/profile_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
@@ -47,4 +48,16 @@ final academicsRepositoryProvider = Provider<AcademicsRepository>((ref) {
 final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) async {
   final repo = ref.watch(academicsRepositoryProvider);
   return repo.fetchActiveClasses();
+});
+
+final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+    return [];
+  }
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchStudentCurriculum(
+    classId: profile.classId!,
+    groupId: profile.groupId,
+  );
 });
