@@ -28,35 +28,42 @@ class LeagueInfo {
 const List<LeagueInfo> leaguesList = [
   LeagueInfo(
     key: 'IRON',
-    title: 'আয়রন',
+    title: 'আয়রন লীগ',
     bgColor: Color(0xFFEBF1F6),
     badgeColor: Color(0xFF78909C),
     mainIcon: '🛡️',
   ),
   LeagueInfo(
     key: 'BRONZE',
-    title: 'ব্রোঞ্জ',
+    title: 'ব্রোঞ্জ লীগ',
     bgColor: Color(0xFFFFF3E0),
     badgeColor: Color(0xFFA1887F),
     mainIcon: '🥉',
   ),
   LeagueInfo(
     key: 'SILVER',
-    title: 'সিলভার',
+    title: 'সিলভার লীগ',
     bgColor: Color(0xFFF0F4F8),
     badgeColor: Color(0xFF90A4AE),
     mainIcon: '🥈',
   ),
   LeagueInfo(
     key: 'GOLD',
-    title: 'গোল্ড',
+    title: 'গোল্ড লীগ',
     bgColor: Color(0xFFFFF8E1),
     badgeColor: Color(0xFFFFB74D),
     mainIcon: '🥇',
   ),
   LeagueInfo(
+    key: 'DIAMOND',
+    title: 'ডায়মন্ড লীগ',
+    bgColor: Color(0xFFE0F7FA),
+    badgeColor: Color(0xFF00BCD4),
+    mainIcon: '💎',
+  ),
+  LeagueInfo(
     key: 'INFINITY',
-    title: 'ইনফিনিটি',
+    title: 'ইনফিনিটি লীগ',
     bgColor: Color(0xFFE8EAF6),
     badgeColor: Color(0xFF3F51B5),
     mainIcon: '♾️',
@@ -101,7 +108,7 @@ class LeaderboardScreen extends ConsumerWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
               color: isSelected ? Colors.white : const Color(0xFF495057),
             ),
@@ -419,31 +426,6 @@ class LeaderboardScreen extends ConsumerWidget {
                         ),
                       ),
                     ],
-
-                    const SizedBox(height: 12),
-
-                    // Scope Selector Pills (গ্লোবাল | ক্লাস | ব্যাচ)
-                    Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          _buildScopeTab(ref, 'global', 'গ্লোবাল', activeScope),
-                          _buildScopeTab(ref, 'class', 'ক্লাস', activeScope),
-                          _buildScopeTab(ref, 'batch', 'ব্যাচ', activeScope),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

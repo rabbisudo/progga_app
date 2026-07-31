@@ -11,3 +11,13 @@ final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, L
   final repo = ref.watch(leaderboardRepositoryProvider);
   return repo.fetchLeaderboard(scope: arg.scope, league: arg.league);
 });
+
+final myLeaderboardProvider = FutureProvider<List<LeaderboardEntryModel>>((ref) async {
+  final repo = ref.watch(leaderboardRepositoryProvider);
+  return repo.fetchLeaderboardAroundMe();
+});
+
+final leaguesConfigProvider = FutureProvider<List<LeagueConfigModel>>((ref) async {
+  final repo = ref.watch(leaderboardRepositoryProvider);
+  return repo.fetchLeaguesConfig();
+});

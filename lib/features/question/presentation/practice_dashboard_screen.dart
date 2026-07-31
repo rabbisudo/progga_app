@@ -60,9 +60,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   Widget build(BuildContext context) {
     final state = ref.watch(practiceProvider);
     final profileAsync = ref.watch(userProfileProvider);
-    final selectedScope = ref.watch(leaderboardScopeProvider);
-    final selectedLeague = ref.watch(leaderboardLeagueProvider);
-    final leaderboardAsync = ref.watch(leaderboardProvider((scope: selectedScope, league: selectedLeague)));
+    final leaderboardAsync = ref.watch(myLeaderboardProvider);
     final bannersAsync = ref.watch(activeBannersProvider);
 
 
@@ -304,6 +302,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
     // Read league name dynamically from active user's entry in the leaderboard list if found
     String leagueName = 'আয়রন লীগ';
+    int currentXp = profile?.xp ?? 0;
     if (leaderboardAsync.value != null && myUserId != null) {
       final myEntry = leaderboardAsync.value!.firstWhere(
         (e) => e.userId == myUserId,
@@ -312,25 +311,27 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           userId: '',
           username: '',
           fullName: '',
-          xp: 0,
+          xp: currentXp,
           level: profile?.level ?? 1,
           solvedQuestionsCount: 0,
           league: 'IRON',
         ),
       );
-      switch (myEntry.league.toUpperCase()) {
-        case 'BRONZE': leagueName = 'ব্রোঞ্জ লীগ'; break;
-        case 'SILVER': leagueName = 'সিলভার লীগ'; break;
-        case 'GOLD': leagueName = 'গোল্ড লীগ'; break;
-        case 'PLATINUM': leagueName = 'প্লাটিনাম লীগ'; break;
-        default: leagueName = 'আয়রন লীগ'; break;
-      }
-    } else if (profile != null) {
-      final lvl = profile.level;
-      if (lvl == 1) leagueName = 'ব্রোঞ্জ লীগ';
-      else if (lvl == 2) leagueName = 'সিলভার লীগ';
-      else if (lvl == 3) leagueName = 'গোল্ড লীগ';
-      else if (lvl == 4) leagueName = 'প্লাটিনাম লীগ';
+      if (myEntry.xp > 0) currentXp = myEntry.xp;
+    }
+
+    if (currentXp >= 5000) {
+      leagueName = 'ইনফিনিটি লীগ';
+    } else if (currentXp >= 3000) {
+      leagueName = 'ডায়মন্ড লীগ';
+    } else if (currentXp >= 1500) {
+      leagueName = 'গোল্ড লীগ';
+    } else if (currentXp >= 800) {
+      leagueName = 'সিলভার লীগ';
+    } else if (currentXp >= 300) {
+      leagueName = 'ব্রোঞ্জ লীগ';
+    } else {
+      leagueName = 'আয়রন লীগ';
     }
 
     final userName = profile?.fullName ?? 'Rabbi failure';
@@ -341,7 +342,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       color: const Color(0xFF017A47),
       onRefresh: () async {
         ref.invalidate(userProfileProvider);
-        ref.invalidate(leaderboardProvider);
+        ref.invalidate(myLeaderboardProvider);
         ref.invalidate(activeBannersProvider);
         try {
           await ref.read(userProfileProvider.future);
