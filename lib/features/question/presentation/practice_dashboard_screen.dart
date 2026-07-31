@@ -9,6 +9,8 @@ import '../../profile/presentation/profile_notifier.dart';
 import '../../profile/domain/profile_model.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
+import '../../leaderboard/presentation/leaderboard_screen.dart';
+
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../academics/data/academics_repository.dart';
@@ -62,21 +64,16 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final bannersAsync = ref.watch(activeBannersProvider);
 
 
-    // Auto-logout and redirect on 401 Unauthorized exceptions
-    if (profileAsync is AsyncError) {
-      final error = (profileAsync as AsyncError).error;
-      if (error is NetworkException && error.statusCode == 401) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+    ref.listen<AsyncValue<UserData>>(userProfileProvider, (previous, next) {
+      if (next.hasError) {
+        final error = next.error;
+        if (error is NetworkException && error.statusCode == 401) {
+          ref.invalidate(userProfileProvider);
           ref.read(authProvider.notifier).logout();
           context.go('/login');
-        });
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
-          ),
-        );
+        }
       }
-    }
+    });
 
     // Redirect to onboarding if not set up yet
     if (profileAsync.value != null) {
@@ -93,16 +90,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       }
     }
 
-    ref.listen<AsyncValue<UserData>>(userProfileProvider, (previous, next) {
-      if (next.hasError) {
-        final error = next.error;
-        if (error is NetworkException && error.statusCode == 401) {
-          ref.read(authProvider.notifier).logout();
-          context.go('/login');
-        }
-      }
-    });
-
     final theme = Theme.of(context);
 
     // List of page view bodies matching each bottom navigation index
@@ -110,7 +97,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       _buildHomeDashboardView(state, theme, profileAsync, leaderboardAsync),
       _buildQuestionBankView(theme),
       _buildExamListView(theme),
-      _buildHistoryListView(theme),
+      LeaderboardScreen(),
       _buildProgressView(theme),
     ];
 
@@ -189,27 +176,27 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 ),
               ],
             )
-          : AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              surfaceTintColor: Colors.transparent,
-              title: Text(
-                _currentNavIndex == 1
-                    ? 'প্রশ্নব্যাংক'
-                    : _currentNavIndex == 2
-                        ? 'মক পরীক্ষা'
-                        : _currentNavIndex == 3
-                            ? 'হিস্ট্রি'
+          : (_currentNavIndex == 3
+              ? null
+              : AppBar(
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  surfaceTintColor: Colors.transparent,
+                  title: Text(
+                    _currentNavIndex == 1
+                        ? 'প্রশ্নব্যাংক'
+                        : _currentNavIndex == 2
+                            ? 'মক পরীক্ষা'
                             : 'প্রোগ্রেস',
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              centerTitle: true,
-            ),
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  centerTitle: true,
+                )),
       body: IndexedStack(
         index: _currentNavIndex,
         children: views,
@@ -256,9 +243,9 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               label: 'পরীক্ষা',
             ),
             NavigationDestination(
-              icon: Icon(Icons.bookmark_outline, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.bookmark, color: Color(0xFF017A47)),
-              label: 'হিস্ট্রি',
+              icon: Icon(Icons.emoji_events_outlined, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.emoji_events, color: Color(0xFF017A47)),
+              label: 'লিডারবোর্ড',
             ),
             NavigationDestination(
               icon: Icon(Icons.speed_outlined, color: Color(0xFF495057)),
@@ -382,41 +369,57 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               child: Column(
                 children: [
                   // Leaderboard header title row
-                  Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'লিডারবোর্ড',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF017A47).withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                leagueName,
-                                style: const TextStyle(
-                                  fontSize: 11,
+                  InkWell(
+                    onTap: () => context.push('/leaderboard'),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'লিডারবোর্ড',
+                                style: TextStyle(
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF017A47).withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  leagueName,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF017A47),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Text(
+                                'সবগুলো দেখুন',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF017A47),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[500]),
-                      ],
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFF017A47)),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   
@@ -599,53 +602,56 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final bool isUrl = avatarText.startsWith('http') || avatarText.startsWith('https');
     final bool isSingleChar = avatarText.length == 1;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isCurrentUser ? const Color(0xFF017A47).withValues(alpha: 0.08) : Colors.transparent,
-        border: isCurrentUser
-            ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
-            : null,
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: avatarBg,
-            backgroundImage: isUrl ? NetworkImage(avatarText) : null,
-            child: isUrl
-                ? null
-                : Text(
-                    isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+    return InkWell(
+      onTap: () => context.push('/leaderboard'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isCurrentUser ? const Color(0xFF017A47).withValues(alpha: 0.08) : Colors.transparent,
+          border: isCurrentUser
+              ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
+              : null,
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: avatarBg,
+              backgroundImage: isUrl ? NetworkImage(avatarText) : null,
+              child: isUrl
+                  ? null
+                  : Text(
+                      isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
-                fontSize: 14,
-                color: isCurrentUser ? const Color(0xFF017A47) : Colors.black87,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 14,
+                  color: isCurrentUser ? const Color(0xFF017A47) : Colors.black87,
+                ),
               ),
             ),
-          ),
-          Text(
-            '$score XP',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: Color(0xFF017A47),
+            Text(
+              '$score XP',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: Color(0xFF017A47),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/api_client.dart';
 import '../domain/auth_state.dart';
@@ -31,11 +32,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
           accessToken: token,
         );
       } else {
-        await logout();
+        await _storage.clearTokens();
+        state = const AuthState.initial();
       }
     } catch (e) {
-      // Session check failed, logout
-      await logout();
+      await _storage.clearTokens();
+      state = const AuthState.initial();
     }
   }
 
@@ -80,10 +82,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /**
-   * Logs out user.
+   * Logs out user and purges cached session data.
    */
   Future<void> logout() async {
     await _storage.clearTokens();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
+    state = const AuthState.initial();
+  }
+
+  /**
+   * Resets auth state back to initial.
+   */
+  void resetState() {
     state = const AuthState.initial();
   }
 }
@@ -93,3 +106,5 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final client = ref.watch(apiClientProvider);
   return AuthNotifier(storage, client);
 });
+
+
