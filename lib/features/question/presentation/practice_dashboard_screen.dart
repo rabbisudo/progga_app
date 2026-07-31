@@ -296,7 +296,17 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final starPoints = profile != null ? (profile.xp % 100) : 0;
     final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.0;
 
-    return SingleChildScrollView(
+    return RefreshIndicator(
+      color: const Color(0xFF017A47),
+      onRefresh: () async {
+        ref.invalidate(userProfileProvider);
+        ref.invalidate(leaderboardProvider);
+        try {
+          await ref.read(userProfileProvider.future);
+        } catch (_) {}
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -329,140 +339,32 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             ],
           ),
 
-          // 2. Action Grid Buttons Row of 4 items with Subtitles
+          // 2. Clean Action Grid Buttons Row of 4 items (Icon + Label)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               children: [
                 _buildGridAction(
-                  iconWidget: QuestionBankIcon(color: Colors.orange[800]!),
-                  color: Colors.orange[800]!,
+                  iconWidget: _buildImageIconAsset('assets/icons/qsbank.png', Icons.inventory_2_outlined),
                   label: 'প্রশ্নব্যাংক',
-                  subtitle: 'অধ্যায় ভিত্তিক',
                   onTap: () => setState(() => _currentNavIndex = 1),
                 ),
                 _buildGridAction(
-                  iconWidget: const QuickPracticeIcon(color: Color(0xFFF18881)),
-                  color: const Color(0xFFF18881),
-                  label: 'দ্রুত প্র্যাকটিস',
-                  subtitle: '১ ক্লিকে শুরু',
-                  onTap: () {},
-                ),
-                _buildGridAction(
-                  iconWidget: MockExamIcon(color: Colors.redAccent[700]!),
-                  color: Colors.redAccent[700]!,
+                  iconWidget: _buildImageIconAsset('assets/icons/exam.png', Icons.edit_note_outlined),
                   label: 'মক পরীক্ষা',
-                  subtitle: 'টাইমার সহ',
                   onTap: () => setState(() => _currentNavIndex = 2),
                 ),
                 _buildGridAction(
-                  iconWidget: const AIGuideIcon(color: Color(0xFFF18881)),
-                  color: const Color(0xFFF18881),
+                  iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
+                  label: 'রিপোর্ট',
+                  onTap: () => setState(() => _currentNavIndex = 3),
+                ),
+                _buildGridAction(
+                  iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
                   label: 'Progga AI',
-                  subtitle: 'স্মার্ট গাইড',
                   onTap: () {},
                 ),
               ],
-            ),
-          ),
-
-          // 4. Daily Streak Tracker Card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFECEFF1), width: 1.2),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Text('🔥', style: TextStyle(fontSize: 18)),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'স্ট্রিক মাইলস্টোন',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '${profile?.currentStreak ?? 1} দিন একটানা!',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF017A47),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List.generate(7, (index) {
-                      final dayNames = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র'];
-                      // Map index to weekday (Sat=0, Sun=1, Mon=2, Tue=3, Wed=4, Thu=5, Fri=6)
-                      final currentDayIndex = (DateTime.now().weekday + 1) % 7; 
-                      
-                      // Highlight days that are completed.
-                      final backendHistory = profileAsync.value?.streakHistory;
-                      final isCompleted = (backendHistory != null && index < backendHistory.length)
-                          ? backendHistory[index]
-                          : (index <= currentDayIndex && (currentDayIndex - index) < (profile?.currentStreak ?? 1));
-                      final isToday = index == currentDayIndex;
-
-                      return Column(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: isCompleted
-                                  ? const Color(0xFF017A47).withOpacity(0.08)
-                                  : (isToday ? Colors.grey[100] : Colors.transparent),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isCompleted
-                                    ? const Color(0xFF017A47)
-                                    : (isToday ? Colors.grey[400]! : Colors.grey[300]!),
-                                width: isToday ? 2 : 1,
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                isCompleted ? '🔥' : '⚡',
-                                style: TextStyle(
-                                  fontSize: isCompleted ? 15 : 12,
-                                  color: isCompleted ? null : Colors.grey[400],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            dayNames[index],
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                              color: isToday ? const Color(0xFF017A47) : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
-                  ),
-                ],
-              ),
             ),
           ),
 
@@ -633,56 +535,45 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           const SizedBox(height: 24),
         ],
       ),
+    ), // end SingleChildScrollView
+    ); // end RefreshIndicator
+  }
+
+  Widget _buildImageIconAsset(String assetPath, IconData fallbackIcon) {
+    return Image.asset(
+      assetPath,
+      width: 56,
+      height: 56,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return Icon(fallbackIcon, size: 48, color: const Color(0xFF017A47));
+      },
     );
   }
 
   Widget _buildGridAction({
     required Widget iconWidget,
-    required Color color,
     required String label,
-    required String subtitle,
     required VoidCallback onTap,
   }) {
     return Expanded(
-      child: GestureDetector(
+      child: InkWell(
         onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4.0),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.04),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.12), width: 1.2),
-          ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: iconWidget,
-              ),
-              const SizedBox(height: 8),
+              iconWidget,
+              const SizedBox(height: 6),
               Text(
                 label,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
                 ),
               ),
             ],
