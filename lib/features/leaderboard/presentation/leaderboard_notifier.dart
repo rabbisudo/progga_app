@@ -3,7 +3,8 @@ import '../data/leaderboard_repository.dart';
 import '../domain/leaderboard_model.dart';
 
 final leaderboardScopeProvider = StateProvider<String>((ref) => 'global');
-final leaderboardLeagueProvider = StateProvider<String>((ref) => 'BRONZE');
+final leaderboardLeagueProvider = StateProvider<String>((ref) => 'IRON');
+final leaderboardLeagueSelectedByUserProvider = StateProvider<bool>((ref) => false);
 
 typedef LeaderboardParam = ({String scope, String league});
 

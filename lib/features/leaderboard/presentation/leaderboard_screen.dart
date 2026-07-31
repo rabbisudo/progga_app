@@ -196,27 +196,34 @@ class LeaderboardScreen extends ConsumerWidget {
     final leaderboardAsync = ref.watch(leaderboardProvider((scope: activeScope, league: activeLeagueKey)));
     final profileAsync = ref.watch(userProfileProvider);
 
-    if (leaderboardAsync is AsyncError) {
-      final error = leaderboardAsync.error;
-      if (error is NetworkException && error.statusCode == 401) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.invalidate(userProfileProvider);
-          ref.read(authProvider.notifier).logout();
-          context.go('/login');
-        });
-        return const Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
-          ),
-        );
-      }
-    }
 
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
+    final int userXp = profile?.xp ?? 0;
 
-    final int userLeagueIndex = _getLeagueIndex(profile?.league ?? 'IRON');
+    String defaultLeagueKey = 'IRON';
+    if (userXp >= 5000) {
+      defaultLeagueKey = 'INFINITY';
+    } else if (userXp >= 3000) {
+      defaultLeagueKey = 'DIAMOND';
+    } else if (userXp >= 1500) {
+      defaultLeagueKey = 'GOLD';
+    } else if (userXp >= 800) {
+      defaultLeagueKey = 'SILVER';
+    } else if (userXp >= 300) {
+      defaultLeagueKey = 'BRONZE';
+    }
+
+    final isUserSelected = ref.watch(leaderboardLeagueSelectedByUserProvider);
+    if (!isUserSelected && profile != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ref.read(leaderboardLeagueProvider) != defaultLeagueKey) {
+          ref.read(leaderboardLeagueProvider.notifier).state = defaultLeagueKey;
+        }
+      });
+    }
+
+    final int userLeagueIndex = _getLeagueIndex(profile?.league ?? defaultLeagueKey);
     final int currentSelectedLeagueIdx = _getLeagueIndex(activeLeagueKey);
     final LeagueInfo currentLeague = leaguesList[currentSelectedLeagueIdx];
 
@@ -297,6 +304,7 @@ class LeaderboardScreen extends ConsumerWidget {
                         if (prevLeague != null)
                           GestureDetector(
                             onTap: () {
+                              ref.read(leaderboardLeagueSelectedByUserProvider.notifier).state = true;
                               ref.read(leaderboardLeagueProvider.notifier).state = prevLeague.key;
                             },
                             child: Padding(
@@ -313,6 +321,7 @@ class LeaderboardScreen extends ConsumerWidget {
                         if (nextLeague != null)
                           GestureDetector(
                             onTap: () {
+                              ref.read(leaderboardLeagueSelectedByUserProvider.notifier).state = true;
                               ref.read(leaderboardLeagueProvider.notifier).state = nextLeague.key;
                             },
                             child: Padding(

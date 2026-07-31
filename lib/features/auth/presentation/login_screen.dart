@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_notifier.dart';
 import '../../profile/presentation/profile_notifier.dart';
+import '../../leaderboard/presentation/leaderboard_notifier.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -18,6 +19,8 @@ class LoginScreen extends ConsumerWidget {
       next.maybeWhen(
         authenticated: (user, token) {
           ref.invalidate(userProfileProvider);
+          ref.invalidate(myLeaderboardProvider);
+          ref.invalidate(leaderboardProvider);
           context.go('/home');
         },
         error: (message) {
@@ -109,6 +112,8 @@ class LoginScreen extends ConsumerWidget {
                             final String? idToken = googleAuth.idToken;
                             if (idToken != null) {
                               ref.invalidate(userProfileProvider);
+                              ref.invalidate(myLeaderboardProvider);
+                              ref.invalidate(leaderboardProvider);
                               await ref.read(authProvider.notifier).loginWithGoogle(idToken);
                               return;
                             }
@@ -116,10 +121,14 @@ class LoginScreen extends ConsumerWidget {
 
                           // Fallback to dev token API hit if native Google prompt returned null or failed
                           ref.invalidate(userProfileProvider);
+                          ref.invalidate(myLeaderboardProvider);
+                          ref.invalidate(leaderboardProvider);
                           await ref.read(authProvider.notifier).loginWithGoogle('dev-mock-token');
                         } catch (e) {
                           // Fallback to dev token API hit on error
                           ref.invalidate(userProfileProvider);
+                          ref.invalidate(myLeaderboardProvider);
+                          ref.invalidate(leaderboardProvider);
                           await ref.read(authProvider.notifier).loginWithGoogle('dev-mock-token');
                         }
                       },

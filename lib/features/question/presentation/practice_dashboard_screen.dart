@@ -64,13 +64,19 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final bannersAsync = ref.watch(activeBannersProvider);
 
 
-    // Graceful auto-logout & redirect on 401 Unauthorized exceptions without red screen crash
+    if (profileAsync.isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF017A47)),
+        ),
+      );
+    }
+
     if (profileAsync is AsyncError) {
       final error = profileAsync.error;
       if (error is NetworkException && error.statusCode == 401) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.invalidate(userProfileProvider);
-          ref.read(authProvider.notifier).logout();
           context.go('/login');
         });
         return const Scaffold(
@@ -81,34 +87,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         );
       }
     }
-
-    if (leaderboardAsync is AsyncError) {
-      final error = leaderboardAsync.error;
-      if (error is NetworkException && error.statusCode == 401) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.invalidate(userProfileProvider);
-          ref.read(authProvider.notifier).logout();
-          context.go('/login');
-        });
-        return const Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
-          ),
-        );
-      }
-    }
-
-    ref.listen<AsyncValue<UserData>>(userProfileProvider, (previous, next) {
-      if (next.hasError) {
-        final error = next.error;
-        if (error is NetworkException && error.statusCode == 401) {
-          ref.invalidate(userProfileProvider);
-          ref.read(authProvider.notifier).logout();
-          context.go('/login');
-        }
-      }
-    });
 
     // Redirect to onboarding if not set up yet
     if (profileAsync.value != null) {
