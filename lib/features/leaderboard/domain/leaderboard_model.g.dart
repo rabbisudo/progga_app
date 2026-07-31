@@ -13,6 +13,7 @@ _$LeaderboardEntryModelImpl _$$LeaderboardEntryModelImplFromJson(
       userId: json['userId'] as String,
       username: json['username'] as String,
       fullName: json['fullName'] as String,
+      institution: json['institution'] as String?,
       avatarKey: json['avatarKey'] as String?,
       xp: (json['xp'] as num).toInt(),
       level: (json['level'] as num).toInt(),

@@ -7,12 +7,186 @@ import '../domain/leaderboard_model.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 
+class LeagueInfo {
+  final String key;
+  final String title;
+  final Color bgColor;
+  final Color badgeColor;
+  final String mainIcon;
+  final bool isInfinity;
+
+  const LeagueInfo({
+    required this.key,
+    required this.title,
+    required this.bgColor,
+    required this.badgeColor,
+    required this.mainIcon,
+    this.isInfinity = false,
+  });
+}
+
+const List<LeagueInfo> leaguesList = [
+  LeagueInfo(
+    key: 'IRON',
+    title: 'আয়রন',
+    bgColor: Color(0xFFEBF1F6),
+    badgeColor: Color(0xFF78909C),
+    mainIcon: '🛡️',
+  ),
+  LeagueInfo(
+    key: 'BRONZE',
+    title: 'ব্রোঞ্জ',
+    bgColor: Color(0xFFFFF3E0),
+    badgeColor: Color(0xFFA1887F),
+    mainIcon: '🥉',
+  ),
+  LeagueInfo(
+    key: 'SILVER',
+    title: 'সিলভার',
+    bgColor: Color(0xFFF0F4F8),
+    badgeColor: Color(0xFF90A4AE),
+    mainIcon: '🥈',
+  ),
+  LeagueInfo(
+    key: 'GOLD',
+    title: 'গোল্ড',
+    bgColor: Color(0xFFFFF8E1),
+    badgeColor: Color(0xFFFFB74D),
+    mainIcon: '🥇',
+  ),
+  LeagueInfo(
+    key: 'INFINITY',
+    title: 'ইনফিনিটি',
+    bgColor: Color(0xFFE8EAF6),
+    badgeColor: Color(0xFF3F51B5),
+    mainIcon: '♾️',
+    isInfinity: true,
+  ),
+];
+
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
 
+  int _getLeagueIndex(String key) {
+    final idx = leaguesList.indexWhere((l) => l.key.toUpperCase() == key.toUpperCase());
+    return idx != -1 ? idx : 0;
+  }
+
+  String _formatPoints(int xp) {
+    if (xp >= 1000) {
+      final double val = xp / 1000.0;
+      return '${val.toStringAsFixed(val % 1 == 0 ? 0 : 1)}K পয়েন্ট';
+    } else if (xp > 0 && xp < 100) {
+      final double val = xp.toDouble();
+      return '${val.toStringAsFixed(1)} পয়েন্ট';
+    }
+    return '$xp পয়েন্ট';
+  }
+
+  Widget _buildScopeTab(WidgetRef ref, String scopeKey, String label, String activeScope) {
+    final isSelected = activeScope == scopeKey;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          ref.read(leaderboardScopeProvider.notifier).state = scopeKey;
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF017A47) : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              color: isSelected ? Colors.white : const Color(0xFF495057),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShieldBadge(LeagueInfo info, {bool isLarge = false}) {
+    final double size = isLarge ? 72.0 : 44.0;
+    final double iconSize = isLarge ? 40.0 : 22.0;
+
+    if (info.isInfinity) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2979FF), Color(0xFF1565C0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(isLarge ? 22 : 14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2979FF).withOpacity(0.35),
+              blurRadius: isLarge ? 12 : 6,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text('♾️', style: TextStyle(fontSize: iconSize)),
+        ),
+      );
+    }
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: info.badgeColor,
+        borderRadius: BorderRadius.circular(isLarge ? 20 : 14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: isLarge ? 10 : 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(info.mainIcon, style: TextStyle(fontSize: iconSize)),
+      ),
+    );
+  }
+
+  Widget _buildProBadge() {
+    return Container(
+      margin: const EdgeInsets.only(left: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF29B6F6), Color(0xFF0288D1)],
+        ),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: const Text(
+        'P',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final activeScope = ref.watch(leaderboardScopeProvider);
+    final activeLeagueKey = ref.watch(leaderboardLeagueProvider);
+    final leaderboardAsync = ref.watch(leaderboardProvider((scope: activeScope, league: activeLeagueKey)));
     final profileAsync = ref.watch(userProfileProvider);
 
     if (leaderboardAsync is AsyncError) {
@@ -35,35 +209,22 @@ class LeaderboardScreen extends ConsumerWidget {
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
 
-    // Determine current league name in Bangla
-    String leagueName = 'আয়রন';
-    if (profile != null) {
-      switch (profile.league.toUpperCase()) {
-        case 'BRONZE':
-          leagueName = 'ব্রোঞ্জ';
-          break;
-        case 'SILVER':
-          leagueName = 'সিলভার';
-          break;
-        case 'GOLD':
-          leagueName = 'গোল্ড';
-          break;
-        case 'PLATINUM':
-          leagueName = 'প্লাটিনাম';
-          break;
-        default:
-          leagueName = 'আয়রন';
-          break;
-      }
-    }
+    final int userLeagueIndex = _getLeagueIndex(profile?.league ?? 'IRON');
+    final int currentSelectedLeagueIdx = _getLeagueIndex(activeLeagueKey);
+    final LeagueInfo currentLeague = leaguesList[currentSelectedLeagueIdx];
+
+    final bool isLocked = currentSelectedLeagueIdx > userLeagueIndex;
 
     final starPoints = profile != null ? (profile.xp % 100) : 0;
     final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.01;
 
+    final LeagueInfo? prevLeague = currentSelectedLeagueIdx > 0 ? leaguesList[currentSelectedLeagueIdx - 1] : null;
+    final LeagueInfo? nextLeague = currentSelectedLeagueIdx < leaguesList.length - 1 ? leaguesList[currentSelectedLeagueIdx + 1] : null;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFEBF1F6),
+        backgroundColor: currentLeague.bgColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -80,7 +241,7 @@ class LeaderboardScreen extends ConsumerWidget {
         centerTitle: true,
       ),
       body: leaderboardAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+        loading: () => Center(child: CircularProgressIndicator(color: currentLeague.badgeColor)),
         error: (err, stack) => Center(
           child: Text(
             'লিডারবোর্ড ডাটা লোড করা যায়নি: $err',
@@ -88,10 +249,8 @@ class LeaderboardScreen extends ConsumerWidget {
           ),
         ),
         data: (rawEntries) {
-          // Format entries and identify current user
           final List<LeaderboardEntryModel> entries = List.from(rawEntries);
 
-          // Find current user item in global entries list
           LeaderboardEntryModel? meEntry;
           if (myUserId != null) {
             final idx = entries.indexWhere((e) => e.userId == myUserId);
@@ -99,10 +258,12 @@ class LeaderboardScreen extends ConsumerWidget {
               meEntry = entries[idx];
             } else if (profile != null) {
               meEntry = LeaderboardEntryModel(
-                rank: 6099,
+                rank: 6137,
                 userId: myUserId,
                 username: profile.fullName,
                 fullName: profile.fullName,
+                institution: profile.institution,
+                avatarKey: profile.avatarKey,
                 xp: profile.xp,
                 level: profile.level,
                 solvedQuestionsCount: profile.solvedQuestionsCount,
@@ -113,138 +274,173 @@ class LeaderboardScreen extends ConsumerWidget {
 
           return Column(
             children: [
-              // 1. Top Header Area matching screenshot (Light Blue/Grey Header)
-              Container(
+              // 1. Dynamic Top Header Area (Matching Screenshots exactly)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
                 width: double.infinity,
-                color: const Color(0xFFEBF1F6),
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                color: currentLeague.bgColor,
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
                 child: Column(
                   children: [
-                    // League Icons Row
+                    // 3-Badge Carousel Row (Previous, Active Large Shield, Next)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Active Main League Shield
-                        Container(
-                          width: 68,
-                          height: 68,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF78909C),
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text('🛡️', style: TextStyle(fontSize: 38)),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        // Smaller Next League Badge
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFA1887F),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.06),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text('🥉', style: TextStyle(fontSize: 22)),
-                          ),
-                        ),
+                        if (prevLeague != null)
+                          GestureDetector(
+                            onTap: () {
+                              ref.read(leaderboardLeagueProvider.notifier).state = prevLeague.key;
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: _buildShieldBadge(prevLeague, isLarge: false),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 60),
+
+                        // Active Large Shield
+                        _buildShieldBadge(currentLeague, isLarge: true),
+
+                        if (nextLeague != null)
+                          GestureDetector(
+                            onTap: () {
+                              ref.read(leaderboardLeagueProvider.notifier).state = nextLeague.key;
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: _buildShieldBadge(nextLeague, isLarge: false),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 60),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
+
                     // League Title in Bangla
                     Text(
-                      leagueName,
+                      currentLeague.title,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
 
-                    // XP Progress Bar Capsule
+                    // Locked Banner OR XP Progress Bar Capsule
+                    if (isLocked)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text(
+                          'এই লীগ আনলক করতে পূর্ববর্তী লীগ গুলো কমপ্লিট করো',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                    else ...[
+                      // XP Progress Capsule
+                      Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.amber.shade400, width: 1.5),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text('⭐', style: TextStyle(fontSize: 13)),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '$starPoints',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 12.0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: LinearProgressIndicator(
+                                    value: progressVal > 0 ? progressVal : 0.02,
+                                    minHeight: 6,
+                                    backgroundColor: const Color(0xFFECEFF1),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('0', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+                            Text('100', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+
+                    // Scope Selector Pills (গ্লোবাল | ক্লাস | ব্যাচ)
                     Container(
-                      height: 38,
+                      padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 4,
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       child: Row(
                         children: [
-                          // Left Star XP Points Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.amber.shade300, width: 1.5),
-                            ),
-                            child: Row(
-                              children: [
-                                const Text('⭐', style: TextStyle(fontSize: 13)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '$starPoints',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 12,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Linear progress track
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 12.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: LinearProgressIndicator(
-                                  value: progressVal > 0 ? progressVal : 0.02,
-                                  minHeight: 6,
-                                  backgroundColor: const Color(0xFFECEFF1),
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('0', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
-                          Text('100', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87)),
+                          _buildScopeTab(ref, 'global', 'গ্লোবাল', activeScope),
+                          _buildScopeTab(ref, 'class', 'ক্লাস', activeScope),
+                          _buildScopeTab(ref, 'batch', 'ব্যাচ', activeScope),
                         ],
                       ),
                     ),
@@ -252,14 +448,14 @@ class LeaderboardScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 2. Middle Leaderboard Player List (Clean White List with Floating Timer)
+              // 2. Middle Leaderboard Player List
               Expanded(
                 child: Stack(
                   children: [
                     RefreshIndicator(
                       color: const Color(0xFF017A47),
                       onRefresh: () async {
-                        ref.invalidate(leaderboardProvider);
+                        ref.invalidate(leaderboardProvider((scope: activeScope, league: activeLeagueKey)));
                         ref.invalidate(userProfileProvider);
                       },
                       child: ListView.builder(
@@ -272,8 +468,10 @@ class LeaderboardScreen extends ConsumerWidget {
                           final String name = entry.fullName.isNotEmpty ? entry.fullName : entry.username;
                           final String? avatar = entry.avatarKey;
 
+                          final bool showPro = (index % 2 == 1) || (name.length % 2 == 0);
+
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                             decoration: BoxDecoration(
                               color: isMe ? const Color(0xFFE2EBE4) : Colors.white,
                               border: isMe
@@ -286,7 +484,7 @@ class LeaderboardScreen extends ConsumerWidget {
                                 Stack(
                                   children: [
                                     CircleAvatar(
-                                      radius: 22,
+                                      radius: 20,
                                       backgroundColor: isMe
                                           ? const Color(0xFF81C784)
                                           : const Color(0xFF017A47).withOpacity(0.12),
@@ -297,7 +495,7 @@ class LeaderboardScreen extends ConsumerWidget {
                                           ? Text(
                                               name.isNotEmpty ? name[0].toUpperCase() : '👤',
                                               style: TextStyle(
-                                                fontSize: 16,
+                                                fontSize: 15,
                                                 fontWeight: FontWeight.bold,
                                                 color: isMe ? Colors.white : const Color(0xFF017A47),
                                               ),
@@ -308,10 +506,10 @@ class LeaderboardScreen extends ConsumerWidget {
                                       bottom: 0,
                                       right: 0,
                                       child: Container(
-                                        width: 10,
-                                        height: 10,
+                                        width: 9,
+                                        height: 9,
                                         decoration: BoxDecoration(
-                                          color: index % 2 == 1 ? const Color(0xFF4CAF50) : Colors.grey.shade400,
+                                          color: index % 2 == 0 ? const Color(0xFF4CAF50) : Colors.grey.shade400,
                                           shape: BoxShape.circle,
                                           border: Border.all(color: Colors.white, width: 1.5),
                                         ),
@@ -319,9 +517,9 @@ class LeaderboardScreen extends ConsumerWidget {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 12),
 
-                                // Name
+                                // Name & Pro Badge
                                 Expanded(
                                   child: Row(
                                     children: [
@@ -331,34 +529,17 @@ class LeaderboardScreen extends ConsumerWidget {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
-                                            fontSize: 15,
+                                            fontSize: 14,
                                             fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
                                             color: Colors.black87,
                                           ),
                                         ),
                                       ),
-                                      if (index == 1) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue.shade700,
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: const Text(
-                                            'P',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              fontStyle: FontStyle.italic,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      if (showPro) _buildProBadge(),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
 
                                 // Rank & Points Column
                                 Column(
@@ -368,17 +549,17 @@ class LeaderboardScreen extends ConsumerWidget {
                                     Text(
                                       '${entry.rank}',
                                       style: const TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.w900,
                                         color: Colors.black87,
                                       ),
                                     ),
                                     Text(
-                                      '${(entry.xp / 10.0).toStringAsFixed(1)} পয়েন্ট',
+                                      _formatPoints(entry.xp),
                                       style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.black54,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                   ],
@@ -390,7 +571,7 @@ class LeaderboardScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Floating Timer Pill (Bottom Right) matching screenshot
+                    // Floating Timer Pill (Bottom Right) matching screenshots exactly
                     Positioned(
                       bottom: 16,
                       right: 16,
@@ -411,7 +592,7 @@ class LeaderboardScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '1d 01h 57m 27s',
+                              '0d 23h 25m 47s',
                               style: TextStyle(
                                 color: Color(0xFFD32F2F),
                                 fontWeight: FontWeight.bold,
@@ -428,7 +609,7 @@ class LeaderboardScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 3. Fixed Sticky Bottom Row for Active Current User (Green Highlighted Bar)
+              // 3. Fixed Sticky Bottom Row for Active Current User
               if (meEntry != null)
                 Container(
                   decoration: const BoxDecoration(
@@ -441,7 +622,6 @@ class LeaderboardScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   child: Row(
                     children: [
-                      // Avatar
                       CircleAvatar(
                         radius: 22,
                         backgroundColor: const Color(0xFF81C784),
@@ -457,7 +637,6 @@ class LeaderboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 14),
 
-                      // Name
                       Expanded(
                         child: Text(
                           meEntry.fullName.isNotEmpty ? meEntry.fullName : 'Rabbi failure',
@@ -471,7 +650,6 @@ class LeaderboardScreen extends ConsumerWidget {
                         ),
                       ),
 
-                      // Rank ordinal suffix & XP points
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisSize: MainAxisSize.min,
@@ -485,7 +663,7 @@ class LeaderboardScreen extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            '${meEntry.xp} পয়েন্ট',
+                            _formatPoints(meEntry.xp),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -504,5 +682,3 @@ class LeaderboardScreen extends ConsumerWidget {
     );
   }
 }
-
-

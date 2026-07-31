@@ -1,7 +1,30 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_interceptor.dart';
+import 'device_service.dart';
 import '../storage/secure_storage_service.dart';
+
+class DeviceInfoInterceptor extends Interceptor {
+  DeviceMetadata? _cache;
+
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    try {
+      _cache ??= await DeviceService.getDeviceMetadata();
+      if (_cache != null) {
+        options.headers['User-Agent'] = _cache!.userAgent;
+        options.headers['X-App-Version'] = _cache!.appVersion;
+        options.headers['X-App-Build'] = _cache!.buildNumber;
+        options.headers['X-Device-Os'] = _cache!.osName;
+        options.headers['X-Device-Os-Version'] = _cache!.osVersion;
+        options.headers['X-Device-Model'] = _cache!.deviceModel;
+        options.headers['X-Device-Manufacturer'] = _cache!.manufacturer;
+      }
+    } catch (_) {}
+    handler.next(options);
+  }
+}
 
 class NetworkException implements Exception {
   final String message;
@@ -29,6 +52,7 @@ class ApiClient {
         'Accept': 'application/json',
       },
     );
+    dio.interceptors.add(DeviceInfoInterceptor());
     dio.interceptors.add(AuthInterceptor(storageService));
   }
 

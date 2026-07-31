@@ -1,21 +1,55 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class LeaderboardEntryModel {
+  final int rank;
+  final String userId;
+  final String username;
+  final String fullName;
+  final String? institution;
+  final String? avatarKey;
+  final int xp;
+  final int level;
+  final int solvedQuestionsCount;
+  final String league;
 
-part 'leaderboard_model.freezed.dart';
-part 'leaderboard_model.g.dart';
+  const LeaderboardEntryModel({
+    required this.rank,
+    required this.userId,
+    required this.username,
+    required this.fullName,
+    this.institution,
+    this.avatarKey,
+    required this.xp,
+    required this.level,
+    required this.solvedQuestionsCount,
+    required this.league,
+  });
 
-@freezed
-class LeaderboardEntryModel with _$LeaderboardEntryModel {
-  const factory LeaderboardEntryModel({
-    required int rank,
-    required String userId,
-    required String username,
-    required String fullName,
-    String? avatarKey,
-    required int xp,
-    required int level,
-    required int solvedQuestionsCount,
-    required String league,
-  }) = _LeaderboardEntryModel;
+  factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
+    return LeaderboardEntryModel(
+      rank: (json['rank'] as num?)?.toInt() ?? 0,
+      userId: json['userId'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      institution: json['institution'] as String?,
+      avatarKey: json['avatarKey'] as String?,
+      xp: (json['xp'] as num?)?.toInt() ?? 0,
+      level: (json['level'] as num?)?.toInt() ?? 1,
+      solvedQuestionsCount: (json['solvedQuestionsCount'] as num?)?.toInt() ?? 0,
+      league: json['league'] as String? ?? 'BRONZE',
+    );
+  }
 
-  factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) => _$LeaderboardEntryModelFromJson(json);
+  Map<String, dynamic> toJson() {
+    return {
+      'rank': rank,
+      'userId': userId,
+      'username': username,
+      'fullName': fullName,
+      'institution': institution,
+      'avatarKey': avatarKey,
+      'xp': xp,
+      'level': level,
+      'solvedQuestionsCount': solvedQuestionsCount,
+      'league': league,
+    };
+  }
 }

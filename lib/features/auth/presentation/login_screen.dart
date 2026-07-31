@@ -108,15 +108,18 @@ class LoginScreen extends ConsumerWidget {
                             final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
                             final String? idToken = googleAuth.idToken;
                             if (idToken != null) {
+                              ref.invalidate(userProfileProvider);
                               await ref.read(authProvider.notifier).loginWithGoogle(idToken);
                               return;
                             }
                           }
 
                           // Fallback to dev token API hit if native Google prompt returned null or failed
+                          ref.invalidate(userProfileProvider);
                           await ref.read(authProvider.notifier).loginWithGoogle('dev-mock-token');
                         } catch (e) {
                           // Fallback to dev token API hit on error
+                          ref.invalidate(userProfileProvider);
                           await ref.read(authProvider.notifier).loginWithGoogle('dev-mock-token');
                         }
                       },

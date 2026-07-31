@@ -8,9 +8,16 @@ class LeaderboardRepository {
 
   LeaderboardRepository(this._apiClient);
 
-  Future<List<LeaderboardEntryModel>> fetchLeaderboard() async {
+  Future<List<LeaderboardEntryModel>> fetchLeaderboard({String scope = 'global', String league = ''}) async {
     try {
-      final response = await _apiClient.dio.get('/leaderboards/global');
+      final Map<String, dynamic> params = {'scope': scope, 'limit': 50};
+      if (league.isNotEmpty) {
+        params['league'] = league;
+      }
+      final response = await _apiClient.dio.get(
+        '/leaderboards/global',
+        queryParameters: params,
+      );
       List<dynamic> rawList = [];
       if (response.data is List) {
         rawList = response.data as List<dynamic>;

@@ -60,7 +60,9 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   Widget build(BuildContext context) {
     final state = ref.watch(practiceProvider);
     final profileAsync = ref.watch(userProfileProvider);
-    final leaderboardAsync = ref.watch(leaderboardProvider);
+    final selectedScope = ref.watch(leaderboardScopeProvider);
+    final selectedLeague = ref.watch(leaderboardLeagueProvider);
+    final leaderboardAsync = ref.watch(leaderboardProvider((scope: selectedScope, league: selectedLeague)));
     final bannersAsync = ref.watch(activeBannersProvider);
 
 
