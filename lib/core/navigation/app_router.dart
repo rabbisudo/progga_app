@@ -10,6 +10,7 @@ import '../../features/exam/presentation/exam_screen.dart';
 import '../../features/result/presentation/result_screen.dart';
 import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../../features/premium/presentation/premium_screen.dart';
+import '../../features/question/presentation/topic_selection_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
@@ -48,6 +49,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/topic-selection/:subjectId',
+        builder: (context, state) {
+          final subjectId = state.pathParameters['subjectId'] ?? '';
+          final subjectName = state.extra as String?;
+          return TopicSelectionScreen(subjectId: subjectId, subjectName: subjectName);
+        },
       ),
       GoRoute(
         path: '/exam/:id',

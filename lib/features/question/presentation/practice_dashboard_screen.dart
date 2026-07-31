@@ -147,6 +147,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           ? AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
               leadingWidth: 90,
               // Left: Streak counter widget showing 🔥 ১ matching the screenshot
               leading: Center(
@@ -234,6 +236,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           : AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
               title: Text(
                 _currentNavIndex == 1
                     ? 'প্রশ্নব্যাংক'
@@ -996,207 +1000,163 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
     final curriculumAsync = ref.watch(studentCurriculumProvider);
 
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          color: const Color(0xFFF8F9FA),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return curriculumAsync.when(
+      loading: () => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Color(0xFF017A47)),
+            SizedBox(height: 12),
+            Text(
+              'আপনার বিষয়ের পরীক্ষা প্রস্তুত হচ্ছে...',
+              style: TextStyle(color: Colors.black54, fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+      error: (err, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  const Text('🎓', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'নির্বাচিত: $className ($groupName)',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF017A47),
-                    ),
-                  ),
-                ],
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 12),
+              Text(
+                'পরীক্ষা লোড করতে সমস্যা হয়েছে: $err',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
               ),
-              InkWell(
-                onTap: () => context.push('/profile'),
-                child: const Text(
-                  'পরিবর্তন ➔',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF017A47),
-                  ),
-                ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => ref.refresh(studentCurriculumProvider),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
+                child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
         ),
-        Expanded(
-          child: curriculumAsync.when(
-            loading: () => const Center(
+      ),
+      data: (subjects) {
+        if (subjects.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: Color(0xFF017A47)),
-                  SizedBox(height: 12),
+                  const Text('📚', style: TextStyle(fontSize: 44)),
+                  const SizedBox(height: 12),
                   Text(
-                    'আপনার বিষয়ের পরীক্ষা প্রস্তুত হচ্ছে...',
-                    style: TextStyle(color: Colors.black54, fontSize: 13),
+                    '$className ($groupName)-এর জন্য কোনো বিষয় পাওয়া যায়নি।',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'প্রোফাইল থেকে অন্য বিষয়/ক্লাস নির্বাচন করুন।',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => context.push('/profile'),
+                    icon: const Icon(Icons.edit, size: 16, color: Colors.white),
+                    label: const Text('ক্লাস পরিবর্তন করুন', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
                   ),
                 ],
               ),
             ),
-            error: (err, stack) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 40),
-                    const SizedBox(height: 12),
-                    Text(
-                      'পরীক্ষা লোড করতে সমস্যা হয়েছে: $err',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => ref.refresh(studentCurriculumProvider),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-                      child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
+          );
+        }
+
+        return GridView.builder(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 6,
+            childAspectRatio: 3.2,
+          ),
+          itemCount: subjects.length,
+          itemBuilder: (context, index) {
+            final subject = subjects[index] as Map<String, dynamic>;
+            final subjectName = subject['name'] ?? 'বিষয়';
+            final rawIcon = subject['icon'] as String?;
+            final rawImageUrl = subject['imageUrl'] as String?;
+            final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+
+            // Prioritize icon image URL over subject banner image
+            final iconImageUrl = (rawIcon != null && (rawIcon.startsWith('http://') || rawIcon.startsWith('https://')))
+                ? rawIcon
+                : ((rawImageUrl != null && rawImageUrl.isNotEmpty && (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')))
+                    ? rawImageUrl
+                    : null);
+            final emojiIcon = (rawIcon != null && !rawIcon.startsWith('http')) ? rawIcon : '📚';
+
+            return Card(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.grey.shade200),
               ),
-            ),
-            data: (subjects) {
-              if (subjects.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('📚', style: TextStyle(fontSize: 44)),
-                        const SizedBox(height: 12),
-                        Text(
-                          '$className ($groupName)-এর জন্য কোনো বিষয় পাওয়া যায়নি।',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'প্রোফাইল থেকে অন্য বিষয়/ক্লাস নির্বাচন করুন।',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => context.push('/profile'),
-                          icon: const Icon(Icons.edit, size: 16, color: Colors.white),
-                          label: const Text('ক্লাস পরিবর্তন করুন', style: TextStyle(color: Colors.white)),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: subjects.length,
-                itemBuilder: (context, index) {
-                  final subject = subjects[index] as Map<String, dynamic>;
-                  final subjectName = subject['name'] ?? 'বিষয়';
-                  final iconStr = subject['icon'] ?? '📚';
-                  final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
-                  final chapterCount = chapters.length;
-
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(iconStr, style: const TextStyle(fontSize: 20)),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    subjectName,
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF017A47).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  '$chapterCount টি অধ্যায়',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF017A47),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(Icons.assignment_outlined, size: 15, color: theme.colorScheme.primary),
-                              const SizedBox(width: 4),
-                              const Text('৫০ নম্বর', style: TextStyle(fontSize: 12)),
-                              const SizedBox(width: 16),
-                              Icon(Icons.timer_outlined, size: 15, color: theme.colorScheme.primary),
-                              const SizedBox(width: 4),
-                              const Text('৪০ মিনিট', style: TextStyle(fontSize: 12)),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                ref.read(practiceProvider.notifier).updateFilters(
-                                  subjectId: subject['id'],
-                                  chapterId: chapters.isNotEmpty ? chapters.first['id'] : null,
-                                );
-                                context.push('/exam/${subject['id']}');
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF005C39),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              ),
-                              child: Text(
-                                '$subjectName পরীক্ষা শুরু করুন',
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                splashColor: const Color(0xFF017A47).withOpacity(0.12),
+                highlightColor: const Color(0xFF017A47).withOpacity(0.06),
+                onTap: () {
+                  context.push(
+                    '/topic-selection/${subject['id']}',
+                    extra: subjectName,
                   );
                 },
-              );
-            },
-          ),
-        ),
-      ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: Center(
+                          child: iconImageUrl != null
+                              ? Image.network(
+                                  iconImageUrl,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => Text(
+                                    emojiIcon,
+                                    style: const TextStyle(fontSize: 18),
+                                  ),
+                                )
+                              : Text(
+                                  emojiIcon,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          subjectName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

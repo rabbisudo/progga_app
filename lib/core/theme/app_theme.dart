@@ -14,9 +14,11 @@ class AppTheme {
   static const Color lightCard = Color(0xFFF1F3F5);
 
   static ThemeData get lightTheme {
+    final baseTextTheme = ThemeData.light().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: GoogleFonts.notoSansBengali().fontFamily,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: lightBackground,
       cardColor: lightCard,
@@ -26,7 +28,13 @@ class AppTheme {
         surface: lightSurface,
         error: Color(0xFFD32F2F),
       ),
-      textTheme: GoogleFonts.notoSansBengaliTextTheme(ThemeData.light().textTheme).copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: lightSurface,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      textTheme: GoogleFonts.notoSansBengaliTextTheme(baseTextTheme).copyWith(
         titleLarge: GoogleFonts.notoSansBengali(
           fontSize: 22,
           fontWeight: FontWeight.bold,
@@ -42,9 +50,11 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final baseTextTheme = ThemeData.dark().textTheme;
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: GoogleFonts.notoSansBengali().fontFamily,
       primaryColor: primaryColor,
       scaffoldBackgroundColor: const Color(0xFF121212),
       cardColor: darkCard,
@@ -54,7 +64,13 @@ class AppTheme {
         surface: darkSurface,
         error: Color(0xFFCF6679),
       ),
-      textTheme: GoogleFonts.notoSansBengaliTextTheme(ThemeData.dark().textTheme).copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      textTheme: GoogleFonts.notoSansBengaliTextTheme(baseTextTheme).copyWith(
         titleLarge: GoogleFonts.notoSansBengali(
           fontSize: 22,
           fontWeight: FontWeight.bold,

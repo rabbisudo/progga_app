@@ -24,6 +24,7 @@ class AcademicsRepository {
   Future<List<dynamic>> fetchStudentCurriculum({
     required String classId,
     String? groupId,
+    String? userId,
   }) async {
     try {
       final response = await _apiClient.dio.get(
@@ -31,6 +32,7 @@ class AcademicsRepository {
         queryParameters: {
           'classId': classId,
           if (groupId != null && groupId.isNotEmpty) 'groupId': groupId,
+          if (userId != null && userId.isNotEmpty) 'userId': userId,
         },
       );
       return response.data as List<dynamic>;
@@ -59,5 +61,6 @@ final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref
   return repo.fetchStudentCurriculum(
     classId: profile.classId!,
     groupId: profile.groupId,
+    userId: profile.userId,
   );
 });
