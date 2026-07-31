@@ -5,6 +5,8 @@ import '../domain/profile_model.dart';
 import '../../academics/data/academics_repository.dart';
 import '../../academics/domain/academics_model.dart';
 import '../../auth/presentation/auth_notifier.dart';
+import '../../leaderboard/presentation/leaderboard_notifier.dart';
+import '../../question/presentation/practice_notifier.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -369,6 +371,10 @@ class _EditProfileBottomSheetState extends ConsumerState<EditProfileBottomSheet>
       }
 
       await ref.read(userProfileProvider.notifier).updateProfileDetails(payload);
+
+      // Instantly refresh dependent providers so home page updates immediately
+      ref.invalidate(leaderboardProvider);
+      ref.invalidate(practiceProvider);
 
       if (mounted) {
         Navigator.pop(context);

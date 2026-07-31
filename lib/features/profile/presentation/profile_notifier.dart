@@ -4,27 +4,27 @@ import '../data/profile_repository.dart';
 import '../domain/profile_model.dart';
 
 class ProfileNotifier extends AsyncNotifier<UserData> {
-  late final ProfileRepository _repository;
-
   @override
   FutureOr<UserData> build() async {
-    _repository = ref.watch(profileRepositoryProvider);
-    return _repository.fetchMyProfile();
+    final repository = ref.read(profileRepositoryProvider);
+    return repository.fetchMyProfile();
   }
 
   Future<void> updateSettings(Map<String, dynamic> settings) async {
+    final repository = ref.read(profileRepositoryProvider);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final updatedProfile = await _repository.updateSettings(settings);
+      final updatedProfile = await repository.updateSettings(settings);
       final currentData = state.value!;
       return currentData.copyWith(profile: updatedProfile);
     });
   }
 
   Future<void> updateProfileDetails(Map<String, dynamic> data) async {
+    final repository = ref.read(profileRepositoryProvider);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final updatedProfile = await _repository.updateProfile(data);
+      final updatedProfile = await repository.updateProfile(data);
       final currentData = state.value!;
       return currentData.copyWith(profile: updatedProfile);
     });

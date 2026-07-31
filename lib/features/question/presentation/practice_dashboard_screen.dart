@@ -295,8 +295,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final userScore = profile?.xp ?? 3981;
     final starPoints = profile != null ? (profile.xp % 100) : 0;
     final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.0;
-
-    return RefreshIndicator(
+return RefreshIndicator(
       color: const Color(0xFF017A47),
       onRefresh: () async {
         ref.invalidate(userProfileProvider);
@@ -311,33 +310,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 8),
-
-          // 1. Multiple Swipeable Banner Slider
-          const BannerSliderWidget(
-            banners: [
-              {
-                'title': 'সীমাহীন অনুশীলনের জন্য Progga প্রিমিয়াম নাও এখনই',
-                'badgeText': 'PREMIUM',
-                'targetUrl': '/premium',
-                'colors': [Color(0xFF004D40), Color(0xFF00796B), Color(0xFF003D33)],
-                'icon': '🦖',
-              },
-              {
-                'title': 'এইচএসসি ও ভর্তি পরীক্ষা স্পেশাল মক টেস্ট প্রতিযোগিতা',
-                'badgeText': 'LIVE EXAM',
-                'targetUrl': '/premium',
-                'colors': [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                'icon': '🏆',
-              },
-              {
-                'title': 'অধ্যায়ভিত্তিক প্রশ্নব্যাংক ও সমাধান ফ্রি আনলক করো',
-                'badgeText': 'FREE OFFER',
-                'targetUrl': '/premium',
-                'colors': [Color(0xFFD84315), Color(0xFFF4511E)],
-                'icon': '📚',
-              },
-            ],
-          ),
 
           // 2. Clean Action Grid Buttons Row of 4 items (Icon + Label)
           Padding(
@@ -471,10 +443,14 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         // Convert entries to LeaderboardPlayer models
                         final List<LeaderboardPlayer> allPlayers = entries.map<LeaderboardPlayer>((e) {
                           final isMe = e.userId == myUserId;
+                          // Use actual avatar URL if available; else show first letter of name
+                          final avatarDisplay = e.avatarKey != null && e.avatarKey!.isNotEmpty
+                              ? e.avatarKey!
+                              : (e.fullName.isNotEmpty ? e.fullName[0].toUpperCase() : '?');
                           return LeaderboardPlayer(
-                            name: e.fullName.isNotEmpty ? e.fullName : 'Student',
+                            name: e.fullName.isNotEmpty ? e.fullName : e.username,
                             score: e.xp,
-                            avatarText: e.avatarKey != null ? '🖼️' : (e.fullName.isNotEmpty ? e.fullName[0].toUpperCase() : '👨‍🎓'),
+                            avatarText: avatarDisplay,
                             avatarBg: isMe ? const Color(0xFF81C784) : const Color(0xFF26A69A),
                             isCurrentUser: isMe,
                           );
@@ -591,10 +567,13 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     required Color avatarBg,
     required bool isCurrentUser,
   }) {
+    final bool isUrl = avatarText.startsWith('http') || avatarText.startsWith('https');
+    final bool isSingleChar = avatarText.length == 1;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isCurrentUser ? const Color(0xFF017A47).withOpacity(0.08) : Colors.transparent,
+        color: isCurrentUser ? const Color(0xFF017A47).withValues(alpha: 0.08) : Colors.transparent,
         border: isCurrentUser
             ? const Border(left: BorderSide(color: Color(0xFF017A47), width: 4))
             : null,
@@ -602,34 +581,38 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       child: Row(
         children: [
           CircleAvatar(
+            radius: 20,
             backgroundColor: avatarBg,
-            backgroundImage: (avatarText.startsWith('http') || (avatarText.length > 5 && avatarText.contains('/')))
-                ? NetworkImage(avatarText)
-                : null,
-            child: (avatarText.startsWith('http') || (avatarText.length > 5 && avatarText.contains('/')))
+            backgroundImage: isUrl ? NetworkImage(avatarText) : null,
+            child: isUrl
                 ? null
-                : Text(avatarText, style: const TextStyle(fontSize: 20)),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
-                    fontSize: 14,
+                : Text(
+                    isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
+                fontSize: 14,
+                color: isCurrentUser ? const Color(0xFF017A47) : Colors.black87,
+              ),
             ),
           ),
           Text(
             '$score XP',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: 13,
               color: Color(0xFF017A47),
             ),
           ),
