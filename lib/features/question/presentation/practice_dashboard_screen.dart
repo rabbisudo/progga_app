@@ -21,46 +21,11 @@ class PracticeDashboardScreen extends ConsumerStatefulWidget {
 class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScreen> {
   final ScrollController _scrollController = ScrollController();
   int _currentNavIndex = 0;
-  
-  // Dummy static syllabus maps for selection options
-  final List<Map<String, String>> _subjects = [
-    {'id': 'sub-physics', 'title': 'Physics'},
-    {'id': 'sub-chemistry', 'title': 'Chemistry'},
-    {'id': 'sub-math', 'title': 'Higher Math'},
-  ];
-
-  final Map<String, List<Map<String, String>>> _chapters = {
-    'sub-physics': [
-      {'id': 'ch-vector', 'title': 'Vectors'},
-      {'id': 'ch-mechanics', 'title': 'Newtonian Mechanics'},
-    ],
-    'sub-chemistry': [
-      {'id': 'ch-organic', 'title': 'Organic Chemistry'},
-      {'id': 'ch-electro', 'title': 'Electrochemistry'},
-    ],
-    'sub-math': [
-      {'id': 'ch-matrix', 'title': 'Matrices & Determinants'},
-      {'id': 'ch-calculus', 'title': 'Calculus'},
-    ],
-  };
-
-  String? _selectedSubjectId;
-  String? _selectedChapterId;
-  String _selectedDifficulty = 'MEDIUM';
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    
-    // Select defaults
-    _selectedSubjectId = _subjects.first['id'];
-    _selectedChapterId = _chapters[_selectedSubjectId]!.first['id'];
-    
-    // Initial fetch trigger
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _triggerFetch();
-    });
   }
 
   @override
@@ -73,14 +38,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       ref.read(practiceProvider.notifier).fetchNextPage();
     }
-  }
-
-  void _triggerFetch() {
-    ref.read(practiceProvider.notifier).updateFilters(
-      subjectId: _selectedSubjectId,
-      chapterId: _selectedChapterId,
-      difficulty: _selectedDifficulty,
-    );
   }
 
   @override
@@ -182,24 +139,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   ),
                 ),
               ),
-              // Center: App logo
-              title: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black12, width: 1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Progga',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
+              title: const SizedBox.shrink(),
               // Right: Circular profile avatar image
               actions: [
                 Padding(
@@ -360,97 +300,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Dynamic Active Academic Class & Group Card
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF004D40), Color(0xFF00695C)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF004D40).withOpacity(0.2),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Text('🎓', style: TextStyle(fontSize: 18)),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                profile?.className ?? 'Class 12 / HSC 2026',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'গ্রুপ/বিভাগ: ${profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান বিভাগ'}',
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => context.push('/profile'),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white30, width: 0.8),
-                      ),
-                      child: const Row(
-                        children: [
-                          Text(
-                            'পরিবর্তন',
-                            style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(Icons.edit_outlined, color: Colors.white, size: 12),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const SizedBox(height: 8),
 
           // 1. Multiple Swipeable Banner Slider
           const BannerSliderWidget(

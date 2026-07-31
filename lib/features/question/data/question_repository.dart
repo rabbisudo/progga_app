@@ -18,6 +18,7 @@ class QuestionRepository {
   Future<PaginatedQuestions> fetchQuestions({
     String? subjectId,
     String? chapterId,
+    String? topicId,
     String? difficulty,
     String? cursor,
     int limit = 20,
@@ -25,8 +26,9 @@ class QuestionRepository {
     try {
       final queryParams = {
         'limit': limit,
-        if (subjectId != null) 'subjectId': subjectId,
-        if (chapterId != null) 'chapterId': chapterId,
+        if (subjectId != null && subjectId.isNotEmpty) 'subjectId': subjectId,
+        if (chapterId != null && chapterId.isNotEmpty) 'chapterId': chapterId,
+        if (topicId != null && topicId.isNotEmpty) 'topicId': topicId,
         if (difficulty != null) 'difficulty': difficulty,
         if (cursor != null) 'cursor': cursor,
       };

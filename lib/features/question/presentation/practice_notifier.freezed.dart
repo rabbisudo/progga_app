@@ -22,6 +22,7 @@ mixin _$PracticeState {
   bool get isLoadingMore => throw _privateConstructorUsedError;
   String? get subjectId => throw _privateConstructorUsedError;
   String? get chapterId => throw _privateConstructorUsedError;
+  String? get topicId => throw _privateConstructorUsedError;
   String? get difficulty => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
 
@@ -43,6 +44,7 @@ abstract class $PracticeStateCopyWith<$Res> {
       bool isLoadingMore,
       String? subjectId,
       String? chapterId,
+      String? topicId,
       String? difficulty,
       String? errorMessage});
 }
@@ -66,6 +68,7 @@ class _$PracticeStateCopyWithImpl<$Res, $Val extends PracticeState>
     Object? isLoadingMore = null,
     Object? subjectId = freezed,
     Object? chapterId = freezed,
+    Object? topicId = freezed,
     Object? difficulty = freezed,
     Object? errorMessage = freezed,
   }) {
@@ -94,6 +97,10 @@ class _$PracticeStateCopyWithImpl<$Res, $Val extends PracticeState>
           ? _value.chapterId
           : chapterId // ignore: cast_nullable_to_non_nullable
               as String?,
+      topicId: freezed == topicId
+          ? _value.topicId
+          : topicId // ignore: cast_nullable_to_non_nullable
+              as String?,
       difficulty: freezed == difficulty
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
@@ -121,6 +128,7 @@ abstract class _$$PracticeStateImplCopyWith<$Res>
       bool isLoadingMore,
       String? subjectId,
       String? chapterId,
+      String? topicId,
       String? difficulty,
       String? errorMessage});
 }
@@ -142,6 +150,7 @@ class __$$PracticeStateImplCopyWithImpl<$Res>
     Object? isLoadingMore = null,
     Object? subjectId = freezed,
     Object? chapterId = freezed,
+    Object? topicId = freezed,
     Object? difficulty = freezed,
     Object? errorMessage = freezed,
   }) {
@@ -170,6 +179,10 @@ class __$$PracticeStateImplCopyWithImpl<$Res>
           ? _value.chapterId
           : chapterId // ignore: cast_nullable_to_non_nullable
               as String?,
+      topicId: freezed == topicId
+          ? _value.topicId
+          : topicId // ignore: cast_nullable_to_non_nullable
+              as String?,
       difficulty: freezed == difficulty
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
@@ -192,6 +205,7 @@ class _$PracticeStateImpl implements _PracticeState {
       required this.isLoadingMore,
       this.subjectId,
       this.chapterId,
+      this.topicId,
       this.difficulty,
       this.errorMessage})
       : _questions = questions;
@@ -215,13 +229,15 @@ class _$PracticeStateImpl implements _PracticeState {
   @override
   final String? chapterId;
   @override
+  final String? topicId;
+  @override
   final String? difficulty;
   @override
   final String? errorMessage;
 
   @override
   String toString() {
-    return 'PracticeState(questions: $questions, nextCursor: $nextCursor, isLoading: $isLoading, isLoadingMore: $isLoadingMore, subjectId: $subjectId, chapterId: $chapterId, difficulty: $difficulty, errorMessage: $errorMessage)';
+    return 'PracticeState(questions: $questions, nextCursor: $nextCursor, isLoading: $isLoading, isLoadingMore: $isLoadingMore, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, difficulty: $difficulty, errorMessage: $errorMessage)';
   }
 
   @override
@@ -241,6 +257,7 @@ class _$PracticeStateImpl implements _PracticeState {
                 other.subjectId == subjectId) &&
             (identical(other.chapterId, chapterId) ||
                 other.chapterId == chapterId) &&
+            (identical(other.topicId, topicId) || other.topicId == topicId) &&
             (identical(other.difficulty, difficulty) ||
                 other.difficulty == difficulty) &&
             (identical(other.errorMessage, errorMessage) ||
@@ -256,6 +273,7 @@ class _$PracticeStateImpl implements _PracticeState {
       isLoadingMore,
       subjectId,
       chapterId,
+      topicId,
       difficulty,
       errorMessage);
 
@@ -274,6 +292,7 @@ abstract class _PracticeState implements PracticeState {
       required final bool isLoadingMore,
       final String? subjectId,
       final String? chapterId,
+      final String? topicId,
       final String? difficulty,
       final String? errorMessage}) = _$PracticeStateImpl;
 
@@ -289,6 +308,8 @@ abstract class _PracticeState implements PracticeState {
   String? get subjectId;
   @override
   String? get chapterId;
+  @override
+  String? get topicId;
   @override
   String? get difficulty;
   @override

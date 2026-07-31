@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_notifier.dart';
@@ -53,18 +54,13 @@ class LoginScreen extends ConsumerWidget {
             children: [
               const Spacer(flex: 3),
               
-              const Center(
-                child: Text(
-                  'Progga',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2.0,
-                    color: Color(0xFF212529),
-                  ),
+              Center(
+                child: SvgPicture.asset(
+                  'assets/images/logo_vector.svg',
+                  height: 60,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               
               const Center(
                 child: Text(

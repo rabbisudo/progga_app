@@ -14,6 +14,7 @@ class PracticeState with _$PracticeState {
     required bool isLoadingMore,
     String? subjectId,
     String? chapterId,
+    String? topicId,
     String? difficulty,
     String? errorMessage,
   }) = _PracticeState;
@@ -29,17 +30,18 @@ class PracticeNotifier extends StateNotifier<PracticeState> {
           isLoadingMore: false,
         ));
 
-  void updateFilters({String? subjectId, String? chapterId, String? difficulty}) {
+  void updateFilters({String? subjectId, String? chapterId, String? topicId, String? difficulty}) {
     state = state.copyWith(
       subjectId: subjectId ?? state.subjectId,
       chapterId: chapterId ?? state.chapterId,
+      topicId: topicId ?? state.topicId,
       difficulty: difficulty ?? state.difficulty,
     );
     fetchFirstPage();
   }
 
   Future<void> fetchFirstPage() async {
-    if (state.subjectId == null && state.chapterId == null) return;
+    if (state.subjectId == null && state.chapterId == null && state.topicId == null) return;
     
     state = state.copyWith(isLoading: true, errorMessage: null, questions: [], nextCursor: null);
 
@@ -47,6 +49,7 @@ class PracticeNotifier extends StateNotifier<PracticeState> {
       final result = await _repository.fetchQuestions(
         subjectId: state.subjectId,
         chapterId: state.chapterId,
+        topicId: state.topicId,
         difficulty: state.difficulty,
         limit: 15,
       );
@@ -70,6 +73,7 @@ class PracticeNotifier extends StateNotifier<PracticeState> {
       final result = await _repository.fetchQuestions(
         subjectId: state.subjectId,
         chapterId: state.chapterId,
+        topicId: state.topicId,
         difficulty: state.difficulty,
         cursor: state.nextCursor,
         limit: 15,

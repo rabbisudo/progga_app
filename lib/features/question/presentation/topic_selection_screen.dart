@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../academics/data/academics_repository.dart';
@@ -19,9 +20,27 @@ class TopicSelectionScreen extends ConsumerStatefulWidget {
 }
 
 class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
+  final Set<String> _selectedSubjectIds = {};
   final Set<String> _selectedTopicIds = {};
   final Set<String> _selectedChapterIds = {};
+  final TextEditingController _questionCountController = TextEditingController(text: '25');
   int _selectedQuestionCount = 25;
+  bool _isTopicsExpanded = true;
+  bool _showMultiSubjectHeader = false;
+  late String _activeSubjectId;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeSubjectId = widget.subjectId;
+    _selectedSubjectIds.add(widget.subjectId);
+  }
+
+  @override
+  void dispose() {
+    _questionCountController.dispose();
+    super.dispose();
+  }
 
   void _toggleTopic(String topicId, String chapterId, List<dynamic> chapterTopics) {
     setState(() {
@@ -31,7 +50,6 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         _selectedTopicIds.add(topicId);
       }
 
-      // Check if all topics in chapter are selected
       final allTopicIds = chapterTopics.map((t) => t['id'] as String).toSet();
       if (allTopicIds.isNotEmpty && allTopicIds.every((id) => _selectedTopicIds.contains(id))) {
         _selectedChapterIds.add(chapterId);
@@ -52,54 +70,6 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         _selectedTopicIds.addAll(topicIds);
       }
     });
-  }
-
-  void _showQuestionCountPicker() {
-    showModalBottomSheet(
-      context: context,
-      elevation: 0,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'প্রশ্নের সংখ্যা নির্বাচন করুন',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [10, 15, 20, 25, 30, 40, 50].map((count) {
-                  final isSelected = _selectedQuestionCount == count;
-                  return ChoiceChip(
-                    label: Text('$count টি প্রশ্ন', style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-                    selected: isSelected,
-                    selectedColor: const Color(0xFF017A47),
-                    backgroundColor: Colors.grey.shade200,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _selectedQuestionCount = count;
-                        });
-                        Navigator.pop(context);
-                      }
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -159,13 +129,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         ),
       ),
       data: (subjects) {
-        // Find targeted subject data
-        final subject = subjects.firstWhere(
-          (s) => s['id'] == widget.subjectId,
-          orElse: () => <String, dynamic>{},
+        final activeSubjects = subjects.where((s) => _selectedSubjectIds.contains(s['id'])).toList();
+        final currentSubject = subjects.firstWhere(
+          (s) => s['id'] == _activeSubjectId,
+          orElse: () => subjects.isNotEmpty ? subjects.first : <String, dynamic>{},
         );
-
-        final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+        final singleSubjectChapters = (currentSubject['chapters'] as List<dynamic>?) ?? [];
 
         return Scaffold(
           backgroundColor: const Color(0xFFF3F4F3),
@@ -176,7 +145,15 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
             surfaceTintColor: Colors.transparent,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                if (_showMultiSubjectHeader) {
+                  setState(() {
+                    _showMultiSubjectHeader = false;
+                  });
+                } else {
+                  context.pop();
+                }
+              },
             ),
             title: const Text(
               'টপিক সিলেক্ট করো',
@@ -241,26 +218,73 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
 
               const SizedBox(height: 8),
 
-              // Chapters & Topics List View
+              // Main Content (Single Subject Detailed View OR Multi-Subject Overview)
               Expanded(
-                child: chapters.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'এই বিষয়ের কোনো অধ্যায় পাওয়া যায়নি।',
-                          style: TextStyle(color: Colors.black54),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_showMultiSubjectHeader) ...[
+                        // Top Multi-Subject Selector Chips Grid matching Screenshot 1
+                        _buildSubjectSelectionChips(subjects),
+
+                        const SizedBox(height: 12),
+
+                        // Collapsible "সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো" Bar
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              setState(() {
+                                _isTopicsExpanded = !_isTopicsExpanded;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  Icon(
+                                    _isTopicsExpanded
+                                        ? Icons.keyboard_arrow_up_rounded
+                                        : Icons.keyboard_arrow_down_rounded,
+                                    color: Colors.black87,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: chapters.length,
-                        itemBuilder: (context, index) {
-                          return _buildChapterBlock(chapters[index]);
-                        },
-                      ),
+
+                        if (_isTopicsExpanded) ...[
+                          const SizedBox(height: 16),
+                          ...activeSubjects.map((s) => _buildMultiSubjectSummaryBlock(s)),
+                        ],
+                      ] else ...[
+                        // Direct Single Subject Detailed View matching Screenshot 2
+                        ...singleSubjectChapters.map((c) => _buildChapterBlock(c)),
+                      ],
+                    ],
+                  ),
+                ),
               ),
 
-              // Bottom Action Banner matching the exact screenshot layout
+              // Bottom Action Banner
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -275,42 +299,59 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Question Count Input Selector Row
-                      GestureDetector(
-                        onTap: _showQuestionCountPicker,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECECEC),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'প্রশ্নের সংখ্যা',
-                                style: TextStyle(
+                      // Editable Question Count Input Row
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECECEC),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'প্রশ্নের সংখ্যা',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 70,
+                              height: 38,
+                              child: TextField(
+                                controller: _questionCountController,
+                                keyboardType: TextInputType.number,
+                                textAlign: TextAlign.center,
+                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    '$_selectedQuestionCount',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: EdgeInsets.zero,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey.shade300),
                                   ),
-                                  const SizedBox(width: 6),
-                                  const Icon(Icons.unfold_more, size: 16, color: Colors.black54),
-                                ],
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
+                                  ),
+                                ),
+                                onChanged: (val) {
+                                  final num = int.tryParse(val);
+                                  if (num != null && num > 0) {
+                                    _selectedQuestionCount = num;
+                                  }
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
 
@@ -319,11 +360,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                       // Action Buttons Row: + আরেকটি বিষয় and এগিয়ে যাও
                       Row(
                         children: [
-                          // Left Button: + আরেকটি বিষয়
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () {
-                                context.pop(); // Go back to subject selection to add another subject
+                                setState(() {
+                                  _showMultiSubjectHeader = !_showMultiSubjectHeader;
+                                });
                               },
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -345,20 +387,24 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
 
                           const SizedBox(width: 12),
 
-                          // Right Button: এগিয়ে যাও
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () {
-                                final firstSelectedChapter = _selectedChapterIds.isNotEmpty
-                                    ? _selectedChapterIds.first
-                                    : (chapters.isNotEmpty ? chapters.first['id'] : null);
+                                final joinedSubjectIds = _selectedSubjectIds.join(',');
+                                final joinedChapterIds = _selectedChapterIds.join(',');
+                                final joinedTopicIds = _selectedTopicIds.join(',');
+
+                                final primarySubject = _selectedSubjectIds.isNotEmpty
+                                    ? _selectedSubjectIds.first
+                                    : widget.subjectId;
 
                                 ref.read(practiceProvider.notifier).updateFilters(
-                                  subjectId: widget.subjectId,
-                                  chapterId: firstSelectedChapter,
+                                  subjectId: joinedSubjectIds.isNotEmpty ? joinedSubjectIds : primarySubject,
+                                  chapterId: joinedChapterIds.isNotEmpty ? joinedChapterIds : null,
+                                  topicId: joinedTopicIds.isNotEmpty ? joinedTopicIds : null,
                                 );
 
-                                context.push('/exam/${widget.subjectId}');
+                                context.push('/exam/$primarySubject?limit=$_selectedQuestionCount');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF017A47),
@@ -391,6 +437,211 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
     );
   }
 
+  Widget _buildSubjectSelectionChips(List<dynamic> allSubjects) {
+    return Center(
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 10,
+        runSpacing: 10,
+        children: allSubjects.map((s) {
+          final subMap = s as Map<String, dynamic>;
+          final sId = subMap['id'] as String;
+          final sName = subMap['name'] ?? 'বিষয়';
+          final isSelected = _selectedSubjectIds.contains(sId);
+
+          return InkWell(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  if (_selectedSubjectIds.length > 1) {
+                    _selectedSubjectIds.remove(sId);
+                  }
+                } else {
+                  _selectedSubjectIds.add(sId);
+                }
+                _activeSubjectId = sId;
+                _showMultiSubjectHeader = false; // Opens Detailed Checkbox View for this subject!
+              });
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade200,
+                  width: isSelected ? 1.5 : 1.0,
+                ),
+              ),
+              child: Text(
+                sName,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildMultiSubjectSummaryBlock(Map<String, dynamic> subject) {
+    final sId = subject['id'] as String;
+    final subjectName = subject['name'] ?? 'বিষয়';
+    final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+    final totalSubjectQuestions = subject['totalQuestions'] ?? 0;
+    final solvedSubjectQuestions = subject['solvedQuestions'] ?? 0;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _activeSubjectId = sId;
+          _showMultiSubjectHeader = false; // Opens Detailed Checkbox View for this subject!
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row: Green Dot + Subject Title and Right Badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF017A47),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      subjectName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF017A47),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4E8DC),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    '$_selectedQuestionCountটি প্রশ্ন',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF017A47),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 2),
+
+            // Solved stats ratio line
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Text(
+                '$solvedSubjectQuestions/$totalSubjectQuestions টি প্রশ্ন সলভ করা হয়েছে',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Left Vertical Guide Line + Chapters and Selected Topics
+            Padding(
+              padding: const EdgeInsets.only(left: 4.0),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 3,
+                    top: 4,
+                    bottom: 4,
+                    child: Container(
+                      width: 2,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: chapters.map((c) {
+                        final cMap = c as Map<String, dynamic>;
+                        final cName = cMap['name'] ?? 'অধ্যায়';
+                        final topics = (cMap['topics'] as List<dynamic>?) ?? [];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                cName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              if (topics.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                ...topics.map((t) {
+                                  final tMap = t as Map<String, dynamic>;
+                                  final tName = tMap['name'] ?? 'টপিক';
+                                  return Padding(
+                                    padding: const EdgeInsets.only(left: 12.0, top: 2.0),
+                                    child: Text(
+                                      tName,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildChapterBlock(Map<String, dynamic> chapter) {
     final chapterId = chapter['id'] as String;
     final chapterName = chapter['name'] ?? 'অধ্যায়';
@@ -405,19 +656,19 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
       children: [
         // Chapter Main Header Card
         Container(
-          margin: const EdgeInsets.only(top: 10),
+          margin: const EdgeInsets.only(top: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            color: const Color(0xFFF9FBF9),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             splashColor: const Color(0xFF017A47).withOpacity(0.12),
             highlightColor: const Color(0xFF017A47).withOpacity(0.05),
             onTap: () => _toggleChapter(chapterId, topics),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -449,13 +700,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
           ),
         ),
 
-        // Subtopics Wrapper Container with Left Vertical Tree Line (No separate background color)
+        // Subtopics Wrapper Container with Left Vertical Tree Line
         if (topics.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(left: 14, top: 4, bottom: 4),
             child: Stack(
               children: [
-                // Vertical branch line on the left
                 Positioned(
                   left: 4,
                   top: 0,
@@ -468,7 +718,6 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                     ),
                   ),
                 ),
-                // Indented Subtopic Cards
                 Padding(
                   padding: const EdgeInsets.only(left: 14),
                   child: Column(
