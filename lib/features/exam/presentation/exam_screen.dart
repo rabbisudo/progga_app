@@ -248,7 +248,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
-                                      q.difficulty,
+                                      q.difficulty ?? 'MEDIUM',
                                       style: TextStyle(fontSize: 10, color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
                                     ),
                                   ),

@@ -444,7 +444,7 @@ mixin _$QuestionModel {
   String get questionText => throw _privateConstructorUsedError;
   String? get imageKey => throw _privateConstructorUsedError;
   String? get latexFormula => throw _privateConstructorUsedError;
-  String get difficulty => throw _privateConstructorUsedError;
+  String? get difficulty => throw _privateConstructorUsedError;
   String get subjectId => throw _privateConstructorUsedError;
   String get chapterId => throw _privateConstructorUsedError;
   String? get topicId => throw _privateConstructorUsedError;
@@ -477,7 +477,7 @@ abstract class $QuestionModelCopyWith<$Res> {
       String questionText,
       String? imageKey,
       String? latexFormula,
-      String difficulty,
+      String? difficulty,
       String subjectId,
       String chapterId,
       String? topicId,
@@ -510,7 +510,7 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
     Object? questionText = null,
     Object? imageKey = freezed,
     Object? latexFormula = freezed,
-    Object? difficulty = null,
+    Object? difficulty = freezed,
     Object? subjectId = null,
     Object? chapterId = null,
     Object? topicId = freezed,
@@ -542,10 +542,10 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
           ? _value.latexFormula
           : latexFormula // ignore: cast_nullable_to_non_nullable
               as String?,
-      difficulty: null == difficulty
+      difficulty: freezed == difficulty
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       subjectId: null == subjectId
           ? _value.subjectId
           : subjectId // ignore: cast_nullable_to_non_nullable
@@ -615,7 +615,7 @@ abstract class _$$QuestionModelImplCopyWith<$Res>
       String questionText,
       String? imageKey,
       String? latexFormula,
-      String difficulty,
+      String? difficulty,
       String subjectId,
       String chapterId,
       String? topicId,
@@ -646,7 +646,7 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
     Object? questionText = null,
     Object? imageKey = freezed,
     Object? latexFormula = freezed,
-    Object? difficulty = null,
+    Object? difficulty = freezed,
     Object? subjectId = null,
     Object? chapterId = null,
     Object? topicId = freezed,
@@ -678,10 +678,10 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
           ? _value.latexFormula
           : latexFormula // ignore: cast_nullable_to_non_nullable
               as String?,
-      difficulty: null == difficulty
+      difficulty: freezed == difficulty
           ? _value.difficulty
           : difficulty // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       subjectId: null == subjectId
           ? _value.subjectId
           : subjectId // ignore: cast_nullable_to_non_nullable
@@ -746,7 +746,7 @@ class _$QuestionModelImpl implements _QuestionModel {
       required this.questionText,
       this.imageKey,
       this.latexFormula,
-      required this.difficulty,
+      this.difficulty,
       required this.subjectId,
       required this.chapterId,
       this.topicId,
@@ -776,7 +776,7 @@ class _$QuestionModelImpl implements _QuestionModel {
   @override
   final String? latexFormula;
   @override
-  final String difficulty;
+  final String? difficulty;
   @override
   final String subjectId;
   @override
@@ -905,7 +905,7 @@ abstract class _QuestionModel implements QuestionModel {
       required final String questionText,
       final String? imageKey,
       final String? latexFormula,
-      required final String difficulty,
+      final String? difficulty,
       required final String subjectId,
       required final String chapterId,
       final String? topicId,
@@ -932,7 +932,7 @@ abstract class _QuestionModel implements QuestionModel {
   @override
   String? get latexFormula;
   @override
-  String get difficulty;
+  String? get difficulty;
   @override
   String get subjectId;
   @override
