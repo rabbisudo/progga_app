@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'practice_notifier.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +12,18 @@ import '../../leaderboard/domain/leaderboard_model.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../academics/data/academics_repository.dart';
+
+final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/banners');
+    if (response.statusCode == 200 && response.data != null) {
+      final List<dynamic> list = response.data;
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }
+  } catch (_) {}
+  return [];
+});
 
 class PracticeDashboardScreen extends ConsumerStatefulWidget {
   const PracticeDashboardScreen({super.key});
@@ -45,6 +59,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final state = ref.watch(practiceProvider);
     final profileAsync = ref.watch(userProfileProvider);
     final leaderboardAsync = ref.watch(leaderboardProvider);
+    final bannersAsync = ref.watch(activeBannersProvider);
+
 
     // Auto-logout and redirect on 401 Unauthorized exceptions
     if (profileAsync is AsyncError) {
@@ -259,6 +275,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   Widget _buildHomeDashboardView(state, ThemeData theme, profileAsync, leaderboardAsync) {
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
+    final bannersAsync = ref.watch(activeBannersProvider);
+
 
     // Read league name dynamically from active user's entry in the leaderboard list if found
     String leagueName = 'আয়রন লীগ';
@@ -295,11 +313,12 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final userScore = profile?.xp ?? 3981;
     final starPoints = profile != null ? (profile.xp % 100) : 0;
     final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.0;
-return RefreshIndicator(
+    return RefreshIndicator(
       color: const Color(0xFF017A47),
       onRefresh: () async {
         ref.invalidate(userProfileProvider);
         ref.invalidate(leaderboardProvider);
+        ref.invalidate(activeBannersProvider);
         try {
           await ref.read(userProfileProvider.future);
         } catch (_) {}
@@ -311,7 +330,17 @@ return RefreshIndicator(
         children: [
           const SizedBox(height: 8),
 
+          // 1. Promo Banners Carousel Slider
+          bannersAsync.when(
+            data: (banners) => banners.isNotEmpty
+                ? BannerSliderWidget(banners: banners)
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+
           // 2. Clean Action Grid Buttons Row of 4 items (Icon + Label)
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
@@ -1378,9 +1407,33 @@ class BannerSliderWidget extends StatefulWidget {
 class _BannerSliderWidgetState extends State<BannerSliderWidget> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+  Timer? _autoTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoTimer();
+  }
+
+  void _startAutoTimer() {
+    _autoTimer?.cancel();
+    if (widget.banners.length > 1) {
+      _autoTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+        if (_pageController.hasClients && widget.banners.isNotEmpty) {
+          final nextPage = (_currentIndex + 1) % widget.banners.length;
+          _pageController.animateToPage(
+            nextPage,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _autoTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -1389,160 +1442,197 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
   Widget build(BuildContext context) {
     if (widget.banners.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 160,
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            itemCount: widget.banners.length,
-            itemBuilder: (context, index) {
-              final banner = widget.banners[index];
-              final String title = banner['title'] ?? '';
-              final String badgeText = banner['badgeText'] ?? 'OFFER';
-              final String? imageUrl = banner['imageUrl'];
-              final String targetUrl = banner['targetUrl'] ?? '/premium';
-              final List<Color> gradientColors = banner['colors'] ?? [const Color(0xFF004D40), const Color(0xFF00796B)];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: SizedBox(
+        height: 160,
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              itemCount: widget.banners.length,
+              itemBuilder: (context, index) {
+                final banner = widget.banners[index];
+                final String title = banner['title'] ?? '';
+                final String badgeText = banner['badgeText'] ?? 'OFFER';
+                final String? imageUrl = banner['imageUrl'];
+                final String? rawTargetUrl = banner['targetUrl'];
+                final bool isClickable = rawTargetUrl != null &&
+                    rawTargetUrl.isNotEmpty &&
+                    rawTargetUrl.trim() != '#' &&
+                    rawTargetUrl.trim() != 'javascript:void(0)';
+                final String targetUrl = isClickable ? rawTargetUrl.trim() : '';
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                child: GestureDetector(
-                  onTap: () {
-                    context.push(targetUrl);
-                  },
+                final List<Color> gradientColors = banner['colors'] ?? [const Color(0xFF004D40), const Color(0xFF00796B)];
+                final bool hasImage = imageUrl != null && imageUrl.isNotEmpty;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
+                  child: GestureDetector(
+                    onTap: isClickable
+                        ? () {
+                            if (targetUrl.startsWith('/')) {
+                              context.push(targetUrl);
+                            }
+                          }
+                        : null,
+                    child: Container(
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        gradient: !hasImage
+                            ? LinearGradient(
+                                colors: gradientColors,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        image: hasImage
+                            ? DecorationImage(
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: hasImage
+                          ? const SizedBox.expand()
+                          : Padding(
+                              padding: const EdgeInsets.all(18),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [Color(0xFFD9746E), Color(0xFFF18881)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(16),
+                                          ),
+                                          child: Text(
+                                            badgeText,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1.1,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          title,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1.25,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        ElevatedButton(
+                                          onPressed: isClickable
+                                              ? () {
+                                                  if (targetUrl.startsWith('/')) {
+                                                    context.push(targetUrl);
+                                                  }
+                                                }
+                                              : null,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            elevation: 0,
+                                            minimumSize: const Size(0, 30),
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Get now',
+                                            style: TextStyle(
+                                              color: Color(0xFF004D40),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                                    ),
+                                    child: Center(
+                                      child: Text(banner['icon'] ?? '🦖', style: const TextStyle(fontSize: 38)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Sleek Floating Dots Overlay inside image
+            if (widget.banners.length > 1)
+              Positioned(
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Center(
                   child: Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      gradient: imageUrl == null
-                          ? LinearGradient(
-                              colors: gradientColors,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
-                      image: imageUrl != null && imageUrl.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(imageUrl),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFD9746E), Color(0xFFF18881)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  badgeText,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.1,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.25,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton(
-                                onPressed: () => context.push(targetUrl),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  elevation: 0,
-                                  minimumSize: const Size(0, 30),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Get now',
-                                  style: TextStyle(
-                                    color: Color(0xFF004D40),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 70,
-                          height: 70,
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        widget.banners.length,
+                        (i) => AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: _currentIndex == i ? 16 : 6,
+                          height: 6,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                          ),
-                          child: Center(
-                            child: Text(banner['icon'] ?? '🦖', style: const TextStyle(fontSize: 38)),
+                            color: _currentIndex == i
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-        if (widget.banners.length > 1)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              widget.banners.length,
-              (i) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-                width: _currentIndex == i ? 18 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: _currentIndex == i ? const Color(0xFF00796B) : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
-                ),
               ),
-            ),
-          ),
-      ],
+          ],
+        ),
+      ),
     );
   }
 }
+
 
