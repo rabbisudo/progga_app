@@ -398,13 +398,89 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     ? _selectedSubjectIds.first
                                     : widget.subjectId;
 
-                                ref.read(practiceProvider.notifier).updateFilters(
-                                  subjectId: joinedSubjectIds.isNotEmpty ? joinedSubjectIds : primarySubject,
-                                  chapterId: joinedChapterIds.isNotEmpty ? joinedChapterIds : null,
-                                  topicId: joinedTopicIds.isNotEmpty ? joinedTopicIds : null,
-                                );
+                                final allSubjectsList = curriculumAsync.asData?.value ?? [];
 
-                                context.push('/exam/$primarySubject?limit=$_selectedQuestionCount');
+                                // Build selected subjects info dynamically
+                                final List<Map<String, dynamic>> selectedSubjectsInfo = [];
+                                final targetSubjectIds = _selectedSubjectIds.isEmpty ? [widget.subjectId] : _selectedSubjectIds;
+
+                                for (var sId in targetSubjectIds) {
+                                  String sName = (sId == widget.subjectId && widget.subjectName != null)
+                                      ? widget.subjectName!
+                                      : 'বিষয়';
+                                  final List<String> topicNames = [];
+
+                                  String solvedTextStr = '0/507 টি প্রশ্ন সলভ করা হয়েছে';
+
+                                  for (var sItem in allSubjectsList) {
+                                    if (sItem is Map<String, dynamic> && sItem['id'] == sId) {
+                                      sName = sItem['name'] as String? ?? sName;
+                                      
+                                      int solvedCount = (sItem['solvedCount'] ?? sItem['userSolvedCount'] ?? sItem['userSolved'] ?? 0) as int;
+                                      int totalQ = (sItem['totalQuestions'] ?? sItem['questionCount'] ?? sItem['totalQuestionsCount'] ?? 0) as int;
+
+                                      final chapters = (sItem['chapters'] as List<dynamic>?) ?? [];
+                                      if (totalQ == 0) {
+                                        for (var ch in chapters) {
+                                          if (ch is Map<String, dynamic>) {
+                                            totalQ += (ch['totalQuestions'] ?? ch['questionCount'] ?? 0) as int;
+                                            solvedCount += (ch['solvedCount'] ?? ch['userSolvedCount'] ?? 0) as int;
+                                          }
+                                        }
+                                      }
+
+                                      if (totalQ == 0) totalQ = 507;
+
+                                      String formatCount(int count) {
+                                        if (count >= 1000) {
+                                          double k = count / 1000;
+                                          return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 1)}K';
+                                        }
+                                        return '$count';
+                                      }
+
+                                      solvedTextStr = '$solvedCount/${formatCount(totalQ)} টি প্রশ্ন সলভ করা হয়েছে';
+
+                                      for (var ch in chapters) {
+                                        if (ch is Map<String, dynamic>) {
+                                          final chId = ch['id'] as String;
+                                          final chName = ch['name'] as String? ?? '';
+                                          final topics = (ch['topics'] as List<dynamic>?) ?? [];
+
+                                          if (_selectedChapterIds.contains(chId)) {
+                                            topicNames.add(chName);
+                                          } else {
+                                            for (var tp in topics) {
+                                              if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
+                                                topicNames.add(tp['name'] as String? ?? chName);
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                      break;
+                                    }
+                                  }
+
+                                  selectedSubjectsInfo.add({
+                                    'id': sId,
+                                    'name': sName,
+                                    'solvedText': solvedTextStr,
+                                    'topics': topicNames.isEmpty ? ['সকল অধ্যায় ও টপিক'] : topicNames,
+                                  });
+                                }
+
+                                context.push(
+                                  '/exam-confirm',
+                                  extra: {
+                                    'primarySubjectId': primarySubject,
+                                    'joinedSubjectIds': joinedSubjectIds.isNotEmpty ? joinedSubjectIds : primarySubject,
+                                    'joinedChapterIds': joinedChapterIds.isNotEmpty ? joinedChapterIds : null,
+                                    'joinedTopicIds': joinedTopicIds.isNotEmpty ? joinedTopicIds : null,
+                                    'totalQuestions': _selectedQuestionCount,
+                                    'selectedSubjects': selectedSubjectsInfo,
+                                  },
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF017A47),

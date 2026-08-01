@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
@@ -33,6 +34,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       textTheme: GoogleFonts.notoSansBengaliTextTheme(baseTextTheme).copyWith(
         titleLarge: GoogleFonts.notoSansBengali(
