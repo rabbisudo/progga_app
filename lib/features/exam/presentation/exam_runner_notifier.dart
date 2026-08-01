@@ -123,6 +123,9 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
   }
 
   void selectOption(String questionId, String? optionId) {
+    // Once selected, selection gets locked and cannot be changed
+    if (state.selectedOptions[questionId] != null) return;
+
     final updatedOptions = Map<String, String?>.from(state.selectedOptions);
     updatedOptions[questionId] = optionId;
     state = state.copyWith(selectedOptions: updatedOptions);

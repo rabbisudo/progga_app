@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
 import '../../exam/domain/user_exam_model.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,75 @@ final wrongAnswersProvider = FutureProvider.family<List<UserAnswerModel>, String
   final repo = ref.watch(examRepositoryProvider);
   return repo.fetchWrongAnswers(sessionId);
 });
+
+Widget _buildResultMathWidget(
+  String text, {
+  TextStyle? textStyle,
+  Color? mathColor,
+  double fontSize = 14,
+}) {
+  if (text.isEmpty) return const SizedBox.shrink();
+
+  final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
+
+  if (text.contains('\$')) {
+    final List<InlineSpan> spans = [];
+    final RegExp regex = RegExp(r'\$([^\$]+)\$');
+    int lastMatchEnd = 0;
+
+    for (final Match match in regex.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastMatchEnd, match.start),
+          style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+        ));
+      }
+
+      final latexStr = match.group(1)!;
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2.0),
+          child: Math.tex(
+            latexStr,
+            textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+            onErrorFallback: (err) => Text(
+              latexStr,
+              style: TextStyle(fontSize: fontSize, color: activeColor, fontStyle: FontStyle.italic),
+            ),
+          ),
+        ),
+      ));
+
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastMatchEnd),
+        style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+      ));
+    }
+
+    return RichText(text: TextSpan(children: spans));
+  }
+
+  if (text.trim().startsWith('\\') || text.contains(RegExp(r'\\(frac|sqrt|sum|int|lim|alpha|beta|theta|pi|infty)'))) {
+    return Math.tex(
+      text,
+      textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+      onErrorFallback: (err) => Text(
+        text,
+        style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  return Text(
+    text,
+    style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+  );
+}
 
 class ResultScreen extends ConsumerWidget {
   final String sessionId;
@@ -46,13 +116,6 @@ class ResultScreen extends ConsumerWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF017A47).withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
               ),
               child: const Column(
                 children: [
@@ -147,9 +210,9 @@ class ResultScreen extends ConsumerWidget {
                               style: const TextStyle(fontSize: 12, color: Colors.redAccent, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 6),
-                            Text(
+                            _buildResultMathWidget(
                               question.questionText,
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                              textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
                             ),
                             const SizedBox(height: 12),
                             
@@ -166,9 +229,10 @@ class ResultScreen extends ConsumerWidget {
                                   const Icon(Icons.cancel, color: Colors.redAccent, size: 18),
                                   const SizedBox(width: 8),
                                   Expanded(
-                                    child: Text(
+                                    child: _buildResultMathWidget(
                                       'আপনার দেওয়া উত্তর: ${selectedOpt.optionText}',
-                                      style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                                      textStyle: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+                                      mathColor: Colors.redAccent,
                                     ),
                                   ),
                                 ],
@@ -189,9 +253,10 @@ class ResultScreen extends ConsumerWidget {
                                   const Icon(Icons.check_circle, color: Color(0xFF017A47), size: 18),
                                   const SizedBox(width: 8),
                                   Expanded(
-                                    child: Text(
+                                    child: _buildResultMathWidget(
                                       'সঠিক উত্তর: ${correctOpt.optionText}',
-                                      style: const TextStyle(color: Color(0xFF017A47), fontSize: 13, fontWeight: FontWeight.w600),
+                                      textStyle: const TextStyle(color: Color(0xFF017A47), fontSize: 13, fontWeight: FontWeight.w600),
+                                      mathColor: const Color(0xFF017A47),
                                     ),
                                   ),
                                 ],

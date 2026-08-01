@@ -133,14 +133,76 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     }
   }
 
-  String _toBengaliDigit(int number) {
-    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const bengali = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    String str = '$number';
-    for (int i = 0; i < english.length; i++) {
-      str = str.replaceAll(english[i], bengali[i]);
+  Widget _buildMathWidget(
+    String text, {
+    TextStyle? textStyle,
+    Color? mathColor,
+    double fontSize = 14,
+  }) {
+    if (text.isEmpty) return const SizedBox.shrink();
+
+    final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
+
+    // If text contains $ inline math delimiters (e.g. "solve $x^2 + y^2 = 1$")
+    if (text.contains('\$')) {
+      final List<InlineSpan> spans = [];
+      final RegExp regex = RegExp(r'\$([^\$]+)\$');
+      int lastMatchEnd = 0;
+
+      for (final Match match in regex.allMatches(text)) {
+        if (match.start > lastMatchEnd) {
+          spans.add(TextSpan(
+            text: text.substring(lastMatchEnd, match.start),
+            style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+          ));
+        }
+
+        final latexStr = match.group(1)!;
+        spans.add(WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+            child: Math.tex(
+              latexStr,
+              textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+              onErrorFallback: (err) => Text(
+                latexStr,
+                style: TextStyle(fontSize: fontSize, color: activeColor, fontStyle: FontStyle.italic),
+              ),
+            ),
+          ),
+        ));
+
+        lastMatchEnd = match.end;
+      }
+
+      if (lastMatchEnd < text.length) {
+        spans.add(TextSpan(
+          text: text.substring(lastMatchEnd),
+          style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+        ));
+      }
+
+      return RichText(text: TextSpan(children: spans));
     }
-    return str;
+
+    // If text starts with \ or contains TeX commands like \frac, \sqrt, \sum
+    if (text.trim().startsWith('\\') || text.contains(RegExp(r'\\(frac|sqrt|sum|int|lim|alpha|beta|theta|pi|infty)'))) {
+      return Math.tex(
+        text,
+        textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+        onErrorFallback: (err) => Text(
+          text,
+          style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    // Standard plain text
+    return Text(
+      text,
+      style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+    );
   }
 
   String _getOptionLabel(int index) {
@@ -350,13 +412,6 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -384,29 +439,30 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                           const SizedBox(height: 8),
                         ],
 
-                        // Question Title Text with highlighted "1. " number
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '${index + 1}. ',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF017A47),
-                                ),
+                        // Question Title Text with highlighted "1. " number and full math support
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${index + 1}. ',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF017A47),
                               ),
-                              TextSpan(
-                                text: q.questionText,
-                                style: const TextStyle(
+                            ),
+                            Expanded(
+                              child: _buildMathWidget(
+                                q.questionText,
+                                textStyle: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
                                   height: 1.4,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
 
                         // LaTeX Formula Rendering (using flutter_math_fork)
@@ -442,12 +498,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10.0),
                             child: InkWell(
-                              onTap: () {
-                                ref.read(examRunnerProvider.notifier).selectOption(
-                                      q.id,
-                                      isSelected ? null : opt.id,
-                                    );
-                              },
+                              onTap: selectedOptId != null
+                                  ? null
+                                  : () {
+                                      ref.read(examRunnerProvider.notifier).selectOption(
+                                            q.id,
+                                            opt.id,
+                                          );
+                                    },
                               borderRadius: BorderRadius.circular(12),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
@@ -485,13 +543,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Text(
+                                      child: _buildMathWidget(
                                         opt.optionText,
-                                        style: TextStyle(
+                                        textStyle: TextStyle(
                                           fontSize: 14,
                                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                           color: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                         ),
+                                        mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                       ),
                                     ),
                                   ],
