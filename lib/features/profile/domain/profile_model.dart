@@ -44,7 +44,63 @@ class UserProfile with _$UserProfile {
     String? lastActiveDate,
   }) = _UserProfile;
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) => _$UserProfileFromJson(json);
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final map = Map<String, dynamic>.from(json);
+
+    // Fallbacks for Class ID & Name
+    if (map['classId'] == null) {
+      if (map['class'] is Map) {
+        map['classId'] = map['class']['id']?.toString() ?? map['class']['_id']?.toString();
+      } else if (map['class_id'] != null) {
+        map['classId'] = map['class_id'].toString();
+      }
+    }
+    if (map['className'] == null) {
+      if (map['class'] is Map) {
+        map['className'] = map['class']['name']?.toString();
+      } else if (map['class_name'] != null) {
+        map['className'] = map['class_name'].toString();
+      } else if (map['class'] is String) {
+        map['className'] = map['class'];
+      }
+    }
+
+    // Fallbacks for Group ID & Target Exam
+    if (map['groupId'] == null) {
+      if (map['group'] is Map) {
+        map['groupId'] = map['group']['id']?.toString() ?? map['group']['_id']?.toString();
+      } else if (map['subjectGroup'] is Map) {
+        map['groupId'] = map['subjectGroup']['id']?.toString() ?? map['subjectGroup']['_id']?.toString();
+      } else if (map['group_id'] != null) {
+        map['groupId'] = map['group_id'].toString();
+      }
+    }
+    if (map['targetExam'] == null) {
+      if (map['group'] is Map) {
+        map['targetExam'] = map['group']['name']?.toString();
+      } else if (map['subjectGroup'] is Map) {
+        map['targetExam'] = map['subjectGroup']['name']?.toString();
+      } else if (map['target_exam'] != null) {
+        map['targetExam'] = map['target_exam'].toString();
+      } else if (map['group'] is String) {
+        map['targetExam'] = map['group'];
+      }
+    }
+
+    // Fallbacks for Batch ID & Name
+    if (map['batchId'] == null) {
+      if (map['batch'] is Map) {
+        map['batchId'] = map['batch']['id']?.toString() ?? map['batch']['_id']?.toString();
+      } else if (map['batch_id'] != null) {
+        map['batchId'] = map['batch_id'].toString();
+      }
+    }
+    if (map['batch'] is Map) {
+      map['batch'] = (map['batch'] as Map)['name']?.toString();
+    }
+
+    return _$UserProfileFromJson(map);
+  }
 }
 
 @freezed
