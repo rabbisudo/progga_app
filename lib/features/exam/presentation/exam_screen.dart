@@ -133,13 +133,120 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     }
   }
 
+  String _fixBrokenLatex(String text) {
+    if (text.isEmpty) return text;
+
+    // 1. Restore control characters escaped during JSON transmission (\f -> \frac, \t -> \text / \times)
+    String cleaned = text
+        .replaceAll('\x0C', r'\f')
+        .replaceAll('\f', r'\f')
+        .replaceAll('\x09', r'\t')
+        .replaceAll('\t', r'\t');
+
+    // 2. Auto-repair stripped backslashes in common KaTeX/LaTeX keywords
+    cleaned = cleaned
+        .replaceAll(RegExp(r'(?<!\\)\brac\{'), r'\frac{')
+        .replaceAll(RegExp(r'(?<!\\)\bext\{'), r'\text{')
+        .replaceAll(RegExp(r'(?<!\\)\bimes\b'), r'\times')
+        .replaceAll(RegExp(r'(?<!\\)\bsqrt\{'), r'\sqrt{')
+        .replaceAll(RegExp(r'(?<!\\)\balpha\b'), r'\alpha')
+        .replaceAll(RegExp(r'(?<!\\)\bbeta\b'), r'\beta')
+        .replaceAll(RegExp(r'(?<!\\)\btheta\b'), r'\theta')
+        .replaceAll(RegExp(r'(?<!\\)\bpi\b'), r'\pi');
+
+    // 3. Auto-wrap subscripts like v_{avg}, v_{1}, x_{max} into $v_{avg}$ if not inside $
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(?<!\$)\b([a-zA-Z])_\{([^\}]+)\}(?!\$)'),
+      (m) => '\$${m.group(1)}_${m.group(2)}\$',
+    );
+
+    // 4. Auto-wrap superscripts like x^2, t^2 into $x^2$ if not inside $
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(?<!\$)\b([a-zA-Z0-9]+)\^\{?([a-zA-Z0-9\+\-]+)\}?(?!\$)'),
+      (m) => '\$${m.group(1)}^${m.group(2)}\$',
+    );
+
+    // 5. Advanced brace-matching scanner for nested \frac{...}{...} and \sqrt{...}
+    final sb = StringBuffer();
+    int i = 0;
+
+    while (i < cleaned.length) {
+      if (cleaned[i] == '\$') {
+        int nextDollar = cleaned.indexOf('\$', i + 1);
+        if (nextDollar != -1) {
+          sb.write(cleaned.substring(i, nextDollar + 1));
+          i = nextDollar + 1;
+          continue;
+        }
+      }
+
+      if (cleaned.startsWith(r'\frac', i) || cleaned.startsWith(r'\sqrt', i)) {
+        int start = i;
+        int cmdLen = cleaned.startsWith(r'\frac', i) ? 5 : 5;
+        i += cmdLen;
+
+        int openBraces = 0;
+        bool foundAnyBrace = false;
+
+        while (i < cleaned.length) {
+          if (cleaned[i] == '{') {
+            openBraces++;
+            foundAnyBrace = true;
+          } else if (cleaned[i] == '}') {
+            openBraces--;
+          }
+
+          i++;
+
+          if (foundAnyBrace && openBraces == 0) {
+            int tempPeek = i;
+            while (tempPeek < cleaned.length && cleaned[tempPeek].trim().isEmpty) {
+              tempPeek++;
+            }
+            if (tempPeek < cleaned.length && cleaned[tempPeek] == '{') {
+              i = tempPeek;
+              continue;
+            }
+            break;
+          }
+        }
+
+        String texExpr = cleaned.substring(start, i);
+        sb.write('\$$texExpr\$');
+      } else {
+        sb.write(cleaned[i]);
+        i++;
+      }
+    }
+
+    cleaned = sb.toString();
+
+    // 6. Replace raw \times, \div, \pm in text with clean symbols if outside $
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(?<!\$)\\times(?!\$)'),
+      (m) => '×',
+    );
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(?<!\$)\\div(?!\$)'),
+      (m) => '÷',
+    );
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'(?<!\$)\\pm(?!\$)'),
+      (m) => '±',
+    );
+
+    return cleaned;
+  }
+
   Widget _buildMathWidget(
-    String text, {
+    String rawText, {
     TextStyle? textStyle,
     Color? mathColor,
     double fontSize = 14,
   }) {
-    if (text.isEmpty) return const SizedBox.shrink();
+    if (rawText.isEmpty) return const SizedBox.shrink();
+
+    final text = _fixBrokenLatex(rawText);
 
     // Check if text contains embedded [IMAGE: url] tags
     final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
@@ -184,33 +291,64 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       );
     }
 
+    // Handle multiline text with individual math lines
+    if (text.contains('\n')) {
+      final lines = text.split('\n');
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lines.map((line) {
+          if (line.trim().isEmpty) return const SizedBox(height: 4);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4.0),
+            child: _buildMathWidget(
+              line,
+              textStyle: textStyle,
+              mathColor: mathColor,
+              fontSize: fontSize,
+            ),
+          );
+        }).toList(),
+      );
+    }
+
+    // Normalize all math delimiters: $$, \(...\), \[...\] to $...$
+    String normalizedText = text
+        .replaceAll(RegExp(r'\$\$(.*?)\$\$', dotAll: true), r'$ $1 $')
+        .replaceAll(RegExp(r'\\\((.*?)\\\)', dotAll: true), r'$ $1 $')
+        .replaceAll(RegExp(r'\\\[(.*?)\\\]', dotAll: true), r'$ $1 $');
+
     final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
+    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4);
 
     // If text contains $ inline math delimiters (e.g. "solve $x^2 + y^2 = 1$")
-    if (text.contains('\$')) {
+    if (normalizedText.contains('\$')) {
       final List<InlineSpan> spans = [];
       final RegExp regex = RegExp(r'\$([^\$]+)\$');
       int lastMatchEnd = 0;
 
-      for (final Match match in regex.allMatches(text)) {
+      for (final Match match in regex.allMatches(normalizedText)) {
         if (match.start > lastMatchEnd) {
           spans.add(TextSpan(
-            text: text.substring(lastMatchEnd, match.start),
-            style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+            text: normalizedText.substring(lastMatchEnd, match.start),
+            style: defaultStyle,
           ));
         }
 
-        final latexStr = match.group(1)!;
+        final latexStr = match.group(1)!.trim();
         spans.add(WidgetSpan(
           alignment: PlaceholderAlignment.middle,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: Math.tex(
-              latexStr,
-              textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
-              onErrorFallback: (err) => Text(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Math.tex(
                 latexStr,
-                style: TextStyle(fontSize: fontSize, color: activeColor, fontStyle: FontStyle.italic),
+                textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+                onErrorFallback: (err) => Text(
+                  latexStr,
+                  style: TextStyle(fontSize: fontSize, color: activeColor, fontStyle: FontStyle.italic),
+                ),
               ),
             ),
           ),
@@ -219,32 +357,94 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         lastMatchEnd = match.end;
       }
 
-      if (lastMatchEnd < text.length) {
+      if (lastMatchEnd < normalizedText.length) {
         spans.add(TextSpan(
-          text: text.substring(lastMatchEnd),
-          style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+          text: normalizedText.substring(lastMatchEnd),
+          style: defaultStyle,
         ));
       }
 
-      return RichText(text: TextSpan(children: spans));
+      return RichText(
+        softWrap: true,
+        text: TextSpan(children: spans),
+      );
     }
 
-    // If text starts with \ or contains TeX commands like \frac, \sqrt, \sum
-    if (text.trim().startsWith('\\') || text.contains(RegExp(r'\\(frac|sqrt|sum|int|lim|alpha|beta|theta|pi|infty)'))) {
-      return Math.tex(
-        text,
-        textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
-        onErrorFallback: (err) => Text(
-          text,
-          style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold),
+    // If line contains Bengali characters (\u0980-\u09FF)
+    final hasBengali = normalizedText.contains(RegExp(r'[\u0980-\u09FF]'));
+    if (hasBengali) {
+      // If Bengali line ALSO contains inline TeX formulas (like \frac, \sqrt, t = \frac{...})
+      final texMatch = RegExp(r'(\\(frac|sqrt|text|times|div|pm|degree)\{[^\}]*\}(?:\{[^\}]*\})?|[a-zA-Z]\s*=\s*\\[a-zA-Z]+[^\s,]*)');
+      if (texMatch.hasMatch(normalizedText)) {
+        final List<InlineSpan> spans = [];
+        int lastEnd = 0;
+
+        for (final Match m in texMatch.allMatches(normalizedText)) {
+          if (m.start > lastEnd) {
+            spans.add(TextSpan(
+              text: normalizedText.substring(lastEnd, m.start),
+              style: defaultStyle,
+            ));
+          }
+
+          final mathCode = m.group(0)!;
+          spans.add(WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+              child: Math.tex(
+                mathCode,
+                textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+                onErrorFallback: (err) => Text(mathCode, style: defaultStyle),
+              ),
+            ),
+          ));
+
+          lastEnd = m.end;
+        }
+
+        if (lastEnd < normalizedText.length) {
+          spans.add(TextSpan(
+            text: normalizedText.substring(lastEnd),
+            style: defaultStyle,
+          ));
+        }
+
+        return RichText(
+          softWrap: true,
+          text: TextSpan(children: spans),
+        );
+      }
+
+      // Pure Bengali text line with no TeX
+      return Text(
+        normalizedText,
+        style: defaultStyle,
+      );
+    }
+
+    // Non-Bengali line: Check if pure TeX math
+    if (normalizedText.trim().startsWith('\\') ||
+        normalizedText.contains(RegExp(r'\\(frac|sqrt|sum|int|lim|alpha|beta|theta|pi|infty|vec|times|div|pm|degree)')) ||
+        normalizedText.contains(RegExp(r'^[a-zA-Z0-9\s=\+\-\*/\^_\(\)\{\}\\]+$'))) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Math.tex(
+          normalizedText.trim(),
+          textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
+          onErrorFallback: (err) => Text(
+            normalizedText,
+            style: defaultStyle,
+          ),
         ),
       );
     }
 
     // Standard plain text
     return Text(
-      text,
-      style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+      normalizedText,
+      style: defaultStyle,
     );
   }
 

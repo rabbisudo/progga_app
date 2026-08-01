@@ -95,6 +95,24 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<Map<String, dynamic>> fetchExamResult(String sessionId) async {
+    try {
+      final response = await _apiClient.dio.get('/exams/sessions/$sessionId/result');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> unlockExplanation(String questionId) async {
+    try {
+      final response = await _apiClient.dio.post('/questions/$questionId/explanation');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {
