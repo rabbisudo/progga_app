@@ -141,6 +141,49 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }) {
     if (text.isEmpty) return const SizedBox.shrink();
 
+    // Check if text contains embedded [IMAGE: url] tags
+    final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
+    if (imageRegex.hasMatch(text)) {
+      final List<Widget> widgets = [];
+      int lastIndex = 0;
+
+      for (final Match match in imageRegex.allMatches(text)) {
+        if (match.start > lastIndex) {
+          final textPart = text.substring(lastIndex, match.start).trim();
+          if (textPart.isNotEmpty) {
+            widgets.add(_buildMathWidget(
+              textPart,
+              textStyle: textStyle,
+              mathColor: mathColor,
+              fontSize: fontSize,
+            ));
+          }
+        }
+
+        final imageUrl = match.group(1)!.trim();
+        widgets.add(_buildQuestionImage(imageUrl));
+
+        lastIndex = match.end;
+      }
+
+      if (lastIndex < text.length) {
+        final remainingText = text.substring(lastIndex).trim();
+        if (remainingText.isNotEmpty) {
+          widgets.add(_buildMathWidget(
+            remainingText,
+            textStyle: textStyle,
+            mathColor: mathColor,
+            fontSize: fontSize,
+          ));
+        }
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: widgets,
+      );
+    }
+
     final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
 
     // If text contains $ inline math delimiters (e.g. "solve $x^2 + y^2 = 1$")
@@ -202,6 +245,81 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     return Text(
       text,
       style: textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+    );
+  }
+
+  Widget _buildQuestionImage(String? imageKey) {
+    if (imageKey == null || imageKey.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final String imageUrl;
+    final cleanKey = imageKey.trim();
+    if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://')) {
+      imageUrl = cleanKey;
+    } else if (cleanKey.startsWith('/')) {
+      imageUrl = 'http://192.168.31.101:3000$cleanKey';
+    } else {
+      imageUrl = 'http://192.168.31.101:3000/api/v1/questions/file/$cleanKey';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.contain,
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (wasSynchronouslyLoaded) return child;
+            return AnimatedOpacity(
+              opacity: frame == null ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              child: child,
+            );
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: 120,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                  color: const Color(0xFF017A47).withOpacity(0.7),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'ছবি লোড করা যায়নি',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -393,12 +511,15 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               ),
             ),
 
-            // Single continuous scroll view with all questions
+            // Single continuous scroll view with all questions (Virtualized for 1000+ items)
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16.0),
                 physics: const BouncingScrollPhysics(),
+                cacheExtent: 500,
+                addAutomaticKeepAlives: false,
+                addRepaintBoundaries: true,
                 itemCount: totalQuestions,
                 itemBuilder: (context, index) {
                   final eq = questions[index];
@@ -465,6 +586,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                           ],
                         ),
 
+                        // Question Media Image (if present)
+                        if (q.imageKey != null && q.imageKey!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _buildQuestionImage(q.imageKey),
+                        ],
+
                         // LaTeX Formula Rendering (using flutter_math_fork)
                         if (q.latexFormula != null && q.latexFormula!.isNotEmpty) ...[
                           const SizedBox(height: 10),
@@ -518,41 +645,50 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                     width: 1.2,
                                   ),
                                 ),
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    Container(
-                                      width: 26,
-                                      height: 26,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade100,
-                                        border: Border.all(
-                                          color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade400,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          label,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: isSelected ? Colors.white : Colors.black87,
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 26,
+                                          height: 26,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade100,
+                                            border: Border.all(
+                                              color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              label,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSelected ? Colors.white : Colors.black87,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildMathWidget(
-                                        opt.optionText,
-                                        textStyle: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                          color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildMathWidget(
+                                            opt.optionText,
+                                            textStyle: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                              color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                            ),
+                                            mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                          ),
                                         ),
-                                        mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
-                                      ),
+                                      ],
                                     ),
+                                    if (opt.imageKey != null && opt.imageKey!.isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      _buildQuestionImage(opt.imageKey),
+                                    ],
                                   ],
                                 ),
                               ),
