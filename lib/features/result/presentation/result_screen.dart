@@ -1069,7 +1069,6 @@ class ResultScreen extends ConsumerWidget {
                     final latexFormula = qData['latexFormula'] as String?;
                     final board = qData['board'] as String?;
                     final year = qData['year'] as int?;
-                    final marks = (qData['marks'] as num?)?.toInt() ?? 1;
 
                     final userAns = answersMap[qId];
                     final selectedOptionId = userAns?['selectedOptionId'] as String?;
@@ -1107,26 +1106,6 @@ class ResultScreen extends ConsumerWidget {
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
                                     height: 1.4,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Marks Badge
-                              Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '$marks',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade700,
-                                    ),
                                   ),
                                 ),
                               ),
@@ -1309,23 +1288,7 @@ class ResultScreen extends ConsumerWidget {
                               const SizedBox(width: 8),
 
                               // Action icons (Bookmark & Report Flag)
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.bookmark_border, size: 20, color: Colors.black54),
-                                    onPressed: () {},
-                                    constraints: const BoxConstraints(),
-                                    padding: const EdgeInsets.all(6),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.outlined_flag, size: 20, color: Colors.black54),
-                                    onPressed: () {},
-                                    constraints: const BoxConstraints(),
-                                    padding: const EdgeInsets.all(6),
-                                  ),
-                                ],
-                              ),
+                              _QuestionActionButtons(questionId: qId),
                             ],
                           ),
                         ],
@@ -1338,6 +1301,261 @@ class ResultScreen extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _QuestionActionButtons extends ConsumerStatefulWidget {
+  final String questionId;
+  const _QuestionActionButtons({required this.questionId});
+
+  @override
+  ConsumerState<_QuestionActionButtons> createState() => _QuestionActionButtonsState();
+}
+
+class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> {
+  bool _isBookmarked = false;
+
+  Future<void> _toggleBookmark() async {
+    final nextState = !_isBookmarked;
+    setState(() {
+      _isBookmarked = nextState;
+    });
+
+    try {
+      final repo = ref.read(examRepositoryProvider);
+      final res = await repo.toggleBookmark(widget.questionId);
+      final message = res['message'] as String? ?? (_isBookmarked ? 'প্রশ্নটি বুকমার্কে সংরক্ষিত হয়েছে!' : 'বুকমার্ক থেকে সরিয়ে ফেলা হয়েছে');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_remove_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  message,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            backgroundColor: _isBookmarked ? const Color(0xFF017A47) : Colors.grey.shade800,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isBookmarked = !nextState;
+        });
+      }
+    }
+  }
+
+  void _showReportDialog() {
+    String selectedReason = 'প্রশ্নে বা উত্তরে ভুল আছে';
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFEE2E2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.flag_rounded, color: Color(0xFFDC2626), size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'প্রশ্ন রিপোর্ট করুন',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ...[
+                    'প্রশ্নে বা উত্তরে ভুল আছে',
+                    'অপশনগুলো অস্পষ্ট বা অসম্পূর্ণ',
+                    'ছবি বা গাণিতিক সংকেত লোড হচ্ছে না',
+                    'অন্যান্য সমস্যা',
+                  ].map((reason) {
+                    return RadioListTile<String>(
+                      value: reason,
+                      groupValue: selectedReason,
+                      activeColor: const Color(0xFF017A47),
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        reason,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87),
+                      ),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() {
+                            selectedReason = val;
+                          });
+                        }
+                      },
+                    );
+                  }),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: controller,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: 'অতিরিক্ত তথ্য লিখুন (ঐচ্ছিক)...',
+                      hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      contentPadding: const EdgeInsets.all(12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF017A47)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final detailsText = controller.text.trim();
+                        Navigator.pop(context);
+
+                        try {
+                          final repo = ref.read(examRepositoryProvider);
+                          final res = await repo.reportQuestion(
+                            widget.questionId,
+                            selectedReason,
+                            details: detailsText.isNotEmpty ? detailsText : null,
+                          );
+                          final msg = res['message'] as String? ?? 'আপনার রিপোর্ট সফলভাবে জমা হয়েছে! ধন্যবাদ।';
+
+                          messenger.hideCurrentSnackBar();
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: [
+                                  const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    msg,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: const Color(0xFF017A47),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 3),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          );
+                        } catch (e) {
+                          // Ignore
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF017A47),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text(
+                        'রিপোর্ট জমা দিন',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(
+            _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+            size: 22,
+            color: _isBookmarked ? const Color(0xFF017A47) : Colors.grey.shade600,
+          ),
+          onPressed: _toggleBookmark,
+          constraints: const BoxConstraints(),
+          padding: const EdgeInsets.all(6),
+          tooltip: 'বুকমার্ক করুন',
+        ),
+        const SizedBox(width: 6),
+        IconButton(
+          icon: Icon(
+            Icons.outlined_flag_rounded,
+            size: 22,
+            color: Colors.grey.shade600,
+          ),
+          onPressed: _showReportDialog,
+          constraints: const BoxConstraints(),
+          padding: const EdgeInsets.all(6),
+          tooltip: 'রিপোর্ট করুন',
+        ),
+      ],
     );
   }
 }

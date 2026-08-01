@@ -113,6 +113,30 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<Map<String, dynamic>> toggleBookmark(String questionId) async {
+    try {
+      final response = await _apiClient.dio.post('/questions/$questionId/bookmark');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> reportQuestion(String questionId, String reason, {String? details}) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/questions/$questionId/report',
+        data: {
+          'reason': reason,
+          if (details != null && details.isNotEmpty) 'details': details,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {
