@@ -70,7 +70,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/exam/:id',
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return ExamScreen(id: id);
+          final qParams = state.uri.queryParameters;
+          return ExamScreen(
+            id: id,
+            subjectId: qParams['subjectId'],
+            chapterId: qParams['chapterId'],
+            topicId: qParams['topicId'],
+            limit: int.tryParse(qParams['limit'] ?? ''),
+            timeMinutes: int.tryParse(qParams['time'] ?? ''),
+          );
         },
       ),
       GoRoute(

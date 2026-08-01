@@ -668,7 +668,21 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           topicId: joinedTopicIds,
                         );
 
-                        context.push('/exam/$primarySubjectId?limit=$_calculatedTotalQuestions&time=$_totalTimeMinutes');
+                        final Uri examUri = Uri(
+                          path: '/exam/$primarySubjectId',
+                          queryParameters: {
+                            'limit': '$_calculatedTotalQuestions',
+                            'time': '$_totalTimeMinutes',
+                            if (joinedSubjectIds != null && joinedSubjectIds.toString().isNotEmpty)
+                              'subjectId': joinedSubjectIds.toString(),
+                            if (joinedChapterIds != null && joinedChapterIds.toString().isNotEmpty)
+                              'chapterId': joinedChapterIds.toString(),
+                            if (joinedTopicIds != null && joinedTopicIds.toString().isNotEmpty)
+                              'topicId': joinedTopicIds.toString(),
+                          },
+                        );
+
+                        context.push(examUri.toString());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF017A47),

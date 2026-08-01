@@ -40,6 +40,32 @@ class ExamRepository {
     }
   }
 
+  Future<UserExamModel> startCustomExam({
+    String? subjectId,
+    String? chapterId,
+    String? topicId,
+    int? limit,
+    int? timeMinutes,
+    String? title,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/exams/start-custom',
+        data: {
+          if (subjectId != null && subjectId.isNotEmpty) 'subjectId': subjectId,
+          if (chapterId != null && chapterId.isNotEmpty) 'chapterId': chapterId,
+          if (topicId != null && topicId.isNotEmpty) 'topicId': topicId,
+          if (limit != null && limit > 0) 'totalQuestions': limit,
+          if (timeMinutes != null && timeMinutes > 0) 'duration': timeMinutes,
+          if (title != null && title.isNotEmpty) 'title': title,
+        },
+      );
+      return UserExamModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+
   Future<void> saveProgress(String sessionId, List<Map<String, dynamic>> answers) async {
     try {
       await _apiClient.dio.post(

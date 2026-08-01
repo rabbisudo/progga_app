@@ -1,37 +1,58 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
 
 class ExamScreen extends ConsumerStatefulWidget {
   final String id;
-  const ExamScreen({super.key, required this.id});
+  final String? subjectId;
+  final String? chapterId;
+  final String? topicId;
+  final int? limit;
+  final int? timeMinutes;
+
+  const ExamScreen({
+    super.key,
+    required this.id,
+    this.subjectId,
+    this.chapterId,
+    this.topicId,
+    this.limit,
+    this.timeMinutes,
+  });
 
   @override
   ConsumerState<ExamScreen> createState() => _ExamScreenState();
 }
 
 class _ExamScreenState extends ConsumerState<ExamScreen> {
-  late final PageController _pageController;
-  int _currentIndex = 0;
+  final ScrollController _scrollController = ScrollController();
   Timer? _timeSpentTracker;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
 
     // Trigger initial session setup
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(examRunnerProvider.notifier).initializeExam(widget.id);
+      ref.read(examRunnerProvider.notifier).initializeExam(
+            widget.id,
+            subjectId: widget.subjectId,
+            chapterId: widget.chapterId,
+            topicId: widget.topicId,
+            limit: widget.limit,
+            timeMinutes: widget.timeMinutes,
+          );
     });
 
-    // Track active question timers every second
+    // Track active exam timers every second
     _timeSpentTracker = Timer.periodic(const Duration(seconds: 1), (timer) {
       final state = ref.read(examRunnerProvider);
       if (state.exam != null && state.exam!.questions.isNotEmpty) {
-        final activeQId = state.exam!.questions[_currentIndex].question.id;
+        // Increment time spent for all questions or first unanswered
+        final activeQId = state.exam!.questions.first.question.id;
         ref.read(examRunnerProvider.notifier).incrementTimeSpent(activeQId);
       }
     });
@@ -39,7 +60,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
   @override
   void dispose() {
-    _pageController.dispose();
+    _scrollController.dispose();
     _timeSpentTracker?.cancel();
     super.dispose();
   }
@@ -54,20 +75,80 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Quit Exam Session?'),
-        content: const Text('Exiting now will discard your progress and submit your answers in their current state.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('পরীক্ষা বাতিল করতে চান?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('এখন বের হয়ে গেলে আপনার বর্তমান উত্তরগুলো সংরক্ষিত জমা হয়ে যাবে।'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: const Text('Quit', style: TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('ফিরে যাও', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('বাহির হও', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
     return confirm ?? false;
+  }
+
+  Future<void> _confirmAndSubmitExam() async {
+    final state = ref.read(examRunnerProvider);
+    final totalQ = state.exam?.questions.length ?? 0;
+    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('পরীক্ষা জমা দিতে চান?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('আপনি $totalQ টি প্রশ্নের মধ্যে $answeredCount টির উত্তর দিয়েছেন।\nনিশ্চিতভাবে পরীক্ষা জমা দিতে চান?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('বাতিল', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF017A47),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('জমা দাও', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && context.mounted) {
+      final submitResult = await ref.read(examRunnerProvider.notifier).submitExam();
+      if (submitResult != null && context.mounted) {
+        context.pushReplacement('/result/${submitResult.id}');
+      }
+    }
+  }
+
+  String _toBengaliDigit(int number) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bengali = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String str = '$number';
+    for (int i = 0; i < english.length; i++) {
+      str = str.replaceAll(english[i], bengali[i]);
+    }
+    return str;
+  }
+
+  String _getOptionLabel(int index) {
+    const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+    if (index >= 0 && index < labels.length) {
+      return labels[index];
+    }
+    return '${index + 1}';
   }
 
   @override
@@ -76,28 +157,46 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
     if (state.isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF121212),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFF18881))),
+        backgroundColor: Color(0xFFF3F4F3),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF017A47)),
+        ),
       );
     }
 
     if (state.errorMessage != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: const Color(0xFFF3F4F3),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFF3F4F3),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => context.pop(),
+          ),
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
+                const Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
                 const SizedBox(height: 16),
-                Text(state.errorMessage!, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
+                Text(
+                  state.errorMessage!,
+                  style: const TextStyle(color: Colors.black87, fontSize: 15),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => context.pop(),
-                  style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
-                  child: const Text('Go Back', style: TextStyle(color: Colors.black)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('ফিরে যান', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -108,13 +207,17 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
     if (state.exam == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFF121212),
-        body: Center(child: Text('Loading session details...', style: TextStyle(color: Colors.white70))),
+        backgroundColor: Color(0xFFF3F4F3),
+        body: Center(
+          child: Text('পরীক্ষার সময়সূচী লোড হচ্ছে...', style: TextStyle(color: Colors.black87)),
+        ),
       );
     }
 
     final questions = state.exam!.questions;
     final totalQuestions = questions.length;
+    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length;
+    final isLowTime = state.timeLeft < 120;
 
     return PopScope(
       canPop: false,
@@ -127,13 +230,22 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: const Color(0xFFF3F4F3),
         appBar: AppBar(
-          title: Text(state.exam!.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.transparent,
+          backgroundColor: const Color(0xFFF3F4F3),
           elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          title: Text(
+            state.exam!.title,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
           leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.black87),
             onPressed: () async {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {
@@ -148,25 +260,27 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               margin: const EdgeInsets.only(right: 16),
               decoration: BoxDecoration(
-                color: state.timeLeft < 120 ? Colors.red.withOpacity(0.2) : Colors.white10,
+                color: isLowTime ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: state.timeLeft < 120 ? Colors.redAccent : Colors.white24,
+                  color: isLowTime ? Colors.redAccent : const Color(0xFF017A47),
+                  width: 1.5,
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.timer,
-                    size: 16,
-                    color: state.timeLeft < 120 ? Colors.redAccent : Colors.white70,
+                    Icons.timer_outlined,
+                    size: 18,
+                    color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _formatTime(state.timeLeft),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: state.timeLeft < 120 ? Colors.redAccent : Colors.white,
+                      fontSize: 14,
+                      color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
                     ),
                   ),
                 ],
@@ -175,138 +289,212 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           ],
         ),
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Progress Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            // Top Progress Banner
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: Colors.white,
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Question ${_currentIndex + 1} of $totalQuestions',
-                        style: const TextStyle(color: Colors.white60, fontSize: 13),
+                        'উত্তর দেওয়া হয়েছে: $answeredCount/$totalQuestions টি',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
                       Text(
-                        state.isSaving ? 'Saving...' : 'Draft Saved',
-                        style: const TextStyle(color: Colors.white30, fontSize: 11),
+                        state.isSaving ? 'সংরক্ষণ হচ্ছে...' : 'ড্রাফট সংরক্ষিত',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: state.isSaving ? const Color(0xFF017A47) : Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  LinearProgressIndicator(
-                    value: (_currentIndex + 1) / totalQuestions,
-                    backgroundColor: Colors.white10,
-                    valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: totalQuestions > 0 ? (answeredCount / totalQuestions) : 0,
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFE3E7E4),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF017A47)),
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Active Page View Question layout
+            // Single continuous scroll view with all questions
             Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                  // Auto save on page shifts
-                  ref.read(examRunnerProvider.notifier).autoSaveProgress();
-                },
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16.0),
+                physics: const BouncingScrollPhysics(),
                 itemCount: totalQuestions,
                 itemBuilder: (context, index) {
-                  final q = questions[index].question;
+                  final eq = questions[index];
+                  final q = eq.question;
                   final selectedOptId = state.selectedOptions[q.id];
-                  final isFlagged = state.markedForReview[q.id] ?? false;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(20.0),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Question Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).primaryColor.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      q.difficulty ?? 'MEDIUM',
-                                      style: TextStyle(fontSize: 10, color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      isFlagged ? Icons.bookmark : Icons.bookmark_border,
-                                      color: isFlagged ? Theme.of(context).primaryColor : Colors.white60,
-                                    ),
-                                    onPressed: () {
-                                      ref.read(examRunnerProvider.notifier).toggleMarkedForReview(q.id);
-                                    },
-                                  ),
-                                ],
+                        // Optional difficulty tag
+                        if (q.difficulty != null) ...[
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                q.questionText,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
-                              ),
-                              if (q.latexFormula != null) ...[
-                                const SizedBox(height: 12),
-                                Text(
-                                  q.latexFormula!,
-                                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Theme.of(context).primaryColor),
+                              child: Text(
+                                q.difficulty!,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
                                 ),
-                              ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+
+                        // Question Title Text with highlighted "1. " number
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${index + 1}. ',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF017A47),
+                                ),
+                              ),
+                              TextSpan(
+                                text: q.questionText,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
 
-                        // Options choices lists
-                        ...q.options.map((opt) {
+                        // LaTeX Formula Rendering (using flutter_math_fork)
+                        if (q.latexFormula != null && q.latexFormula!.isNotEmpty) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F9F6),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFD4E8DC)),
+                            ),
+                            child: Math.tex(
+                              q.latexFormula!,
+                              textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47)),
+                              onErrorFallback: (err) => Text(
+                                q.latexFormula!,
+                                style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 16),
+
+                        // Question Options List
+                        ...q.options.asMap().entries.map((entry) {
+                          final optIndex = entry.key;
+                          final opt = entry.value;
                           final isSelected = selectedOptId == opt.id;
+                          final label = _getOptionLabel(optIndex);
+
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
+                            padding: const EdgeInsets.only(bottom: 10.0),
                             child: InkWell(
                               onTap: () {
-                                ref.read(examRunnerProvider.notifier).selectOption(q.id, isSelected ? null : opt.id);
+                                ref.read(examRunnerProvider.notifier).selectOption(
+                                      q.id,
+                                      isSelected ? null : opt.id,
+                                    );
                               },
                               borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.15) : const Color(0xFF1E1E1E),
+                                  color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected ? Theme.of(context).primaryColor : Colors.white10,
-                                    width: isSelected ? 2 : 1,
+                                    color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade200,
+                                    width: 1.2,
                                   ),
                                 ),
-                                child: Text(
-                                  opt.optionText,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? Theme.of(context).primaryColor : Colors.white,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 26,
+                                      height: 26,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade100,
+                                        border: Border.all(
+                                          color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade400,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          label,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        opt.optionText,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                          color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -319,62 +507,46 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               ),
             ),
 
-            // Footer controls bar
+            // Fixed Bottom Action Bar with Submit Button
             Container(
-              padding: const EdgeInsets.all(20),
-              color: const Color(0xFF1E1E1E),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Prev button
-                  ElevatedButton(
-                    onPressed: _currentIndex > 0
-                        ? () {
-                            _pageController.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        : null,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade200),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: state.isSubmitting ? null : _confirmAndSubmitExam,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white12,
-                      disabledBackgroundColor: Colors.white10,
-                    ),
-                    child: const Text('Previous', style: TextStyle(color: Colors.white)),
-                  ),
-
-                  // Submit button
-                  if (_currentIndex == totalQuestions - 1)
-                    ElevatedButton(
-                      onPressed: state.isSubmitting
-                          ? null
-                          : () async {
-                              final submitResult = await ref.read(examRunnerProvider.notifier).submitExam();
-                              if (submitResult != null && context.mounted) {
-                                context.pushReplacement('/result/${submitResult.id}');
-                              }
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                      backgroundColor: const Color(0xFF017A47),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: state.isSubmitting
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Submit Exam', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-                    )
-                  else
-                    // Next button
-                    ElevatedButton(
-                      onPressed: () {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColor),
-                      child: const Text('Next', style: TextStyle(color: Colors.black)),
                     ),
-                ],
+                    child: state.isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text(
+                            'পরীক্ষা জমা দাও',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
               ),
             ),
           ],

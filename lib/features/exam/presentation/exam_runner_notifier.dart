@@ -50,14 +50,39 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
   /**
    * Initializes exam templates and allocates attempt session IDs.
    */
-  Future<void> initializeExam(String examId) async {
+  Future<void> initializeExam(
+    String examId, {
+    String? subjectId,
+    String? chapterId,
+    String? topicId,
+    int? limit,
+    int? timeMinutes,
+  }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, result: null);
     _timer?.cancel();
     _autoSaveTimer?.cancel();
 
     try {
-      final exam = await _repository.fetchExamDetails(examId);
-      final attempt = await _repository.startExam(examId);
+      ExamModel exam;
+      UserExamModel attempt;
+
+      // Check if filter parameters are provided for custom exam generation
+      if ((subjectId != null && subjectId.isNotEmpty) ||
+          (chapterId != null && chapterId.isNotEmpty) ||
+          (topicId != null && topicId.isNotEmpty) ||
+          (limit != null && limit > 0)) {
+        attempt = await _repository.startCustomExam(
+          subjectId: subjectId ?? (examId.isNotEmpty ? examId : null),
+          chapterId: chapterId,
+          topicId: topicId,
+          limit: limit,
+          timeMinutes: timeMinutes,
+        );
+        exam = await _repository.fetchExamDetails(attempt.examId);
+      } else {
+        exam = await _repository.fetchExamDetails(examId);
+        attempt = await _repository.startExam(examId);
+      }
 
       state = ExamRunnerState(
         exam: exam,
