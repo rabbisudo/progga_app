@@ -64,7 +64,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final bannersAsync = ref.watch(activeBannersProvider);
 
 
-    if (profileAsync.isLoading) {
+    if (profileAsync.isLoading && profileAsync.value == null) {
       return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -319,11 +319,12 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     return RefreshIndicator(
       color: const Color(0xFF017A47),
       onRefresh: () async {
-        ref.invalidate(userProfileProvider);
-        ref.invalidate(myLeaderboardProvider);
-        ref.invalidate(activeBannersProvider);
         try {
-          await ref.read(userProfileProvider.future);
+          await Future.wait([
+            ref.refresh(userProfileProvider.future),
+            ref.refresh(myLeaderboardProvider.future),
+            ref.refresh(activeBannersProvider.future),
+          ]);
         } catch (_) {}
       },
       child: SingleChildScrollView(
