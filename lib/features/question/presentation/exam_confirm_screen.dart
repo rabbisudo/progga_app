@@ -85,37 +85,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [10, 15, 20, 25, 30, 40, 50].map((countVal) {
-                    final isSel = (int.tryParse(controller.text) ?? currentCount) == countVal;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: FilterChip(
-                        label: Text('$countValটি'),
-                        selected: isSel,
-                        selectedColor: const Color(0xFFE8F5E9),
-                        checkmarkColor: const Color(0xFF017A47),
-                        labelStyle: TextStyle(
-                          color: isSel ? const Color(0xFF017A47) : Colors.black87,
-                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _subjectQuestionCounts[id] = countVal;
-                              _totalTimeMinutes = _calculatedTotalQuestions;
-                            });
-                            Navigator.pop(ctx);
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -190,32 +159,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [15, 20, 25, 30, 45, 50, 60, 90, 120].map((timeVal) {
-                  final isSel = _totalTimeMinutes == timeVal;
-                  return FilterChip(
-                    label: Text('$timeVal মিনিট'),
-                    selected: isSel,
-                    selectedColor: const Color(0xFFE8F5E9),
-                    checkmarkColor: const Color(0xFF017A47),
-                    labelStyle: TextStyle(
-                      color: isSel ? const Color(0xFF017A47) : Colors.black87,
-                      fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _totalTimeMinutes = timeVal;
-                        });
-                        Navigator.pop(ctx);
-                      }
-                    },
-                  );
-                }).toList(),
               ),
               const SizedBox(height: 16),
               Row(
@@ -380,14 +323,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      height: 95,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: selectedSubjects.length,
-                        separatorBuilder: (context, index) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          final sub = selectedSubjects[index];
+                    if (selectedSubjects.length == 1) ...[
+                      Builder(
+                        builder: (context) {
+                          final sub = selectedSubjects.first;
                           final id = sub['id'] as String? ?? '';
                           final name = sub['name'] as String? ?? 'বিষয়';
                           final count = _subjectQuestionCounts[id] ?? 25;
@@ -395,35 +334,31 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           return GestureDetector(
                             onTap: () => _showEditSubjectQuestionCountModal(id, name, count),
                             child: Container(
-                              width: 160,
-                              padding: const EdgeInsets.all(12),
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: Colors.grey.shade200),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     name,
                                     style: const TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFEFEFEF),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           '$count',
@@ -433,18 +368,13 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                             color: Colors.black87,
                                           ),
                                         ),
-                                        const Row(
-                                          children: [
-                                            Text(
-                                              'টি',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                            SizedBox(width: 4),
-                                            Icon(Icons.edit, size: 12, color: Color(0xFF017A47)),
-                                          ],
+                                        const SizedBox(width: 4),
+                                        const Text(
+                                          'টি',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -455,7 +385,78 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           );
                         },
                       ),
-                    ),
+                    ] else ...[
+                      SizedBox(
+                        height: 95,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: selectedSubjects.length,
+                          separatorBuilder: (context, index) => const SizedBox(width: 12),
+                          itemBuilder: (context, index) {
+                            final sub = selectedSubjects[index];
+                            final id = sub['id'] as String? ?? '';
+                            final name = sub['name'] as String? ?? 'বিষয়';
+                            final count = _subjectQuestionCounts[id] ?? 25;
+
+                            return GestureDetector(
+                              onTap: () => _showEditSubjectQuestionCountModal(id, name, count),
+                              child: Container(
+                                width: 160,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      name,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFEFEF),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '$count',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'টি',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -561,29 +562,17 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                         Padding(
                                           padding: const EdgeInsets.only(left: 16.0),
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: topicsList.isEmpty
-                                                ? [
-                                                    const Text(
-                                                      'সকল অধ্যায় ও টপিক',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.black87,
-                                                      ),
+                                            children: topicsList.map((t) => Padding(
+                                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                                  child: Text(
+                                                    t,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.black87,
                                                     ),
-                                                  ]
-                                                : topicsList.map((t) => Padding(
-                                                      padding: const EdgeInsets.only(bottom: 4.0),
-                                                      child: Text(
-                                                        t,
-                                                        style: const TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight.w600,
-                                                          color: Colors.black87,
-                                                        ),
-                                                      ),
-                                                    )).toList(),
+                                                  ),
+                                                )).toList(),
                                           ),
                                         ),
                                       ],
@@ -650,18 +639,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                     color: Colors.black87,
                                   ),
                                 ),
-                                const Row(
-                                  children: [
-                                    Text(
-                                      'মিনিট',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.edit, size: 14, color: Color(0xFF017A47)),
-                                  ],
+                                const Text(
+                                  'মিনিট',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black54,
+                                  ),
                                 ),
                               ],
                             ),
