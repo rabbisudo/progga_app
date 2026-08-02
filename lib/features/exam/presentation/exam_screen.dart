@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ExamScreen extends ConsumerStatefulWidget {
   final String id;
@@ -30,6 +31,7 @@ class ExamScreen extends ConsumerStatefulWidget {
 class _ExamScreenState extends ConsumerState<ExamScreen> {
   final ScrollController _scrollController = ScrollController();
   Timer? _timeSpentTracker;
+  final Map<String, Widget> _mathWidgetCache = {};
 
   @override
   void initState() {
@@ -246,6 +248,28 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }) {
     if (rawText.isEmpty) return const SizedBox.shrink();
 
+    final cacheKey = '${rawText}_${fontSize}_${mathColor?.value}_${textStyle?.color?.value}_${textStyle?.fontWeight?.index}';
+    if (_mathWidgetCache.containsKey(cacheKey)) {
+      return _mathWidgetCache[cacheKey]!;
+    }
+
+    final parsedWidget = _buildMathWidgetImpl(
+      rawText,
+      textStyle: textStyle,
+      mathColor: mathColor,
+      fontSize: fontSize,
+    );
+
+    _mathWidgetCache[cacheKey] = parsedWidget;
+    return parsedWidget;
+  }
+
+  Widget _buildMathWidgetImpl(
+    String rawText, {
+    TextStyle? textStyle,
+    Color? mathColor,
+    double fontSize = 14,
+  }) {
     final text = _fixBrokenLatex(rawText);
 
     // Check if text contains embedded [IMAGE: url] tags
@@ -536,10 +560,31 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final state = ref.watch(examRunnerProvider);
 
     if (state.isLoading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFFF3F4F3),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF017A47)),
+      return Scaffold(
+        backgroundColor: const Color(0xFFF3F4F3),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFF3F4F3),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          title: Text(
+            'পরীক্ষা লোড হচ্ছে...',
+            style: GoogleFonts.notoSansBengali(
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 3,
+          itemBuilder: (context, index) => const _SkeletonQuestionCard(),
         ),
       );
     }
@@ -618,14 +663,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           surfaceTintColor: Colors.transparent,
           title: Text(
             state.exam!.title,
-            style: const TextStyle(
+            style: GoogleFonts.notoSansBengali(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: 16,
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.black87),
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
             onPressed: () async {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {
@@ -635,31 +680,34 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             },
           ),
           actions: [
-            // Timer alert badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: isLowTime ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isLowTime ? Colors.redAccent : const Color(0xFF017A47),
-                  width: 1.5,
-                ),
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isLowTime ? Colors.redAccent : const Color(0xFF017A47)).withOpacity(0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.timer_outlined,
-                    size: 18,
+                    size: 16,
                     color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _formatTime(state.timeLeft),
-                    style: TextStyle(
+                    style: GoogleFonts.notoSansBengali(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 13,
                       color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
                     ),
                   ),
@@ -670,52 +718,13 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         ),
         body: Column(
           children: [
-            // Top Progress Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: Colors.white,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'উত্তর দেওয়া হয়েছে: $answeredCount/$totalQuestions টি',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        state.isSaving ? 'সংরক্ষণ হচ্ছে...' : 'ড্রাফট সংরক্ষিত',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: state.isSaving ? const Color(0xFF017A47) : Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: totalQuestions > 0 ? (answeredCount / totalQuestions) : 0,
-                      minHeight: 6,
-                      backgroundColor: const Color(0xFFE3E7E4),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF017A47)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
 
             // Single continuous scroll view with all questions (Virtualized for 1000+ items)
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
                 physics: const BouncingScrollPhysics(),
                 cacheExtent: 500,
                 addAutomaticKeepAlives: false,
@@ -767,7 +776,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             Text(
                               '${index + 1}. ',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF017A47),
                               ),
@@ -776,7 +785,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                               child: _buildMathWidget(
                                 q.questionText,
                                 textStyle: const TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 15.5,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
                                   height: 1.4,
@@ -804,10 +813,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             ),
                             child: Math.tex(
                               q.latexFormula!,
-                              textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47)),
+                              textStyle: const TextStyle(fontSize: 17.5, color: Color(0xFF017A47)),
                               onErrorFallback: (err) => Text(
                                 q.latexFormula!,
-                                style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
+                                style: const TextStyle(fontSize: 16.5, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
                               ),
                             ),
                           ),
@@ -851,8 +860,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                     Row(
                                       children: [
                                         Container(
-                                          width: 26,
-                                          height: 26,
+                                          width: 28,
+                                          height: 28,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade100,
@@ -864,7 +873,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                             child: Text(
                                               label,
                                               style: TextStyle(
-                                                fontSize: 12,
+                                                fontSize: 13,
                                                 fontWeight: FontWeight.bold,
                                                 color: isSelected ? Colors.white : Colors.black87,
                                               ),
@@ -876,7 +885,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                           child: _buildMathWidget(
                                             opt.optionText,
                                             textStyle: TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 15.5,
                                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                               color: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                             ),
@@ -902,7 +911,6 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               ),
             ),
 
-            // Fixed Bottom Action Bar with Submit Button
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -911,19 +919,20 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   top: BorderSide(color: Colors.grey.shade200),
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
               child: SafeArea(
                 top: false,
+                bottom: false,
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: state.isSubmitting ? null : _confirmAndSubmitExam,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF017A47),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: state.isSubmitting
@@ -932,13 +941,53 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text(
-                            'পরীক্ষা জমা দাও',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        : Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _formatTime(state.timeLeft),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                height: 16,
+                                width: 1.5,
+                                color: Colors.white24,
+                              ),
+                              const Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'সাবমিট করো',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                height: 16,
+                                width: 1.5,
+                                color: Colors.white24,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '$answeredCount/$totalQuestions',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),
@@ -947,6 +996,139 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SkeletonQuestionCard extends StatefulWidget {
+  const _SkeletonQuestionCard({super.key});
+
+  @override
+  State<_SkeletonQuestionCard> createState() => _SkeletonQuestionCardState();
+}
+
+class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.4, end: 0.85).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final opacity = _animation.value;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Question Index & Text placeholder
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(opacity * 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200.withOpacity(opacity),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 150,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200.withOpacity(opacity),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Options placeholders (4 of them)
+              ...List.generate(4, (index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.grey.shade100,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey.shade100.withOpacity(opacity),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 120 + (index * 20 % 50),
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200.withOpacity(opacity),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }

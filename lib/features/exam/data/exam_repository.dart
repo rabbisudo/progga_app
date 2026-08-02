@@ -125,11 +125,15 @@ class ExamRepository {
 
   Future<Map<String, dynamic>> reportQuestion(String questionId, String reason, {String? details}) async {
     try {
+      final String? truncatedDetails = (details != null && details.length > 500)
+          ? details.substring(0, 500)
+          : details;
+
       final response = await _apiClient.dio.post(
         '/questions/$questionId/report',
         data: {
           'reason': reason,
-          if (details != null && details.isNotEmpty) 'details': details,
+          if (truncatedDetails != null && truncatedDetails.isNotEmpty) 'details': truncatedDetails,
         },
       );
       return response.data as Map<String, dynamic>;

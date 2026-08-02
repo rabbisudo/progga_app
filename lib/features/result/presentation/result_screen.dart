@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Fetch full exam session result data
 final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, sessionId) async {
@@ -658,12 +659,7 @@ class ResultScreen extends ConsumerWidget {
     final resultAsync = ref.watch(examResultProvider(sessionId));
 
     return resultAsync.when(
-      loading: () => const Scaffold(
-        backgroundColor: Color(0xFFF3F4F3),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF017A47)),
-        ),
-      ),
+      loading: () => const _SkeletonResultScreen(),
       error: (err, stack) => Scaffold(
         backgroundColor: const Color(0xFFF3F4F3),
         appBar: AppBar(
@@ -1397,26 +1393,13 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFEE2E2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.flag_rounded, color: Color(0xFFDC2626), size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'প্রশ্ন রিপোর্ট করুন',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'প্রশ্ন রিপোর্ট করুন',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   ...[
@@ -1447,8 +1430,13 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                   TextField(
                     controller: controller,
                     maxLines: 2,
+                    maxLength: 500,
+                    onChanged: (val) {
+                      setModalState(() {});
+                    },
                     decoration: InputDecoration(
-                      hintText: 'অতিরিক্ত তথ্য লিখুন (ঐচ্ছিক)...',
+                      hintText: 'অতিরিক্ত তথ্য লিখুন (ন্যূনতম ২০ অক্ষর)...',
+                      counterText: '',
                       hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
@@ -1471,51 +1459,56 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        final detailsText = controller.text.trim();
-                        Navigator.pop(context);
+                      onPressed: controller.text.trim().length >= 20
+                          ? () async {
+                              final detailsText = controller.text.trim();
+                              final messenger = ScaffoldMessenger.of(context);
+                              Navigator.pop(context);
 
-                        try {
-                          final repo = ref.read(examRepositoryProvider);
-                          final res = await repo.reportQuestion(
-                            widget.questionId,
-                            selectedReason,
-                            details: detailsText.isNotEmpty ? detailsText : null,
-                          );
-                          final msg = res['message'] as String? ?? 'আপনার রিপোর্ট সফলভাবে জমা হয়েছে! ধন্যবাদ।';
+                              try {
+                                final repo = ref.read(examRepositoryProvider);
+                                final res = await repo.reportQuestion(
+                                  widget.questionId,
+                                  selectedReason,
+                                  details: detailsText.isNotEmpty ? detailsText : null,
+                                );
+                                final msg = res['message'] as String? ?? 'আপনার রিপোর্ট সফলভাবে জমা হয়েছে! ধন্যবাদ।';
 
-                          messenger.hideCurrentSnackBar();
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Row(
-                                children: [
-                                  const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    msg,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                messenger.hideCurrentSnackBar();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          msg,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: const Color(0xFF017A47),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 3),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
-                                ],
-                              ),
-                              backgroundColor: const Color(0xFF017A47),
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 3),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                          );
-                        } catch (e) {
-                          // Ignore
-                        }
-                      },
+                                );
+                              } catch (e) {
+                                // Ignore
+                              }
+                            }
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF017A47),
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: const Text(
                         'রিপোর্ট জমা দিন',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -1535,7 +1528,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
         IconButton(
           icon: Icon(
             _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-            size: 22,
+            size: 19,
             color: _isBookmarked ? const Color(0xFF017A47) : Colors.grey.shade600,
           ),
           onPressed: _toggleBookmark,
@@ -1547,7 +1540,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
         IconButton(
           icon: Icon(
             Icons.outlined_flag_rounded,
-            size: 22,
+            size: 19,
             color: Colors.grey.shade600,
           ),
           onPressed: _showReportDialog,
@@ -1556,6 +1549,419 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
           tooltip: 'রিপোর্ট করুন',
         ),
       ],
+    );
+  }
+}
+
+class _SkeletonResultScreen extends StatefulWidget {
+  const _SkeletonResultScreen();
+
+  @override
+  State<_SkeletonResultScreen> createState() => _SkeletonResultScreenState();
+}
+
+class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.4, end: 0.85).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final opacity = _animation.value;
+        return Scaffold(
+          backgroundColor: const Color(0xFFF3F4F3),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFF3F4F3),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            title: Text(
+              'ফলাফল প্রস্তুত হচ্ছে...',
+              style: GoogleFonts.notoSansBengali(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+              onPressed: () => context.pop(),
+            ),
+          ),
+          body: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 3-card stats row
+                  Row(
+                    children: [
+                      // Card 1: Points
+                      Expanded(
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade100),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFBBF24).withOpacity(0.15), // soft orange
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Container(
+                                    width: 50,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Card 2: Marks
+                      Expanded(
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade100),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withOpacity(0.15), // soft green
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Container(
+                                    width: 50,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Card 3: Time
+                      Expanded(
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.grey.shade100),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0EA5E9).withOpacity(0.15), // soft blue
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                                ),
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Container(
+                                    width: 50,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // 3-pills row
+                  Row(
+                    children: [
+                      // Correct Pill
+                      Expanded(
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9).withOpacity(0.8), // light green
+                            borderRadius: BorderRadius.circular(100),
+                            border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 50,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF017A47).withOpacity(opacity * 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Wrong Pill
+                      Expanded(
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEBEE).withOpacity(0.8), // light red
+                            borderRadius: BorderRadius.circular(100),
+                            border: Border.all(color: const Color(0xFFFECACA).withOpacity(0.5)),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 50,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withOpacity(opacity * 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Skipped Pill
+                      Expanded(
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100, // light grey
+                            borderRadius: BorderRadius.circular(100),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 50,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade400.withOpacity(opacity * 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Question Cards Placeholders (2 of them)
+                  ...List.generate(2, (qIndex) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade100),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 24,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300.withOpacity(opacity),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 200,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          ...List.generate(4, (optIndex) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10.0),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.grey.shade100,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey.shade100.withOpacity(opacity),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Container(
+                                      width: 100 + (optIndex * 20 % 60),
+                                      height: 14,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 16),
+                          // Explanation Accordion placeholder
+                          Container(
+                            height: 44,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0FDF4),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD1FAE5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  width: 80,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF017A47).withOpacity(opacity * 0.3),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Icon(Icons.keyboard_arrow_down, color: const Color(0xFF017A47).withOpacity(opacity)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          // Bottom tags and actions placeholder
+                          Row(
+                            children: [
+                              Container(
+                                width: 50,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 50,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(Icons.bookmark_border_rounded, color: Colors.grey.shade400, size: 19),
+                              const SizedBox(width: 12),
+                              Icon(Icons.outlined_flag_rounded, color: Colors.grey.shade400, size: 19),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

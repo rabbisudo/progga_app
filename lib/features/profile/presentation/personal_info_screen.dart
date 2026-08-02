@@ -259,7 +259,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                     value: _gender,
                     style: GoogleFonts.notoSansBengali(
                       color: theme.textTheme.bodyLarge?.color,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                     decoration: _getInputDecoration(context, 'লিঙ্গ'),
                     items: [
@@ -278,12 +278,6 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         label: 'জন্মতারিখ',
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    context: context,
-                    controller: _institutionController,
-                    label: 'শিক্ষা প্রতিষ্ঠান (স্কুল / কলেজ)',
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -313,11 +307,17 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         children: [
                           _buildSectionHeader('অ্যাকাডেমিক বিবরণী', theme),
                           const SizedBox(height: 12),
+                          _buildTextField(
+                            context: context,
+                            controller: _institutionController,
+                            label: 'শিক্ষা প্রতিষ্ঠান (স্কুল / কলেজ)',
+                          ),
+                          const SizedBox(height: 16),
                           DropdownButtonFormField<AcademicClassModel>(
                             value: _selectedClass,
                             style: GoogleFonts.notoSansBengali(
                               color: theme.textTheme.bodyLarge?.color,
-                              fontSize: 14,
+                              fontSize: 15,
                             ),
                             hint: Text(
                               profile.className ?? 'শ্রেণী নির্বাচন করুন',
@@ -344,7 +344,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                               value: _selectedGroup,
                               style: GoogleFonts.notoSansBengali(
                                 color: theme.textTheme.bodyLarge?.color,
-                                fontSize: 14,
+                                fontSize: 15,
                               ),
                               hint: Text(
                                 profile.targetExam ?? 'বিভাগ নির্বাচন করুন',
@@ -371,7 +371,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                               value: _selectedBatch,
                               style: GoogleFonts.notoSansBengali(
                                 color: theme.textTheme.bodyLarge?.color,
-                                fontSize: 14,
+                                fontSize: 15,
                               ),
                               hint: Text(
                                 profile.batch ?? 'ব্যাচ নির্বাচন করুন',
@@ -407,7 +407,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
                               'সংরক্ষণ করুন',
-                              style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                              style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
                             ),
                     ),
                   ),
@@ -427,7 +427,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       child: Text(
         title,
         style: GoogleFonts.notoSansBengali(
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: FontWeight.bold,
           color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
         ),
@@ -443,7 +443,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       labelText: label,
       labelStyle: GoogleFonts.notoSansBengali(
         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
-        fontSize: 13,
+        fontSize: 14,
       ),
       filled: true,
       fillColor: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8F9FA),
@@ -478,7 +478,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       controller: controller,
       style: GoogleFonts.notoSansBengali(
         color: theme.textTheme.bodyLarge?.color,
-        fontSize: 14,
+        fontSize: 15,
       ),
       validator: validator,
       decoration: _getInputDecoration(context, label),

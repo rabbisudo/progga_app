@@ -33,7 +33,7 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, fontSize: 16),
+        style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, fontSize: 17),
       ),
       trailing: trailing ?? Icon(
         Icons.chevron_right_rounded,
@@ -57,7 +57,7 @@ class ProfileScreen extends ConsumerWidget {
         style: GoogleFonts.notoSansBengali(
           color: brandTealColor,
           fontWeight: FontWeight.bold,
-          fontSize: 12,
+          fontSize: 13,
         ),
       ),
     );
@@ -164,7 +164,7 @@ class ProfileScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         profile.fullName,
-                        style: GoogleFonts.notoSansBengali(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.notoSansBengali(fontSize: 26, fontWeight: FontWeight.bold),
                       ),
                       Wrap(
                         spacing: 8.0,
@@ -204,7 +204,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '+Add Phone number',
-                              style: GoogleFonts.notoSansBengali(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.notoSansBengali(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -267,7 +267,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '0',
-                              style: GoogleFonts.notoSansBengali(color: const Color(0xFFFF3B30), fontSize: 12, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.notoSansBengali(color: const Color(0xFFFF3B30), fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
