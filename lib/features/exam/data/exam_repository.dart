@@ -141,6 +141,15 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<List<dynamic>> getMyReports() async {
+    try {
+      final response = await _apiClient.dio.get('/questions/my-reports');
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {

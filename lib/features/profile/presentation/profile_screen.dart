@@ -79,10 +79,12 @@ class ProfileScreen extends ConsumerWidget {
           style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
-          onPressed: () => context.pop(),
-        ),
+        leading: (ModalRoute.of(context)?.canPop ?? false)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+                onPressed: () => context.pop(),
+              )
+            : null,
         actions: [
           IconButton(
             icon: Icon(
@@ -212,6 +214,30 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                       onTap: () => context.push('/personal-info'),
+                    ),
+                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFF017A47),
+                      icon: Icons.speed_rounded,
+                      title: 'আমার প্রোগ্রেস',
+                      onTap: () => context.push('/progress'),
+                    ),
+                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFFFFB300),
+                      icon: Icons.emoji_events_rounded,
+                      title: 'লিডারবোর্ড',
+                      onTap: () => context.push('/leaderboard'),
+                    ),
+                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFFE53935),
+                      icon: Icons.flag_rounded,
+                      title: 'আমার রিপোর্টসমূহ',
+                      onTap: () => context.push('/my-reports'),
                     ),
                     Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
                     // row 2

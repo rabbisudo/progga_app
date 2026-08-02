@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'practice_notifier.dart';
 import 'package:go_router/go_router.dart';
 import '../../profile/presentation/profile_notifier.dart';
+import '../../profile/presentation/profile_screen.dart';
 import '../../profile/domain/profile_model.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
@@ -110,8 +111,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       _buildHomeDashboardView(state, theme, profileAsync, leaderboardAsync),
       _buildQuestionBankView(theme),
       _buildExamListView(theme),
-      LeaderboardScreen(),
-      _buildProgressView(theme),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -197,11 +197,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   scrolledUnderElevation: 0,
                   surfaceTintColor: Colors.transparent,
                   title: Text(
-                    _currentNavIndex == 1
-                        ? 'প্রশ্নব্যাংক'
-                        : _currentNavIndex == 2
-                            ? 'মক পরীক্ষা'
-                            : 'প্রোগ্রেস',
+                    _currentNavIndex == 1 ? 'প্রশ্নব্যাংক' : 'মক পরীক্ষা',
                     style: const TextStyle(
                       color: Colors.black87,
                       fontWeight: FontWeight.bold,
@@ -256,14 +252,9 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               label: 'পরীক্ষা',
             ),
             NavigationDestination(
-              icon: Icon(Icons.emoji_events_outlined, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.emoji_events, color: Color(0xFF017A47)),
-              label: 'লিডারবোর্ড',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.speed_outlined, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.speed, color: Color(0xFF017A47)),
-              label: 'প্রোগ্রেস',
+              icon: Icon(Icons.person_outline_rounded, color: Color(0xFF495057)),
+              selectedIcon: Icon(Icons.person_rounded, color: Color(0xFF017A47)),
+              label: 'প্রোফাইল',
             ),
           ],
         ),
