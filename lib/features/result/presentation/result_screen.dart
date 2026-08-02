@@ -667,7 +667,7 @@ class ResultScreen extends ConsumerWidget {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => context.pop(),
+            onPressed: () => context.go('/home'),
           ),
         ),
         body: Center(
@@ -721,7 +721,7 @@ class ResultScreen extends ConsumerWidget {
             scrolledUnderElevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => context.pop(),
+              onPressed: () => context.go('/home'),
             ),
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1606,7 +1606,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => context.pop(),
+              onPressed: () => context.go('/home'),
             ),
           ),
           body: SingleChildScrollView(

@@ -577,7 +577,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => context.pop(),
+            onPressed: () => context.go('/home'),
           ),
         ),
         body: ListView.builder(
@@ -597,7 +597,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => context.pop(),
+            onPressed: () => context.go('/home'),
           ),
         ),
         body: Center(
@@ -615,7 +615,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => context.go('/home'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF017A47),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -651,7 +651,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         final shouldPop = await _onWillPop();
         if (shouldPop && context.mounted) {
           ref.read(examRunnerProvider.notifier).submitExam();
-          context.pop();
+          context.go('/home');
         }
       },
       child: Scaffold(
@@ -675,7 +675,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {
                 ref.read(examRunnerProvider.notifier).submitExam();
-                context.pop();
+                context.go('/home');
               }
             },
           ),
