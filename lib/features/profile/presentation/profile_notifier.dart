@@ -12,22 +12,34 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
 
   Future<void> updateSettings(Map<String, dynamic> settings) async {
     final repository = ref.read(profileRepositoryProvider);
-    state = const AsyncValue.loading();
+    final currentData = state.value;
+    state = AsyncLoading<UserData>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       final updatedProfile = await repository.updateSettings(settings);
-      final currentData = state.value!;
+      if (currentData == null) {
+        return repository.fetchMyProfile();
+      }
       return currentData.copyWith(profile: updatedProfile);
     });
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 
   Future<void> updateProfileDetails(Map<String, dynamic> data) async {
     final repository = ref.read(profileRepositoryProvider);
-    state = const AsyncValue.loading();
+    final currentData = state.value;
+    state = AsyncLoading<UserData>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       final updatedProfile = await repository.updateProfile(data);
-      final currentData = state.value!;
+      if (currentData == null) {
+        return repository.fetchMyProfile();
+      }
       return currentData.copyWith(profile: updatedProfile);
     });
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 }
 

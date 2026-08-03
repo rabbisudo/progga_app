@@ -93,6 +93,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             topicId: qParams['topicId'],
             limit: int.tryParse(qParams['limit'] ?? ''),
             timeMinutes: int.tryParse(qParams['time'] ?? ''),
+            questionType: qParams['questionType'],
           );
         },
       ),

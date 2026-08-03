@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'practice_notifier.dart';
+import '../../academics/data/academics_repository.dart';
 
 class ExamConfirmScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> setupData;
@@ -20,6 +21,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   bool _isTopicsExpanded = true;
   late Map<String, int> _subjectQuestionCounts;
   late int _totalTimeMinutes;
+  String _selectedQuestionType = 'MCQ';
 
   @override
   void initState() {
@@ -41,6 +43,23 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     }
 
     _totalTimeMinutes = _calculatedTotalQuestions; // Dynamic default: 1 min per question
+  }
+
+  String? _mapDbQuestionType(String rawType) {
+    final upper = rawType.toUpperCase();
+    if (upper == 'MCQ' || upper.startsWith('MCQ_') || upper == 'MCQ_N') {
+      return 'MCQ';
+    }
+    if (upper.startsWith('CQ_') || upper == 'CQ') {
+      return 'CQ';
+    }
+    if (upper == 'WRITTEN') {
+      return 'WRITTEN';
+    }
+    if (upper.contains('FILL')) {
+      return 'WRITTEN';
+    }
+    return null;
   }
 
   int get _calculatedTotalQuestions {
@@ -209,6 +228,118 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
             [];
 
     final String primarySubjectId = widget.setupData['primarySubjectId'] ?? '';
+
+    // Dynamically retrieve available question types from curriculum data
+    final curriculumAsync = ref.watch(studentCurriculumProvider);
+    final availableTypes = <String>{};
+
+    final subjectIdStr = (widget.setupData['joinedSubjectIds']?.toString() ?? '').isNotEmpty
+        ? widget.setupData['joinedSubjectIds'].toString()
+        : primarySubjectId;
+    final chapterIdStr = widget.setupData['joinedChapterIds']?.toString() ?? '';
+    final topicIdStr = widget.setupData['joinedTopicIds']?.toString() ?? '';
+
+    final selectedSubjectIds = subjectIdStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+    final selectedChapterIds = chapterIdStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+    final selectedTopicIds = topicIdStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
+
+    curriculumAsync.when(
+      data: (subjectsList) {
+        debugPrint('DEBUG: subjectsList count=${subjectsList.length}');
+        for (var subject in subjectsList) {
+          final sId = subject['id'] as String? ?? '';
+          if (selectedSubjectIds.contains(sId)) {
+            debugPrint('DEBUG: Matched subject: ${subject['name']}, questionTypes: ${subject['questionTypes']}');
+          }
+        }
+      },
+      error: (err, stack) => debugPrint('DEBUG: curriculumAsync error=$err'),
+      loading: () => debugPrint('DEBUG: curriculumAsync loading'),
+    );
+
+    curriculumAsync.whenData((subjectsList) {
+      for (var subject in subjectsList) {
+        final sId = subject['id'] as String? ?? '';
+        if (!selectedSubjectIds.contains(sId)) continue;
+
+        // If specific topics are selected
+        if (selectedTopicIds.isNotEmpty) {
+          final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+          for (var chapter in chapters) {
+            final topics = (chapter['topics'] as List<dynamic>?) ?? [];
+            for (var topic in topics) {
+              final tId = topic['id'] as String? ?? '';
+              if (selectedTopicIds.contains(tId)) {
+                final types = (topic['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+                for (var t in types) {
+                  final mapped = _mapDbQuestionType(t);
+                  if (mapped != null) {
+                    availableTypes.add(mapped);
+                  }
+                }
+              }
+            }
+          }
+        }
+        // If no topics are selected but specific chapters are selected
+        else if (selectedChapterIds.isNotEmpty) {
+          final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+          for (var chapter in chapters) {
+            final cId = chapter['id'] as String? ?? '';
+            if (selectedChapterIds.contains(cId)) {
+              final types = (chapter['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+              for (var t in types) {
+                final mapped = _mapDbQuestionType(t);
+                if (mapped != null) {
+                  availableTypes.add(mapped);
+                }
+              }
+            }
+          }
+        }
+        // If only subjects are selected
+        else {
+          final types = (subject['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+          for (var t in types) {
+            final mapped = _mapDbQuestionType(t);
+            if (mapped != null) {
+              availableTypes.add(mapped);
+            }
+          }
+        }
+      }
+    });
+
+    debugPrint('DEBUG: availableTypes=$availableTypes');
+
+    final isCurriculumLoading = curriculumAsync.isLoading;
+    final typesToDisplay = isCurriculumLoading 
+        ? <String>[] 
+        : availableTypes.toList();
+
+    if (typesToDisplay.isNotEmpty && !typesToDisplay.contains('FULL')) {
+      typesToDisplay.add('FULL');
+    }
+
+    const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FULL'];
+    typesToDisplay.sort((a, b) {
+      final indexA = sortOrder.indexOf(a);
+      final indexB = sortOrder.indexOf(b);
+      if (indexA == -1) return 1;
+      if (indexB == -1) return -1;
+      return indexA.compareTo(indexB);
+    });
+
+    // Ensure selected type is in the available types list
+    if (typesToDisplay.isNotEmpty && !typesToDisplay.contains(_selectedQuestionType)) {
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _selectedQuestionType = typesToDisplay.first;
+          });
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
@@ -586,6 +717,96 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 20),
+
+                    // 4. Questions Type Selection (MCQ, CQ, WRITTEN, FILL)
+                    const Text(
+                      'প্রশ্নের ধরন',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F1F1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: isCurriculumLoading
+                            ? const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12.0),
+                                child: Center(
+                                  child: SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF017A47),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : typesToDisplay.isEmpty
+                                ? const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 12.0),
+                                    child: Center(
+                                      child: Text(
+                                        'কোনো প্রশ্নের ধরন পাওয়া যায়নি',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Row(
+                                    children: typesToDisplay.map((type) {
+                                      final isSelected = _selectedQuestionType == type;
+                                      return Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedQuestionType = type;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(vertical: 10),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? const Color(0xFF017A47)
+                                                  : Colors.transparent,
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                type,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected ? Colors.white : Colors.black54,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                      ),
+                    ),
+
                     const SizedBox(height: 30),
                   ],
                 ),
@@ -657,8 +878,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        final joinedSubjectIds = widget.setupData['joinedSubjectIds'] ?? primarySubjectId;
+                      onPressed: (typesToDisplay.isEmpty || isCurriculumLoading)
+                          ? null
+                          : () {
+                              final joinedSubjectIds = widget.setupData['joinedSubjectIds'] ?? primarySubjectId;
                         final joinedChapterIds = widget.setupData['joinedChapterIds'];
                         final joinedTopicIds = widget.setupData['joinedTopicIds'];
 
@@ -673,6 +896,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           queryParameters: {
                             'limit': '$_calculatedTotalQuestions',
                             'time': '$_totalTimeMinutes',
+                            'questionType': _selectedQuestionType,
                             if (joinedSubjectIds != null && joinedSubjectIds.toString().isNotEmpty)
                               'subjectId': joinedSubjectIds.toString(),
                             if (joinedChapterIds != null && joinedChapterIds.toString().isNotEmpty)

@@ -43,6 +43,25 @@ String _getOptionLabel(int index) {
   return '${index + 1}';
 }
 
+String _stripHtml(String htmlString) {
+  if (htmlString.isEmpty) return htmlString;
+  String result = htmlString;
+  // Replace block-level tags or line breaks first
+  result = result.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</li>\s*<li>', caseSensitive: false), '\n');
+  // Replace common HTML entities
+  result = result.replaceAll('&nbsp;', ' ');
+  result = result.replaceAll('&amp;', '&');
+  result = result.replaceAll('&lt;', '<');
+  result = result.replaceAll('&gt;', '>');
+  result = result.replaceAll('&quot;', '"');
+  result = result.replaceAll('&#39;', "'");
+  // Remove all remaining HTML tags
+  result = result.replaceAll(RegExp(r'<[^>]*>'), '');
+  return result.trim();
+}
+
 String _fixBrokenLatex(String text) {
   if (text.isEmpty) return text;
 
@@ -156,7 +175,7 @@ Widget _buildResultMathWidget(
 }) {
   if (rawText.isEmpty) return const SizedBox.shrink();
 
-  final text = _fixBrokenLatex(rawText);
+  final text = _fixBrokenLatex(_stripHtml(rawText));
 
   // 1. Check for embedded [IMAGE: url] tags
   final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);

@@ -47,6 +47,7 @@ class ExamRepository {
     int? limit,
     int? timeMinutes,
     String? title,
+    String? questionType,
   }) async {
     try {
       final response = await _apiClient.dio.post(
@@ -58,6 +59,7 @@ class ExamRepository {
           if (limit != null && limit > 0) 'totalQuestions': limit,
           if (timeMinutes != null && timeMinutes > 0) 'duration': timeMinutes,
           if (title != null && title.isNotEmpty) 'title': title,
+          if (questionType != null && questionType.isNotEmpty) 'questionType': questionType,
         },
       );
       return UserExamModel.fromJson(response.data);

@@ -97,7 +97,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await ref.read(userProfileProvider.notifier).updateProfileDetails({
         'fullName': _nameController.text.trim(),
         'gender': _selectedGender == 'মেয়ে' ? 'FEMALE' : 'MALE',
-        'birthday': _selectedBirthday?.toIso8601String(),
+        'birthday': _selectedBirthday?.toUtc().toIso8601String(),
         'address': _addressController.text.trim(),
         'institution': _institutionController.text.trim(),
         'className': _selectedClassModel?.name ?? _selectedClass,

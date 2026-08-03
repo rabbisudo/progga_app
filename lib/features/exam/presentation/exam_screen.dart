@@ -13,6 +13,7 @@ class ExamScreen extends ConsumerStatefulWidget {
   final String? topicId;
   final int? limit;
   final int? timeMinutes;
+  final String? questionType;
 
   const ExamScreen({
     super.key,
@@ -22,6 +23,7 @@ class ExamScreen extends ConsumerStatefulWidget {
     this.topicId,
     this.limit,
     this.timeMinutes,
+    this.questionType,
   });
 
   @override
@@ -46,6 +48,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             topicId: widget.topicId,
             limit: widget.limit,
             timeMinutes: widget.timeMinutes,
+            questionType: widget.questionType,
           );
     });
 
@@ -133,6 +136,25 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         context.pushReplacement('/result/${submitResult.id}');
       }
     }
+  }
+
+  String _stripHtml(String htmlString) {
+    if (htmlString.isEmpty) return htmlString;
+    String result = htmlString;
+    // Replace block-level tags or line breaks first
+    result = result.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n');
+    result = result.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    result = result.replaceAll(RegExp(r'</li>\s*<li>', caseSensitive: false), '\n');
+    // Replace common HTML entities
+    result = result.replaceAll('&nbsp;', ' ');
+    result = result.replaceAll('&amp;', '&');
+    result = result.replaceAll('&lt;', '<');
+    result = result.replaceAll('&gt;', '>');
+    result = result.replaceAll('&quot;', '"');
+    result = result.replaceAll('&#39;', "'");
+    // Remove all remaining HTML tags
+    result = result.replaceAll(RegExp(r'<[^>]*>'), '');
+    return result.trim();
   }
 
   String _fixBrokenLatex(String text) {
@@ -270,7 +292,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     Color? mathColor,
     double fontSize = 14,
   }) {
-    final text = _fixBrokenLatex(rawText);
+    final text = _fixBrokenLatex(_stripHtml(rawText));
 
     // Check if text contains embedded [IMAGE: url] tags
     final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
@@ -590,6 +612,15 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     }
 
     if (state.errorMessage != null) {
+      String userFriendlyError = state.errorMessage!;
+      bool isNoQuestions = userFriendlyError.contains('404') || 
+                          userFriendlyError.contains('not found') || 
+                          userFriendlyError.contains('Resource not found') ||
+                          userFriendlyError.contains('No available questions');
+      if (isNoQuestions) {
+        userFriendlyError = 'দুঃখিত, কোনো প্রশ্ন পাওয়া যায় নাই। অনুগ্রহ করে অন্য টপিক বা ফিল্টার নির্বাচন করুন।';
+      }
+
       return Scaffold(
         backgroundColor: const Color(0xFFF3F4F3),
         appBar: AppBar(
@@ -606,11 +637,22 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
+                if (isNoQuestions)
+                  const Text(
+                    '📚',
+                    style: TextStyle(fontSize: 64),
+                  )
+                else
+                  const Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
                 const SizedBox(height: 16),
                 Text(
-                  state.errorMessage!,
-                  style: const TextStyle(color: Colors.black87, fontSize: 15),
+                  userFriendlyError,
+                  style: const TextStyle(
+                    color: Colors.black87, 
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    height: 1.4,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

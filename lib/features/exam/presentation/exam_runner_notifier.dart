@@ -57,6 +57,7 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     String? topicId,
     int? limit,
     int? timeMinutes,
+    String? questionType,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null, result: null);
     _timer?.cancel();
@@ -70,13 +71,15 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
       if ((subjectId != null && subjectId.isNotEmpty) ||
           (chapterId != null && chapterId.isNotEmpty) ||
           (topicId != null && topicId.isNotEmpty) ||
-          (limit != null && limit > 0)) {
+          (limit != null && limit > 0) ||
+          (questionType != null && questionType.isNotEmpty)) {
         attempt = await _repository.startCustomExam(
           subjectId: subjectId ?? (examId.isNotEmpty ? examId : null),
           chapterId: chapterId,
           topicId: topicId,
           limit: limit,
           timeMinutes: timeMinutes,
+          questionType: questionType,
         );
         exam = await _repository.fetchExamDetails(attempt.examId);
       } else {
