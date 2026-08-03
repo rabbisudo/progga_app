@@ -21,7 +21,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   bool _isTopicsExpanded = true;
   late Map<String, int> _subjectQuestionCounts;
   late int _totalTimeMinutes;
-  String _selectedQuestionType = 'MCQ';
+  final String _selectedQuestionType = 'MCQ';
 
   @override
   void initState() {
@@ -330,16 +330,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
       return indexA.compareTo(indexB);
     });
 
-    // Ensure selected type is in the available types list
-    if (typesToDisplay.isNotEmpty && !typesToDisplay.contains(_selectedQuestionType)) {
-      Future.microtask(() {
-        if (mounted) {
-          setState(() {
-            _selectedQuestionType = typesToDisplay.first;
-          });
-        }
-      });
-    }
+    // Question type locked to MCQ currently
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F7),
@@ -717,97 +708,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
-
-                    // 4. Questions Type Selection (MCQ, CQ, WRITTEN, FILL)
-                    const Text(
-                      'প্রশ্নের ধরন',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F1F1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.all(4),
-                        child: isCurriculumLoading
-                            ? const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 12.0),
-                                child: Center(
-                                  child: SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFF017A47),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : typesToDisplay.isEmpty
-                                ? const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12.0),
-                                    child: Center(
-                                      child: Text(
-                                        'কোনো প্রশ্নের ধরন পাওয়া যায়নি',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Row(
-                                    children: typesToDisplay.map((type) {
-                                      final isSelected = _selectedQuestionType == type;
-                                      return Expanded(
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedQuestionType = type;
-                                            });
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: isSelected
-                                                  ? const Color(0xFF017A47)
-                                                  : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                type,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: isSelected ? Colors.white : Colors.black54,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                  ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../academics/data/academics_repository.dart';
-import 'practice_notifier.dart';
 
 class TopicSelectionScreen extends ConsumerStatefulWidget {
   final String subjectId;
@@ -746,22 +745,22 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      _buildCheckboxWidget(isChapterSelected),
-                      const SizedBox(width: 10),
-                      Text(
-                        chapterName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                  _buildCheckboxWidget(isChapterSelected),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      chapterName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
-                    ],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Text(
                     '$solvedChapterQuestions/$totalChapterQuestions টি',
                     style: const TextStyle(
@@ -820,22 +819,22 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    _buildCheckboxWidget(isTopicSelected),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      topicName,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
+                                _buildCheckboxWidget(isTopicSelected),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    topicName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
                                     ),
-                                  ],
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Text(
                                   '$solvedTopicQuestions/$totalTopicQuestions',
                                   style: const TextStyle(
