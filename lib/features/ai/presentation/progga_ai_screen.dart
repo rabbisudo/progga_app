@@ -1042,7 +1042,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.90,
+              ),
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: const BoxDecoration(
@@ -1086,7 +1089,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.90,
+              ),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
