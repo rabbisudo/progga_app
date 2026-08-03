@@ -577,6 +577,98 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     );
   }
 
+  void _showSubjectBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.50,
+          minChildSize: 0.30,
+          maxChildSize: 0.85,
+          expand: false,
+          builder: (context, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      Text(
+                        'বিষয় নির্বাচন করুন',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: ListView.separated(
+                      controller: scrollController,
+                      itemCount: _subjects.length,
+                      separatorBuilder: (ctx, i) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      itemBuilder: (context, index) {
+                        final sub = _subjects[index];
+                        final isSelected = sub == _selectedSubject;
+
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _selectedSubject = sub;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  sub,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    color: isSelected ? const Color(0xFF017A47) : const Color(0xFF334155),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check_rounded,
+                                    color: Color(0xFF017A47),
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -586,35 +678,53 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
+        titleSpacing: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'Progga AI',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
             ),
-            DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedSubject,
-                isDense: true,
-                icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF017A47), size: 20),
-                items: _subjects.map((sub) {
-                  return DropdownMenuItem<String>(
-                    value: sub,
-                    child: Text(
-                      sub,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: _showSubjectBottomSheet,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF017A47), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      _selectedSubject,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF017A47),
+                        height: 1.0,
+                      ),
+                      strutStyle: const StrutStyle(
+                        fontSize: 13,
+                        height: 1.0,
+                        forceStrutHeight: true,
+                      ),
                     ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedSubject = val;
-                    });
-                  }
-                },
+                    const SizedBox(width: 6),
+                    const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF017A47), size: 16),
+                  ],
+                ),
               ),
             ),
           ],
