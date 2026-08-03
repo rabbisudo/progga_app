@@ -56,12 +56,18 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
   int _remainingTokens = 5;
   int _totalTokens = 5;
   final ImagePicker _picker = ImagePicker();
+  Future<List<dynamic>>? _historyFuture;
+
+  void _loadHistory() {
+    _historyFuture = ref.read(aiRepositoryProvider).fetchHistory();
+  }
 
   @override
   void initState() {
     super.initState();
     _selectedSubject = _subjects.first;
     _loadTokenStatus();
+    _loadHistory();
 
     // Initial welcome message from Progga AI
     _messages.add(
@@ -290,6 +296,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
           );
         });
         _scrollToBottom();
+        _loadHistory();
       }
     } catch (e) {
       if (mounted) {
@@ -376,6 +383,70 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     return grouped;
   }
 
+  Widget _buildSkeletonHistoryLoading() {
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      itemCount: 6,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.3, end: 0.8),
+            duration: Duration(milliseconds: 600 + (index * 100)),
+            curve: Curves.easeInOut,
+            builder: (context, opacity, child) {
+              return Opacity(
+                opacity: opacity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 14,
+                      width: index % 2 == 0 ? 180 : 220,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          height: 16,
+                          width: 55,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFC8E6C9),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          height: 12,
+                          width: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHistorySidebar() {
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.82,
@@ -432,10 +503,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
             ),
             Expanded(
               child: FutureBuilder<List<dynamic>>(
-                future: ref.read(aiRepositoryProvider).fetchHistory(),
+                future: _historyFuture ??= ref.read(aiRepositoryProvider).fetchHistory(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(color: Color(0xFF017A47)));
+                    return _buildSkeletonHistoryLoading();
                   }
                   if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
@@ -520,7 +591,6 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                                     ),
                                   ],
                                 ),
-                                trailing: const Icon(Icons.chevron_right, size: 18, color: Color(0xFF94A3B8)),
                                 onTap: () {
                                   Navigator.pop(context);
 
@@ -578,6 +648,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
   }
 
   void _showSubjectBottomSheet() {
+    FocusScope.of(context).unfocus();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -760,8 +831,13 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
             ),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.black87),
+            icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF0F172A)),
+            offset: const Offset(0, 46),
+            elevation: 6,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: Colors.white,
             onSelected: (val) {
+              FocusScope.of(context).unfocus();
               if (val == 'new_chat') {
                 setState(() {
                   _messages.clear();
@@ -773,21 +849,25 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
             itemBuilder: (ctx) => [
               PopupMenuItem(
                 value: 'new_chat',
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Row(
                   children: const [
-                    Icon(Icons.add_comment_outlined, size: 18, color: Color(0xFF017A47)),
-                    SizedBox(width: 8),
-                    Text('নতুন চ্যাট', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Icon(Icons.add_circle_outline_rounded, size: 22, color: Color(0xFF017A47)),
+                    SizedBox(width: 12),
+                    Text('নতুন চ্যাট', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                   ],
                 ),
               ),
               PopupMenuItem(
                 value: 'history',
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Row(
                   children: const [
-                    Icon(Icons.history, size: 18, color: Color(0xFF017A47)),
-                    SizedBox(width: 8),
-                    Text('চ্যাট ইতিহাস', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Icon(Icons.history_rounded, size: 22, color: Color(0xFF017A47)),
+                    SizedBox(width: 12),
+                    Text('চ্যাট হিস্ট্রি', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                   ],
                 ),
               ),
@@ -853,61 +933,86 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
               ),
             ),
 
-          // Input Dock Container
+          // Unified Input Dock Container
           Container(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+            decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
-                  offset: Offset(0, -2),
-                ),
-              ],
+              border: Border(top: BorderSide(color: Colors.grey.shade200, width: 1)),
             ),
             child: SafeArea(
               top: false,
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add_a_photo_outlined, color: Color(0xFF017A47)),
-                    onPressed: _showImagePickerModal,
-                    tooltip: 'ছবি যুক্ত করুন',
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _promptController,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
-                      maxLines: 3,
-                      minLines: 1,
-                      decoration: InputDecoration(
-                        hintText: '$_selectedSubject বিষয়ে ডাউট লিখুন...',
-                        hintStyle: const TextStyle(fontSize: 13, color: Colors.black45),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    InkWell(
+                      onTap: _showImagePickerModal,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE8F5E9),
+                          shape: BoxShape.circle,
                         ),
-                        filled: true,
-                        fillColor: const Color(0xFFF0F2F0),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        child: const Icon(
+                          Icons.camera_alt_outlined,
+                          color: Color(0xFF017A47),
+                          size: 20,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _isLoading ? null : () => _sendMessage(),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF017A47),
-                        shape: BoxShape.circle,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _promptController,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _sendMessage(),
+                        maxLines: 4,
+                        minLines: 1,
+                        style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                        decoration: InputDecoration(
+                          hintText: '$_selectedSubject বিষয়ে ডাউট বা প্রশ্ন লিখুন...',
+                          hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
                       ),
-                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: _isLoading ? null : () => _sendMessage(),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF017A47),
+                          shape: BoxShape.circle,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.arrow_upward_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
