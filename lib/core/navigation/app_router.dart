@@ -15,6 +15,7 @@ import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../../features/premium/presentation/premium_screen.dart';
 import '../../features/question/presentation/topic_selection_screen.dart';
 import '../../features/question/presentation/exam_confirm_screen.dart';
+import '../../features/ai/presentation/progga_ai_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
@@ -111,6 +112,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/premium',
         builder: (context, state) => const PremiumScreen(),
+      ),
+      GoRoute(
+        path: '/progga-ai',
+        builder: (context, state) => const ProggaAiScreen(),
       ),
     ],
   );

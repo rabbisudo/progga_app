@@ -358,7 +358,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 _buildGridAction(
                   iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
                   label: 'Progga AI',
-                  onTap: () {},
+                  onTap: () => context.push('/progga-ai'),
                 ),
               ],
             ),
