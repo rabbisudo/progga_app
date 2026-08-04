@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-UserProfile _$UserProfileFromJson(Map<String, dynamic> json) {
-  return _UserProfile.fromJson(json);
-}
-
 /// @nodoc
 mixin _$UserProfile {
   String get id => throw _privateConstructorUsedError;
@@ -57,7 +53,6 @@ mixin _$UserProfile {
   String get league => throw _privateConstructorUsedError;
   String? get lastActiveDate => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $UserProfileCopyWith<UserProfile> get copyWith =>
       throw _privateConstructorUsedError;
@@ -552,8 +547,9 @@ class __$$UserProfileImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
+
 @JsonSerializable()
-class _$UserProfileImpl implements _UserProfile {
+class _$UserProfileImpl extends _UserProfile {
   const _$UserProfileImpl(
       {required this.id,
       required this.userId,
@@ -590,10 +586,8 @@ class _$UserProfileImpl implements _UserProfile {
       required this.coins,
       required this.level,
       required this.league,
-      this.lastActiveDate});
-
-  factory _$UserProfileImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserProfileImplFromJson(json);
+      this.lastActiveDate})
+      : super._();
 
   @override
   final String id;
@@ -737,7 +731,6 @@ class _$UserProfileImpl implements _UserProfile {
                 other.lastActiveDate == lastActiveDate));
   }
 
-  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -784,16 +777,9 @@ class _$UserProfileImpl implements _UserProfile {
   @pragma('vm:prefer-inline')
   _$$UserProfileImplCopyWith<_$UserProfileImpl> get copyWith =>
       __$$UserProfileImplCopyWithImpl<_$UserProfileImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserProfileImplToJson(
-      this,
-    );
-  }
 }
 
-abstract class _UserProfile implements UserProfile {
+abstract class _UserProfile extends UserProfile {
   const factory _UserProfile(
       {required final String id,
       required final String userId,
@@ -831,9 +817,7 @@ abstract class _UserProfile implements UserProfile {
       required final int level,
       required final String league,
       final String? lastActiveDate}) = _$UserProfileImpl;
-
-  factory _UserProfile.fromJson(Map<String, dynamic> json) =
-      _$UserProfileImpl.fromJson;
+  const _UserProfile._() : super._();
 
   @override
   String get id;

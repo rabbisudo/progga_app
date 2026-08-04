@@ -449,6 +449,9 @@ mixin _$QuestionModel {
   String get chapterId => throw _privateConstructorUsedError;
   String? get topicId => throw _privateConstructorUsedError;
   String? get board => throw _privateConstructorUsedError;
+  String? get boardId => throw _privateConstructorUsedError;
+  String? get collegeId => throw _privateConstructorUsedError;
+  String? get varsityId => throw _privateConstructorUsedError;
   int? get year => throw _privateConstructorUsedError;
   String? get source => throw _privateConstructorUsedError;
   List<String> get tags => throw _privateConstructorUsedError;
@@ -482,6 +485,9 @@ abstract class $QuestionModelCopyWith<$Res> {
       String chapterId,
       String? topicId,
       String? board,
+      String? boardId,
+      String? collegeId,
+      String? varsityId,
       int? year,
       String? source,
       List<String> tags,
@@ -515,6 +521,9 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
     Object? chapterId = null,
     Object? topicId = freezed,
     Object? board = freezed,
+    Object? boardId = freezed,
+    Object? collegeId = freezed,
+    Object? varsityId = freezed,
     Object? year = freezed,
     Object? source = freezed,
     Object? tags = null,
@@ -561,6 +570,18 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
       board: freezed == board
           ? _value.board
           : board // ignore: cast_nullable_to_non_nullable
+              as String?,
+      boardId: freezed == boardId
+          ? _value.boardId
+          : boardId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      collegeId: freezed == collegeId
+          ? _value.collegeId
+          : collegeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      varsityId: freezed == varsityId
+          ? _value.varsityId
+          : varsityId // ignore: cast_nullable_to_non_nullable
               as String?,
       year: freezed == year
           ? _value.year
@@ -620,6 +641,9 @@ abstract class _$$QuestionModelImplCopyWith<$Res>
       String chapterId,
       String? topicId,
       String? board,
+      String? boardId,
+      String? collegeId,
+      String? varsityId,
       int? year,
       String? source,
       List<String> tags,
@@ -651,6 +675,9 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
     Object? chapterId = null,
     Object? topicId = freezed,
     Object? board = freezed,
+    Object? boardId = freezed,
+    Object? collegeId = freezed,
+    Object? varsityId = freezed,
     Object? year = freezed,
     Object? source = freezed,
     Object? tags = null,
@@ -697,6 +724,18 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
       board: freezed == board
           ? _value.board
           : board // ignore: cast_nullable_to_non_nullable
+              as String?,
+      boardId: freezed == boardId
+          ? _value.boardId
+          : boardId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      collegeId: freezed == collegeId
+          ? _value.collegeId
+          : collegeId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      varsityId: freezed == varsityId
+          ? _value.varsityId
+          : varsityId // ignore: cast_nullable_to_non_nullable
               as String?,
       year: freezed == year
           ? _value.year
@@ -751,6 +790,9 @@ class _$QuestionModelImpl implements _QuestionModel {
       required this.chapterId,
       this.topicId,
       this.board,
+      this.boardId,
+      this.collegeId,
+      this.varsityId,
       this.year,
       this.source,
       required final List<String> tags,
@@ -785,6 +827,12 @@ class _$QuestionModelImpl implements _QuestionModel {
   final String? topicId;
   @override
   final String? board;
+  @override
+  final String? boardId;
+  @override
+  final String? collegeId;
+  @override
+  final String? varsityId;
   @override
   final int? year;
   @override
@@ -825,7 +873,7 @@ class _$QuestionModelImpl implements _QuestionModel {
 
   @override
   String toString() {
-    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, options: $options, explanations: $explanations)';
+    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, boardId: $boardId, collegeId: $collegeId, varsityId: $varsityId, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, options: $options, explanations: $explanations)';
   }
 
   @override
@@ -848,6 +896,11 @@ class _$QuestionModelImpl implements _QuestionModel {
                 other.chapterId == chapterId) &&
             (identical(other.topicId, topicId) || other.topicId == topicId) &&
             (identical(other.board, board) || other.board == board) &&
+            (identical(other.boardId, boardId) || other.boardId == boardId) &&
+            (identical(other.collegeId, collegeId) ||
+                other.collegeId == collegeId) &&
+            (identical(other.varsityId, varsityId) ||
+                other.varsityId == varsityId) &&
             (identical(other.year, year) || other.year == year) &&
             (identical(other.source, source) || other.source == source) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
@@ -864,26 +917,30 @@ class _$QuestionModelImpl implements _QuestionModel {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      questionText,
-      imageKey,
-      latexFormula,
-      difficulty,
-      subjectId,
-      chapterId,
-      topicId,
-      board,
-      year,
-      source,
-      const DeepCollectionEquality().hash(_tags),
-      estimatedTime,
-      marks,
-      negativeMarks,
-      status,
-      const DeepCollectionEquality().hash(_options),
-      const DeepCollectionEquality().hash(_explanations));
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        questionText,
+        imageKey,
+        latexFormula,
+        difficulty,
+        subjectId,
+        chapterId,
+        topicId,
+        board,
+        boardId,
+        collegeId,
+        varsityId,
+        year,
+        source,
+        const DeepCollectionEquality().hash(_tags),
+        estimatedTime,
+        marks,
+        negativeMarks,
+        status,
+        const DeepCollectionEquality().hash(_options),
+        const DeepCollectionEquality().hash(_explanations)
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -910,6 +967,9 @@ abstract class _QuestionModel implements QuestionModel {
       required final String chapterId,
       final String? topicId,
       final String? board,
+      final String? boardId,
+      final String? collegeId,
+      final String? varsityId,
       final int? year,
       final String? source,
       required final List<String> tags,
@@ -941,6 +1001,12 @@ abstract class _QuestionModel implements QuestionModel {
   String? get topicId;
   @override
   String? get board;
+  @override
+  String? get boardId;
+  @override
+  String? get collegeId;
+  @override
+  String? get varsityId;
   @override
   int? get year;
   @override

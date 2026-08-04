@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'practice_notifier.dart';
+import '../domain/question_model.dart';
+import '../data/question_repository.dart';
 import 'package:go_router/go_router.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -30,6 +32,54 @@ final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) a
   return [];
 });
 
+final activeBoardsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/academics/boards');
+    if (response.statusCode == 200 && response.data != null) {
+      final List<dynamic> list = response.data;
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }
+  } catch (_) {}
+  return [];
+});
+
+final activeCollegesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/academics/colleges');
+    if (response.statusCode == 200 && response.data != null) {
+      final List<dynamic> list = response.data;
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }
+  } catch (_) {}
+  return [];
+});
+
+final activeVarsitiesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/academics/varsities');
+    if (response.statusCode == 200 && response.data != null) {
+      final List<dynamic> list = response.data;
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }
+  } catch (_) {}
+  return [];
+});
+
+final allSubjectsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  try {
+    final response = await client.dio.get('/academics/subjects');
+    if (response.statusCode == 200 && response.data != null) {
+      final List<dynamic> list = response.data;
+      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }
+  } catch (_) {}
+  return [];
+});
+
 class PracticeDashboardScreen extends ConsumerStatefulWidget {
   const PracticeDashboardScreen({super.key});
 
@@ -41,21 +91,85 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   final ScrollController _scrollController = ScrollController();
   int _currentNavIndex = 0;
 
+  // Question Bank States (Cascading flow)
+  String? _selectedQbSubjectId;
+  String? _selectedQbSubjectName;
+  String? _selectedQbItemType; // 'Board', 'College', 'Varsity'
+  String? _selectedQbItemId;
+  String? _selectedQbItemName;
+  int? _selectedQbYear;
+  String _qbSearchText = '';
+  List<QuestionModel> _qbQuestions = [];
+  bool _qbLoading = false;
+  String? _qbNextCursor;
+  final ScrollController _qbScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _qbScrollController.addListener(_onQbScroll);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _qbScrollController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
     if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
       ref.read(practiceProvider.notifier).fetchNextPage();
+    }
+  }
+
+  void _onQbScroll() {
+    if (_qbScrollController.position.pixels >= _qbScrollController.position.maxScrollExtent - 200) {
+      _fetchQbQuestions(refresh: false);
+    }
+  }
+
+  Future<void> _fetchQbQuestions({bool refresh = true}) async {
+    if (_qbLoading) return;
+    if (_selectedQbSubjectId == null || _selectedQbItemId == null) return;
+    if (!refresh && _qbNextCursor == null) return;
+
+    setState(() {
+      _qbLoading = true;
+      if (refresh) {
+        _qbQuestions.clear();
+        _qbNextCursor = null;
+      }
+    });
+
+    try {
+      final repository = ref.read(questionRepositoryProvider);
+      final result = await repository.fetchQuestions(
+        subjectId: _selectedQbSubjectId,
+        boardId: _selectedQbItemType == 'Board' ? _selectedQbItemId : null,
+        collegeId: _selectedQbItemType == 'College' ? _selectedQbItemId : null,
+        varsityId: _selectedQbItemType == 'Varsity' ? _selectedQbItemId : null,
+        year: _selectedQbYear?.toString(),
+        cursor: _qbNextCursor,
+        limit: 15,
+      );
+
+      List<QuestionModel> newQuestions = result.questions;
+      if (_qbSearchText.isNotEmpty) {
+        final query = _qbSearchText.toLowerCase();
+        newQuestions = newQuestions.where((q) => q.questionText.toLowerCase().contains(query)).toList();
+      }
+
+      setState(() {
+        _qbQuestions.addAll(newQuestions);
+        _qbNextCursor = result.nextCursor;
+        _qbLoading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _qbLoading = false;
+      });
     }
   }
 
@@ -249,6 +363,9 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             setState(() {
               _currentNavIndex = index;
             });
+            if (index == 1 && _qbQuestions.isEmpty) {
+              _fetchQbQuestions(refresh: true);
+            }
           },
           destinations: [
             NavigationDestination(
@@ -773,62 +890,199 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     );
   }
 
-  // View 1: Question Bank View (Dynamic for User Class & Group)
+  // View 1: Question Bank View (Cascading Navigation flow)
   Widget _buildQuestionBankView(ThemeData theme) {
-    final profile = ref.watch(userProfileProvider).value?.profile;
-    final className = profile?.className ?? 'HSC 2026';
-    final groupName = profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান';
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+    // LEVEL 1: Subject Selection Screen
+    if (_selectedQbSubjectId == null) {
+      final subjectsAsync = ref.watch(allSubjectsProvider);
+      return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Class & Group Dynamic Filter Indicator
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF017A47).withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF017A47).withOpacity(0.2)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.school, size: 16, color: Color(0xFF017A47)),
-                    const SizedBox(width: 6),
-                    Text(
-                      '$className • $groupName',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF017A47),
-                      ),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => context.push('/profile'),
-                  child: const Text(
-                    'ফিল্টার বদলান ➔',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF017A47),
-                    ),
+          Expanded(
+            child: subjectsAsync.when(
+              data: (list) {
+                if (list.isEmpty) {
+                  return const Center(child: Text('কোনো বিষয় পাওয়া যায়নি।'));
+                }
+                return GridView.builder(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 2.2,
                   ),
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    final item = list[index];
+                    final name = item['name']?.toString() ?? 'বিষয়';
+                    return Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          setState(() {
+                            _selectedQbSubjectId = item['id']?.toString();
+                            _selectedQbSubjectName = name;
+                          });
+                        },
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+              error: (_, __) => const Center(child: Text('বিষয় লোড করতে সমস্যা হয়েছে')),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // LEVEL 2: Board/College/Varsity & Year Selection Screen
+    if (_selectedQbItemId == null) {
+      final boardsAsync = ref.watch(activeBoardsProvider);
+      final collegesAsync = ref.watch(activeCollegesProvider);
+      final varsitiesAsync = ref.watch(activeVarsitiesProvider);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Breadcrumb / Back button
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedQbSubjectId = null;
+                      _selectedQbSubjectName = null;
+                    });
+                  },
+                ),
+                Text(
+                  _selectedQbSubjectName ?? '',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
               ],
             ),
           ),
 
-          TextField(
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Boards section
+                  const Text('🎓 বোর্ড পরীক্ষা সমূহ (Board Exams):', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF017A47), fontSize: 14)),
+                  const SizedBox(height: 8),
+                  boardsAsync.when(
+                    data: (list) => _buildInstitutionsList(list, 'Board'),
+                    loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    error: (_, __) => const Text('বোর্ড লোড করা যায়নি'),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Colleges section
+                  const Text('🏫 নামকরা কলেজ সমূহ (College Test Papers):', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF017A47), fontSize: 14)),
+                  const SizedBox(height: 8),
+                  collegesAsync.when(
+                    data: (list) => _buildInstitutionsList(list, 'College'),
+                    loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    error: (_, __) => const Text('কলেজ লোড করা যায়নি'),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Varsities section
+                  const Text('🔬 বিশ্ববিদ্যালয় ভর্তি পরীক্ষা (University Admissions):', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF017A47), fontSize: 14)),
+                  const SizedBox(height: 8),
+                  varsitiesAsync.when(
+                    data: (list) => _buildInstitutionsList(list, 'Varsity'),
+                    loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    error: (_, __) => const Text('বিশ্ববিদ্যালয় লোড করা যায়নি'),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // LEVEL 3: Questions List Screen
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Breadcrumb / Back button
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                onPressed: () {
+                  setState(() {
+                    _selectedQbItemId = null;
+                    _selectedQbItemName = null;
+                    _selectedQbItemType = null;
+                    _selectedQbYear = null;
+                    _qbQuestions.clear();
+                  });
+                },
+              ),
+              Expanded(
+                child: Text(
+                  '$_selectedQbItemName (${_selectedQbYear ?? ""}) - $_selectedQbSubjectName',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Search Bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: TextField(
+            onChanged: (val) {
+              setState(() {
+                _qbSearchText = val;
+              });
+            },
+            onSubmitted: (_) {
+              _fetchQbQuestions(refresh: true);
+            },
             decoration: InputDecoration(
-              hintText: '$className - $groupName প্রশ্ন খুঁজুন...',
+              hintText: 'প্রশ্ন খুঁজুন...',
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.send, color: Color(0xFF017A47)),
+                onPressed: () => _fetchQbQuestions(refresh: true),
+              ),
               filled: true,
               fillColor: theme.cardColor,
               border: OutlineInputBorder(
@@ -837,34 +1091,321 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                final titles = [
-                  'কিসের মানের পরিবর্তনের জন্য লেন্সের ফোকাস দূরত্ব পরিবর্তিত হয়?',
-                  'নিচের কোনটি লরেন্টজ বলের সঠিক সমীকরণ?',
-                  'একটি তারের রোধ ১০ ওহম হলে তারটি টেনে দ্বিগুণ করলে রোধ কত হবে?',
-                  'স্থির তড়িৎক্ষেত্রে অসীম থেকে একটি আধানকে আনতে কৃতকাজ কী?'
-                ];
-                final subjects = ['পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান', 'পদার্থবিজ্ঞান'];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    title: Text(titles[index], style: const TextStyle(fontWeight: FontWeight.w500)),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text('$className • ${subjects[index]}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 12)),
+        ),
+
+        // Questions List
+        Expanded(
+          child: _qbLoading && _qbQuestions.isEmpty
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF017A47)))
+              : _qbQuestions.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'কোনো প্রশ্ন পাওয়া যায়নি।',
+                        style: TextStyle(color: Colors.black54, fontSize: 14),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: _qbScrollController,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _qbQuestions.length + (_qbLoading ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == _qbQuestions.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator(strokeWidth: 3)),
+                          );
+                        }
+
+                        final question = _qbQuestions[index];
+                        String sourceLabel = '$_selectedQbItemName (${_selectedQbYear ?? ""})';
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 1,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          child: ListTile(
+                            onTap: () => _showQuestionDetailSheet(context, question, sourceLabel),
+                            title: Text(
+                              question.questionText.replaceAll(RegExp(r'^\d+\.\s*'), ''),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                sourceLabel,
+                                style: const TextStyle(color: Color(0xFF017A47), fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                          ),
+                        );
+                      },
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  ),
-                );
-              },
-            ),
+        ),
+      ],
+    );
+  }
+
+  // Level 2 Category helper for rendering institutions with common years
+  Widget _buildInstitutionsList(List<Map<String, dynamic>> list, String type) {
+    if (list.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.0),
+        child: Text('কোনো প্রতিষ্ঠান যোগ করা হয়নি।', style: TextStyle(color: Colors.black45, fontSize: 12)),
+      );
+    }
+
+    final years = [2025, 2024, 2023, 2022, 2021, 2020];
+
+    return Column(
+      children: list.map((item) {
+        final id = item['id']?.toString() ?? '';
+        final name = item['name']?.toString() ?? '';
+
+        return Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
           ),
-        ],
+          child: ExpansionTile(
+            title: Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+            leading: const Icon(Icons.business_center, size: 18, color: Color(0xFF017A47)),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: years.map((year) {
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedQbItemType = type;
+                          _selectedQbItemId = id;
+                          _selectedQbItemName = name;
+                          _selectedQbYear = year;
+                        });
+                        _fetchQbQuestions(refresh: true);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF017A47).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF017A47).withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          '$year',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF017A47),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // Dropdown helper
+  Widget _buildDropdown<T>({
+    required T? value,
+    required String hint,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade300),
       ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          hint: Text(hint, style: const TextStyle(fontSize: 13, color: Colors.black54)),
+          isExpanded: true,
+          items: items,
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  // Detail Modal Sheet
+  void _showQuestionDetailSheet(BuildContext context, QuestionModel question, String sourceLabel) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Pull handler
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+
+                  // Header Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF017A47).withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      sourceLabel,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF017A47),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Question Text
+                  Text(
+                    question.questionText,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Diagram / Image
+                  if (question.imageKey != null && question.imageKey!.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        question.imageKey!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Options List
+                  const Text(
+                    'বিকল্পসমূহ:',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 13),
+                  ),
+                  const SizedBox(height: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: question.options.map((opt) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: opt.isCorrect ? const Color(0xFFE8F5E9) : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: opt.isCorrect ? const Color(0xFF017A47) : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              opt.isCorrect ? Icons.check_circle : Icons.circle_outlined,
+                              color: opt.isCorrect ? const Color(0xFF017A47) : Colors.grey,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                opt.optionText,
+                                style: TextStyle(
+                                  fontWeight: opt.isCorrect ? FontWeight.bold : FontWeight.normal,
+                                  color: opt.isCorrect ? const Color(0xFF017A47) : Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  // Explanation / Answer Details
+                  if (question.explanations != null && question.explanations!.isNotEmpty) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Divider(),
+                    ),
+                    const Text(
+                      'সমাধান ও ব্যাখ্যা:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF017A47),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      question.explanations![0].text,
+                      style: const TextStyle(color: Colors.black87, height: 1.4),
+                    ),
+                    if (question.explanations![0].imageKey != null && question.explanations![0].imageKey!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          question.explanations![0].imageKey!,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ],
+                  const SizedBox(height: 32),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

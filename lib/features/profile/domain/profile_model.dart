@@ -5,6 +5,9 @@ part 'profile_model.g.dart';
 
 @freezed
 class UserProfile with _$UserProfile {
+  const UserProfile._();
+
+  @JsonSerializable()
   const factory UserProfile({
     required String id,
     required String userId,
@@ -99,8 +102,10 @@ class UserProfile with _$UserProfile {
       map['batch'] = (map['batch'] as Map)['name']?.toString();
     }
 
-    return _$UserProfileFromJson(map);
+    return _$$UserProfileImplFromJson(map);
   }
+
+  Map<String, dynamic> toJson() => _$$UserProfileImplToJson(this as _$UserProfileImpl);
 }
 
 @freezed
