@@ -1216,7 +1216,19 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     }
 
     // 4. Tabbed Exams Selector (Image 1 style)
-    final labelNameMap = activeSeries['labelName'] as Map<String, dynamic>? ?? {};
+    var labelNameMap = Map<String, dynamic>.from(activeSeries['labelName'] as Map? ?? {});
+    if (labelNameMap.isEmpty && activeSeries['exams'] != null) {
+      final examsVal = activeSeries['exams'];
+      if (examsVal is String && examsVal.isNotEmpty) {
+        labelNameMap = {
+          'Exams': examsVal.split(','),
+        };
+      } else if (examsVal is List && examsVal.isNotEmpty) {
+        labelNameMap = {
+          'Exams': examsVal.map((e) => e.toString()).toList(),
+        };
+      }
+    }
 
     if (labelNameMap.isEmpty) {
       return Column(
