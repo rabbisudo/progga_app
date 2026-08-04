@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Brand colors matching a premium coral design system
@@ -19,7 +18,12 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: GoogleFonts.notoSansBengali().fontFamily,
+      fontFamily: 'Inter',
+      fontFamilyFallback: const [
+        'Noto Sans Bengali',
+        'Noto Sans Bengali Fallback',
+        'Inter Fallback',
+      ],
       primaryColor: primaryColor,
       scaffoldBackgroundColor: lightBackground,
       cardColor: lightCard,
@@ -36,20 +40,20 @@ class AppTheme {
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
-      textTheme: _scaleTextTheme(
-        GoogleFonts.notoSansBengaliTextTheme(baseTextTheme).copyWith(
-          titleLarge: GoogleFonts.notoSansBengali(
+      textTheme: _applyFontSettings(
+        baseTextTheme.copyWith(
+          titleLarge: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF212529),
+            color: Color(0xFF212529),
           ),
-          headlineMedium: GoogleFonts.notoSansBengali(
+          headlineMedium: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF212529),
+            color: Color(0xFF212529),
           ),
         ),
-        1.08,
+        1.20, // Increased scaling factor from 1.12 to 1.20 for larger text size
       ),
     );
   }
@@ -59,7 +63,12 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      fontFamily: GoogleFonts.notoSansBengali().fontFamily,
+      fontFamily: 'Inter',
+      fontFamilyFallback: const [
+        'Noto Sans Bengali',
+        'Noto Sans Bengali Fallback',
+        'Inter Fallback',
+      ],
       primaryColor: primaryColor,
       scaffoldBackgroundColor: const Color(0xFF121212),
       cardColor: darkCard,
@@ -75,47 +84,55 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
-      textTheme: _scaleTextTheme(
-        GoogleFonts.notoSansBengaliTextTheme(baseTextTheme).copyWith(
-          titleLarge: GoogleFonts.notoSansBengali(
+      textTheme: _applyFontSettings(
+        baseTextTheme.copyWith(
+          titleLarge: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
-          headlineMedium: GoogleFonts.notoSansBengali(
+          headlineMedium: const TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        1.08,
+        1.20, // Increased scaling factor from 1.12 to 1.20 for larger text size
       ),
     );
   }
 
-  static TextTheme _scaleTextTheme(TextTheme base, double factor) {
-    TextStyle? scale(TextStyle? style, double defaultSize) {
+  static TextTheme _applyFontSettings(TextTheme base, double scaleFactor) {
+    TextStyle? adjustStyle(TextStyle? style, double defaultSize) {
       if (style == null) return null;
       final size = style.fontSize ?? defaultSize;
-      return style.copyWith(fontSize: size * factor);
+      return style.copyWith(
+        fontSize: size * scaleFactor,
+        fontFamily: 'Inter',
+        fontFamilyFallback: const [
+          'Noto Sans Bengali',
+          'Noto Sans Bengali Fallback',
+          'Inter Fallback',
+        ],
+      );
     }
 
     return base.copyWith(
-      displayLarge: scale(base.displayLarge, 57),
-      displayMedium: scale(base.displayMedium, 45),
-      displaySmall: scale(base.displaySmall, 36),
-      headlineLarge: scale(base.headlineLarge, 32),
-      headlineMedium: scale(base.headlineMedium, 28),
-      headlineSmall: scale(base.headlineSmall, 24),
-      titleLarge: scale(base.titleLarge, 22),
-      titleMedium: scale(base.titleMedium, 16),
-      titleSmall: scale(base.titleSmall, 14),
-      bodyLarge: scale(base.bodyLarge, 16),
-      bodyMedium: scale(base.bodyMedium, 14),
-      bodySmall: scale(base.bodySmall, 12),
-      labelLarge: scale(base.labelLarge, 14),
-      labelMedium: scale(base.labelMedium, 12),
-      labelSmall: scale(base.labelSmall, 11),
+      displayLarge: adjustStyle(base.displayLarge, 57),
+      displayMedium: adjustStyle(base.displayMedium, 45),
+      displaySmall: adjustStyle(base.displaySmall, 36),
+      headlineLarge: adjustStyle(base.headlineLarge, 32),
+      headlineMedium: adjustStyle(base.headlineMedium, 28),
+      headlineSmall: adjustStyle(base.headlineSmall, 24),
+      titleLarge: adjustStyle(base.titleLarge, 22),
+      titleMedium: adjustStyle(base.titleMedium, 16),
+      titleSmall: adjustStyle(base.titleSmall, 14),
+      bodyLarge: adjustStyle(base.bodyLarge, 16),
+      bodyMedium: adjustStyle(base.bodyMedium, 14),
+      bodySmall: adjustStyle(base.bodySmall, 12),
+      labelLarge: adjustStyle(base.labelLarge, 14),
+      labelMedium: adjustStyle(base.labelMedium, 12),
+      labelSmall: adjustStyle(base.labelSmall, 11),
     );
   }
 }

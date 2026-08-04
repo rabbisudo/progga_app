@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'profile_notifier.dart';
 import '../domain/profile_model.dart';
 import '../../academics/data/academics_repository.dart';
@@ -173,7 +172,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           SnackBar(
             content: Text(
               'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
-              style: GoogleFonts.notoSansBengali(),
+              style: const TextStyle(),
             ),
             backgroundColor: const Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
@@ -186,7 +185,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           SnackBar(
             content: Text(
               'আপডেট করতে সমস্যা হয়েছে: $e',
-              style: GoogleFonts.notoSansBengali(),
+              style: const TextStyle(),
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
@@ -209,7 +208,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       appBar: AppBar(
         title: Text(
           'ব্যক্তিগত তথ্য ও অ্যাকাডেমিক',
-          style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         leading: IconButton(
@@ -257,14 +256,14 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: _gender,
-                    style: GoogleFonts.notoSansBengali(
+                    style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
                       fontSize: 15,
                     ),
                     decoration: _getInputDecoration(context, 'লিঙ্গ'),
                     items: [
-                      DropdownMenuItem(value: 'MALE', child: Text('ছেলে', style: GoogleFonts.notoSansBengali())),
-                      DropdownMenuItem(value: 'FEMALE', child: Text('মেয়ে', style: GoogleFonts.notoSansBengali())),
+                      DropdownMenuItem(value: 'MALE', child: Text('ছেলে', style: const TextStyle())),
+                      DropdownMenuItem(value: 'FEMALE', child: Text('মেয়ে', style: const TextStyle())),
                     ],
                     onChanged: (val) => setState(() => _gender = val ?? 'MALE'),
                   ),
@@ -315,19 +314,19 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           const SizedBox(height: 16),
                           DropdownButtonFormField<AcademicClassModel>(
                             value: _selectedClass,
-                            style: GoogleFonts.notoSansBengali(
+                            style: TextStyle(
                               color: theme.textTheme.bodyLarge?.color,
                               fontSize: 15,
                             ),
                             hint: Text(
                               profile.className ?? 'শ্রেণী নির্বাচন করুন',
-                              style: GoogleFonts.notoSansBengali(),
+                              style: const TextStyle(),
                             ),
                             decoration: _getInputDecoration(context, 'শ্রেণী'),
                             items: classes
                                 .map((c) => DropdownMenuItem(
                                       value: c,
-                                      child: Text(c.name, style: GoogleFonts.notoSansBengali()),
+                                      child: Text(c.name, style: const TextStyle()),
                                     ))
                                 .toList(),
                             onChanged: (val) {
@@ -342,19 +341,19 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<SubjectGroupModel>(
                               value: _selectedGroup,
-                              style: GoogleFonts.notoSansBengali(
+                              style: TextStyle(
                                 color: theme.textTheme.bodyLarge?.color,
                                 fontSize: 15,
                               ),
                               hint: Text(
                                 profile.targetExam ?? 'বিভাগ নির্বাচন করুন',
-                                style: GoogleFonts.notoSansBengali(),
+                                style: const TextStyle(),
                               ),
                               decoration: _getInputDecoration(context, 'বিভাগ / গ্রুপ'),
                               items: availableGroups
                                   .map((g) => DropdownMenuItem(
                                         value: g,
-                                        child: Text(g.name, style: GoogleFonts.notoSansBengali()),
+                                        child: Text(g.name, style: const TextStyle()),
                                       ))
                                   .toList(),
                               onChanged: (val) {
@@ -369,19 +368,19 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             const SizedBox(height: 16),
                             DropdownButtonFormField<AcademicBatchModel>(
                               value: _selectedBatch,
-                              style: GoogleFonts.notoSansBengali(
+                              style: TextStyle(
                                 color: theme.textTheme.bodyLarge?.color,
                                 fontSize: 15,
                               ),
                               hint: Text(
                                 profile.batch ?? 'ব্যাচ নির্বাচন করুন',
-                                style: GoogleFonts.notoSansBengali(),
+                                style: const TextStyle(),
                               ),
                               decoration: _getInputDecoration(context, 'ব্যাচ'),
                               items: availableBatches
                                   .map((b) => DropdownMenuItem(
                                         value: b,
-                                        child: Text(b.name, style: GoogleFonts.notoSansBengali()),
+                                        child: Text(b.name, style: const TextStyle()),
                                       ))
                                   .toList(),
                               onChanged: (val) => setState(() => _selectedBatch = val),
@@ -407,7 +406,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
                               'সংরক্ষণ করুন',
-                              style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
                             ),
                     ),
                   ),
@@ -426,7 +425,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
       child: Text(
         title,
-        style: GoogleFonts.notoSansBengali(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.bold,
           color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
@@ -441,7 +440,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
 
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.notoSansBengali(
+      labelStyle: TextStyle(
         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
         fontSize: 14,
       ),
@@ -476,7 +475,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
-      style: GoogleFonts.notoSansBengali(
+      style: TextStyle(
         color: theme.textTheme.bodyLarge?.color,
         fontSize: 15,
       ),

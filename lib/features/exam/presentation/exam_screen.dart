@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ExamScreen extends ConsumerStatefulWidget {
   final String id;
@@ -591,7 +590,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           surfaceTintColor: Colors.transparent,
           title: Text(
             'পরীক্ষা লোড হচ্ছে...',
-            style: GoogleFonts.notoSansBengali(
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -705,7 +704,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           surfaceTintColor: Colors.transparent,
           title: Text(
             state.exam!.title,
-            style: GoogleFonts.notoSansBengali(
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -747,7 +746,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   const SizedBox(width: 6),
                   Text(
                     _formatTime(state.timeLeft),
-                    style: GoogleFonts.notoSansBengali(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                       color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),

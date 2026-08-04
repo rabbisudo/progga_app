@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'profile_notifier.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
@@ -33,7 +32,7 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold, fontSize: 17),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
       ),
       trailing: trailing ?? Icon(
         Icons.chevron_right_rounded,
@@ -54,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.notoSansBengali(
+        style: const TextStyle(
           color: brandTealColor,
           fontWeight: FontWeight.bold,
           fontSize: 13,
@@ -76,7 +75,7 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         title: Text(
           'প্রোফাইল ও সেটিংস',
-          style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         leading: (ModalRoute.of(context)?.canPop ?? false)
@@ -166,7 +165,7 @@ class ProfileScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         profile.fullName,
-                        style: GoogleFonts.notoSansBengali(fontSize: 26, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                       ),
                       Wrap(
                         spacing: 8.0,
@@ -206,7 +205,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '+Add Phone number',
-                              style: GoogleFonts.notoSansBengali(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -293,7 +292,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '0',
-                              style: GoogleFonts.notoSansBengali(color: const Color(0xFFFF3B30), fontSize: 13, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: Color(0xFFFF3B30), fontSize: 13, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -322,20 +321,20 @@ class ProfileScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 Text(
                                   'লগআউট',
-                                  style: GoogleFonts.notoSansBengali(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                             content: Text(
                               'আপনি কি নিশ্চিত যে আপনি অ্যাকাউন্ট থেকে লগআউট করতে চান?',
-                              style: GoogleFonts.notoSansBengali(),
+                              style: const TextStyle(),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(false),
                                 child: Text(
                                   'বাতিল',
-                                  style: GoogleFonts.notoSansBengali(color: Colors.grey),
+                                  style: const TextStyle(color: Colors.grey),
                                 ),
                               ),
                               ElevatedButton(
@@ -347,7 +346,7 @@ class ProfileScreen extends ConsumerWidget {
                                 onPressed: () => Navigator.of(context).pop(true),
                                 child: Text(
                                   'লগআউট',
-                                  style: GoogleFonts.notoSansBengali(color: Colors.white),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                             ],

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // Fetch full exam session result data
 final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, sessionId) async {
@@ -1617,7 +1616,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
             surfaceTintColor: Colors.transparent,
             title: Text(
               'ফলাফল প্রস্তুত হচ্ছে...',
-              style: GoogleFonts.notoSansBengali(
+              style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../profile/presentation/profile_notifier.dart';
 
 class ProgressScreen extends ConsumerWidget {
@@ -21,7 +20,7 @@ class ProgressScreen extends ConsumerWidget {
         centerTitle: true,
         title: Text(
           'আমার প্রোগ্রেস',
-          style: GoogleFonts.notoSansBengali(
+          style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
           ),
@@ -38,7 +37,7 @@ class ProgressScreen extends ConsumerWidget {
         error: (err, stack) => Center(
           child: Text(
             'লোড করতে সমস্যা হয়েছে: $err',
-            style: GoogleFonts.notoSansBengali(color: Colors.redAccent),
+             style: const TextStyle(color: Colors.redAccent),
           ),
         ),
         data: (user) {
@@ -69,16 +68,16 @@ class ProgressScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 '$streak দিনের স্ট্রিক!',
-                                style: GoogleFonts.notoSansBengali(
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: const Color(0xFFE65100),
+                                  color: Color(0xFFE65100),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'প্রতিদিন কুইজ ও পরীক্ষা দিয়ে স্ট্রিক সচল রাখুন।',
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.orange[300] : Colors.orange[800],
                                 ),
@@ -110,7 +109,7 @@ class ProgressScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 'মোট XP অর্জন',
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.white60 : Colors.black54,
                                 ),
@@ -146,7 +145,7 @@ class ProgressScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 'কারেন্ট লেভেল',
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.white60 : Colors.black54,
                                 ),
@@ -154,7 +153,7 @@ class ProgressScreen extends ConsumerWidget {
                               const SizedBox(height: 8),
                               Text(
                                 'লেভেল $currentLevel',
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
@@ -170,7 +169,7 @@ class ProgressScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Text(
                   'সাপ্তাহিক কর্মদক্ষতা গ্রাফ',
-                  style: GoogleFonts.notoSansBengali(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,

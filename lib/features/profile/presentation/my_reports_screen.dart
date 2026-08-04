@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../exam/data/exam_repository.dart';
 
 final myReportsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
@@ -58,7 +57,7 @@ class MyReportsScreen extends ConsumerWidget {
         centerTitle: true,
         title: Text(
           'আমার রিপোর্টসমূহ',
-          style: GoogleFonts.notoSansBengali(
+          style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
           ),
@@ -87,7 +86,7 @@ class MyReportsScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Text(
                       'রিপোর্ট লোড করতে সমস্যা হয়েছে!',
-                      style: GoogleFonts.notoSansBengali(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.redAccent,
@@ -122,7 +121,7 @@ class MyReportsScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           'আপনি কোনো প্রশ্ন রিপোর্ট করেননি।',
-                          style: GoogleFonts.notoSansBengali(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white54 : Colors.black54,
@@ -132,7 +131,7 @@ class MyReportsScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           'পরীক্ষার ফলাফল পেইজে কোনো প্রশ্নে সমস্যা মনে হলে ফ্ল্যাগ আইকনে ট্যাপ করে রিপোর্ট করতে পারেন।',
-                          style: GoogleFonts.notoSansBengali(
+                          style: TextStyle(
                             fontSize: 13,
                             color: isDark ? Colors.white30 : Colors.black38,
                           ),
@@ -194,7 +193,7 @@ class MyReportsScreen extends ConsumerWidget {
                               ),
                               child: Text(
                                 statusText,
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   color: statusTextColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -214,16 +213,16 @@ class MyReportsScreen extends ConsumerWidget {
                         // Question text
                         Text(
                           'প্রশ্ন:',
-                          style: GoogleFonts.notoSansBengali(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
-                            color: const Color(0xFF017A47),
+                            color: Color(0xFF017A47),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           questionText,
-                          style: GoogleFonts.notoSansBengali(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
@@ -234,7 +233,7 @@ class MyReportsScreen extends ConsumerWidget {
                         if (options.isNotEmpty) ...[
                           Text(
                             'অপশনসমূহ:',
-                            style: GoogleFonts.notoSansBengali(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                               color: isDark ? Colors.white54 : Colors.black54,
@@ -279,7 +278,7 @@ class MyReportsScreen extends ConsumerWidget {
                                         ? const Icon(Icons.check, color: Colors.white, size: 14)
                                         : Text(
                                             prefix,
-                                            style: GoogleFonts.notoSansBengali(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                               color: isDark ? Colors.white70 : Colors.black54,
@@ -290,7 +289,7 @@ class MyReportsScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       optionText,
-                                      style: GoogleFonts.notoSansBengali(
+                                      style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: isCorrect ? FontWeight.bold : FontWeight.normal,
                                         color: isCorrect
@@ -320,7 +319,7 @@ class MyReportsScreen extends ConsumerWidget {
                           children: [
                             Text(
                               'অভিযোগের কারণ: ',
-                              style: GoogleFonts.notoSansBengali(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? Colors.white70 : Colors.black54,
@@ -329,7 +328,7 @@ class MyReportsScreen extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 reason,
-                                style: GoogleFonts.notoSansBengali(
+                                style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.white60 : Colors.black87,
                                 ),
@@ -342,7 +341,7 @@ class MyReportsScreen extends ConsumerWidget {
                           // Details
                           Text(
                             'অতিরিক্ত বিবরণ:',
-                            style: GoogleFonts.notoSansBengali(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: isDark ? Colors.white70 : Colors.black54,
@@ -361,7 +360,7 @@ class MyReportsScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               details,
-                              style: GoogleFonts.notoSansBengali(
+                              style: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? Colors.white60 : Colors.black87,
                               ),
@@ -432,10 +431,10 @@ class _ReportedExplanationWidgetState extends State<ReportedExplanationWidget> {
                   Expanded(
                     child: Text(
                       'ব্যাখ্যা',
-                      style: GoogleFonts.notoSansBengali(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF017A47),
+                        color: Color(0xFF017A47),
                       ),
                     ),
                   ),
@@ -466,7 +465,7 @@ class _ReportedExplanationWidgetState extends State<ReportedExplanationWidget> {
                         children: [
                           Text(
                             expText,
-                            style: GoogleFonts.notoSansBengali(
+                            style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
                             ),
