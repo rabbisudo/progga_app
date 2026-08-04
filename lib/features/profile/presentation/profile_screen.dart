@@ -6,6 +6,7 @@ import '../../auth/presentation/auth_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../question/presentation/practice_notifier.dart';
 import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/custom_avatar.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -132,19 +133,19 @@ class ProfileScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          CircleAvatar(
-                            radius: 48,
-                            backgroundColor: brandTealColor.withOpacity(0.1),
-                            backgroundImage: profile.avatarKey != null ? NetworkImage(profile.avatarKey!) : null,
-                            child: profile.avatarKey == null
-                                ? const Icon(Icons.person_rounded, size: 48, color: brandTealColor)
-                                : null,
+                          Hero(
+                            tag: 'user_avatar_hero',
+                            child: CustomAvatar(
+                              avatarUrl: profile.avatarKey,
+                              radius: 48,
+                              backgroundColor: brandTealColor.withOpacity(0.1),
+                            ),
                           ),
                           Positioned(
                             bottom: 0,
                             right: 0,
                             child: GestureDetector(
-                              onTap: () => context.push('/personal-info'),
+                              onTap: () => context.push('/avatar-editor'),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
@@ -245,7 +246,7 @@ class ProfileScreen extends ConsumerWidget {
                       color: const Color(0xFFFF00B8),
                       icon: Icons.brush_rounded,
                       title: 'অ্যাভাটার এডিট',
-                      onTap: () => context.push('/personal-info'),
+                      onTap: () => context.push('/avatar-editor'),
                     ),
                     Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
                     // row 3

@@ -11,7 +11,7 @@ import '../../profile/domain/profile_model.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
 import '../../leaderboard/presentation/leaderboard_screen.dart';
-
+import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../academics/data/academics_repository.dart';
@@ -164,27 +164,18 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     onTap: () {
                       context.push('/profile');
                     },
-                    child: profileAsync.value != null
-                        ? CircleAvatar(
-                            radius: 18,
-                            backgroundColor: const Color(0xFFF18881),
-                            backgroundImage: (profileAsync.value?.profile?.avatarKey != null &&
-                                    profileAsync.value!.profile!.avatarKey!.isNotEmpty)
-                                ? NetworkImage(profileAsync.value!.profile!.avatarKey!)
-                                : null,
-                            child: (profileAsync.value?.profile?.avatarKey != null &&
-                                    profileAsync.value!.profile!.avatarKey!.isNotEmpty)
-                                ? null
-                                : const Text(
-                                    '👨‍🎓',
-                                    style: TextStyle(fontSize: 18),
-                                  ),
-                          )
-                        : const CircleAvatar(
-                            radius: 18,
-                            backgroundColor: Color(0xFF673AB7),
-                            child: Icon(Icons.person, color: Colors.white, size: 16),
-                          ),
+                    child: Hero(
+                      tag: 'user_avatar_hero',
+                      child: CustomAvatar(
+                        avatarUrl: profileAsync.value?.profile?.avatarKey,
+                        radius: 18,
+                        backgroundColor: const Color(0xFFF18881),
+                        fallbackWidget: const Text(
+                          '👨‍🎓',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -622,13 +613,16 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: avatarBg,
-              backgroundImage: isUrl ? NetworkImage(avatarText) : null,
-              child: isUrl
-                  ? null
-                  : Text(
+            isUrl
+                ? CustomAvatar(
+                    avatarUrl: avatarText,
+                    radius: 20,
+                    backgroundColor: avatarBg,
+                  )
+                : CircleAvatar(
+                    radius: 20,
+                    backgroundColor: avatarBg,
+                    child: Text(
                       isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
                       style: const TextStyle(
                         fontSize: 16,
@@ -636,7 +630,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         color: Colors.white,
                       ),
                     ),
-            ),
+                  ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

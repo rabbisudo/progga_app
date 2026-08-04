@@ -6,6 +6,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/personal_info_screen.dart';
 import '../../features/profile/presentation/progress_screen.dart';
 import '../../features/profile/presentation/my_reports_screen.dart';
+import '../../features/profile/presentation/avatar_editor_screen.dart';
 import '../../features/question/presentation/practice_dashboard_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
 
@@ -58,6 +59,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/personal-info',
         builder: (context, state) => const PersonalInfoScreen(),
+      ),
+      GoRoute(
+        path: '/avatar-editor',
+        builder: (context, state) => const AvatarEditorScreen(),
       ),
       GoRoute(
         path: '/progress',

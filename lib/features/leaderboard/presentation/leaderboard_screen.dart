@@ -6,6 +6,7 @@ import '../../profile/presentation/profile_notifier.dart';
 import '../domain/leaderboard_model.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
+import '../../../core/widgets/custom_avatar.dart';
 
 class LeagueInfo {
   final String key;
@@ -457,7 +458,9 @@ class LeaderboardScreen extends ConsumerWidget {
                           final isMe = entry.userId == myUserId;
 
                           final String name = entry.fullName.isNotEmpty ? entry.fullName : entry.username;
-                          final String? avatar = entry.avatarKey;
+                          final String avatar = (entry.avatarKey != null && entry.avatarKey!.isNotEmpty)
+                              ? entry.avatarKey!
+                              : 'https://api.dicebear.com/9.x/avataaars/svg?seed=${Uri.encodeComponent(entry.userId)}';
 
                           final bool showPro = (index % 2 == 1) || (name.length % 2 == 0);
 
@@ -474,24 +477,20 @@ class LeaderboardScreen extends ConsumerWidget {
                                 // Avatar image with status indicator dot
                                 Stack(
                                   children: [
-                                    CircleAvatar(
+                                    CustomAvatar(
+                                      avatarUrl: avatar,
                                       radius: 20,
                                       backgroundColor: isMe
                                           ? const Color(0xFF81C784)
                                           : const Color(0xFF017A47).withOpacity(0.12),
-                                      backgroundImage: avatar != null && avatar.isNotEmpty
-                                          ? NetworkImage(avatar)
-                                          : null,
-                                      child: (avatar == null || avatar.isEmpty)
-                                          ? Text(
-                                              name.isNotEmpty ? name[0].toUpperCase() : '👤',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: isMe ? Colors.white : const Color(0xFF017A47),
-                                              ),
-                                            )
-                                          : null,
+                                      fallbackWidget: Text(
+                                        name.isNotEmpty ? name[0].toUpperCase() : '👤',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: isMe ? Colors.white : const Color(0xFF017A47),
+                                        ),
+                                      ),
                                     ),
                                     Positioned(
                                       bottom: 0,
@@ -602,69 +601,73 @@ class LeaderboardScreen extends ConsumerWidget {
 
               // 3. Fixed Sticky Bottom Row for Active Current User
               if (meEntry != null)
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE2EBE4),
-                    border: Border(
-                      top: BorderSide(color: Color(0xFFC8E6C9), width: 1),
-                      left: BorderSide(color: Color(0xFF017A47), width: 5),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: const Color(0xFF81C784),
-                        backgroundImage: meEntry.avatarKey != null && meEntry.avatarKey!.isNotEmpty
-                            ? NetworkImage(meEntry.avatarKey!)
-                            : null,
-                        child: (meEntry.avatarKey == null || meEntry.avatarKey!.isEmpty)
-                            ? Text(
-                                meEntry.fullName.isNotEmpty ? meEntry.fullName[0].toUpperCase() : '😎',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                              )
-                            : null,
-                      ),
-                      const SizedBox(width: 14),
-
-                      Expanded(
-                        child: Text(
-                          meEntry.fullName.isNotEmpty ? meEntry.fullName : 'Rabbi failure',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.black87,
-                          ),
+                Builder(
+                  builder: (context) {
+                    final me = meEntry!;
+                    final String meAvatar = (me.avatarKey != null && me.avatarKey!.isNotEmpty)
+                        ? me.avatarKey!
+                        : 'https://api.dicebear.com/9.x/avataaars/svg?seed=${Uri.encodeComponent(me.userId)}';
+                    return Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE2EBE4),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFC8E6C9), width: 1),
+                          left: BorderSide(color: Color(0xFF017A47), width: 5),
                         ),
                       ),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Row(
                         children: [
-                          Text(
-                            '${meEntry.rank} th',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black87,
+                          CustomAvatar(
+                            avatarUrl: meAvatar,
+                            radius: 22,
+                            backgroundColor: const Color(0xFF81C784),
+                            fallbackWidget: Text(
+                              me.fullName.isNotEmpty ? me.fullName[0].toUpperCase() : '😎',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                           ),
-                          Text(
-                            _formatPoints(meEntry.xp),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black54,
+                          const SizedBox(width: 14),
+
+                          Expanded(
+                            child: Text(
+                              me.fullName.isNotEmpty ? me.fullName : 'Rabbi failure',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.black87,
+                              ),
                             ),
+                          ),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${me.rank} th',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                _formatPoints(me.xp),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    );
+                  }
                 ),
             ],
           );
