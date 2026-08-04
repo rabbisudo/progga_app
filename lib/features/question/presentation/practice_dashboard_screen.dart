@@ -105,8 +105,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   final ScrollController _qbScrollController = ScrollController();
 
   // Question Bank Series & Exams States
-  String? _selectedSeriesId;
-  String? _selectedSubSeriesId;
+  final List<String> _selectedSeriesStack = [];
   String? _activeExamTab;
 
   @override
@@ -370,10 +369,11 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           onDestinationSelected: (index) {
             setState(() {
               _currentNavIndex = index;
+              if (index != 1) {
+                _selectedSeriesStack.clear();
+                _activeExamTab = null;
+              }
             });
-            if (index == 1 && _qbQuestions.isEmpty) {
-              _fetchQbQuestions(refresh: true);
-            }
           },
           destinations: [
             NavigationDestination(
@@ -900,306 +900,96 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
   // View 1: Question Bank View (Cascading Navigation flow)
   Widget _buildQuestionBankView(ThemeData theme) {
-    // LEVEL 1: Subject Selection Screen
-    if (_selectedQbSubjectId == null) {
-      final subjectsAsync = ref.watch(studentQbCurriculumProvider);
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: subjectsAsync.when(
-              data: (list) {
-                if (list.isEmpty) {
-                  final profile = ref.watch(userProfileProvider).value?.profile;
-                  final className = profile?.className ?? 'HSC 2026';
-                  final groupName = profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান';
-
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('📚', style: TextStyle(fontSize: 44)),
-                          const SizedBox(height: 12),
-                          Text(
-                            '$className ($groupName)-এর জন্য কোনো বিষয় পাওয়া যায়নি।',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'প্রোফাইল থেকে অন্য বিষয়/ক্লাস নির্বাচন করুন।',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => context.push('/profile'),
-                            icon: const Icon(Icons.edit, size: 16, color: Colors.white),
-                            label: const Text('ক্লাস পরিবর্তন করুন', style: TextStyle(color: Colors.white)),
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                return GridView.builder(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 2.2,
-                  ),
-                  itemCount: list.length,
-                  itemBuilder: (context, index) {
-                    final item = list[index] as Map<String, dynamic>;
-                    final name = item['name']?.toString() ?? 'বিষয়';
-                    return Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          setState(() {
-                            _selectedQbSubjectId = item['id']?.toString();
-                            _selectedQbSubjectName = name;
-                          });
-                        },
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              name,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-              error: (err, __) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 40),
-                    const SizedBox(height: 12),
-                    Text(
-                      'বিষয় লোড করতে সমস্যা হয়েছে: $err',
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => ref.refresh(studentQbCurriculumProvider),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-                      child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    final profile = ref.watch(userProfileProvider).value?.profile;
+    if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Text(
+            'প্রোফাইলে কোনো ক্লাস সিলেক্ট করা নেই। অনুগ্রহ করে প্রোফাইল আপডেট করুন।',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
           ),
-        ],
+        ),
       );
     }
 
-    // LEVEL 1.5 & LEVEL 2: Nested Series Flow with Legacy Fallback
-    final seriesAsync = ref.watch(qbSeriesProvider(_selectedQbSubjectId!));
+    final classId = profile.classId!;
+    final seriesAsync = ref.watch(qbClassSeriesProvider(classId));
+
     return seriesAsync.when(
       data: (seriesList) {
-        if (seriesList.isNotEmpty) {
-          return _buildSeriesFlow(seriesList);
+        if (seriesList.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Text(
+                'এই ক্লাসের জন্য কোনো প্রশ্নব্যাংক সিরিজ পাওয়া যায়নি।',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+            ),
+          );
         }
-        return _buildLegacyQbFlow(theme);
+        return _buildHierarchicalSeriesFlow(seriesList);
       },
       loading: () => const Center(
         child: CircularProgressIndicator(color: Color(0xFF017A47)),
       ),
-      error: (err, _) => _buildLegacyQbFlow(theme),
-    );
-
-    // LEVEL 3: Questions List Screen
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Breadcrumb / Back button
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                onPressed: () {
-                  setState(() {
-                    _selectedQbItemId = null;
-                    _selectedQbItemName = null;
-                    _selectedQbYear = null;
-                    _qbQuestions.clear();
-                  });
-                },
-              ),
-              Expanded(
-                child: Text(
-                  '$_selectedQbItemName (${_selectedQbYear ?? ""}) - $_selectedQbSubjectName',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ),
-            ],
+      error: (err, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Text(
+            'ডাটা লোড করা যায়নি: $err',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14, color: Colors.red),
           ),
         ),
-
-        // Search Bar
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: TextField(
-            onChanged: (val) {
-              setState(() {
-                _qbSearchText = val;
-              });
-            },
-            onSubmitted: (_) {
-              _fetchQbQuestions(refresh: true);
-            },
-            decoration: InputDecoration(
-              hintText: 'প্রশ্ন খুঁজুন...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.send, color: Color(0xFF017A47)),
-                onPressed: () => _fetchQbQuestions(refresh: true),
-              ),
-              filled: true,
-              fillColor: theme.cardColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ),
-
-        // Questions List
-        Expanded(
-          child: _qbLoading && _qbQuestions.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFF017A47)))
-              : _qbQuestions.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'কোনো প্রশ্ন পাওয়া যায়নি।',
-                        style: TextStyle(color: Colors.black54, fontSize: 14),
-                      ),
-                    )
-                  : ListView.builder(
-                      controller: _qbScrollController,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _qbQuestions.length + (_qbLoading ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == _qbQuestions.length) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(child: CircularProgressIndicator(strokeWidth: 3)),
-                          );
-                        }
-
-                        final question = _qbQuestions[index];
-                        String sourceLabel = '$_selectedQbItemName (${_selectedQbYear ?? ""})';
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          child: ListTile(
-                            onTap: () => _showQuestionDetailSheet(context, question, sourceLabel),
-                            title: Text(
-                              question.questionText.replaceAll(RegExp(r'^\d+\.\s*'), ''),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                sourceLabel,
-                                style: const TextStyle(color: Color(0xFF017A47), fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
-        ),
-      ],
+      ),
     );
   }
 
-  // New Series and Tabbed Exam Flow Helper
-  Widget _buildSeriesFlow(List<dynamic> seriesList) {
+  // Recursive, Stack-based hierarchical series browser
+  Widget _buildHierarchicalSeriesFlow(List<dynamic> seriesList) {
     final theme = Theme.of(context);
 
-    // 1. Series Selection Screen
-    if (_selectedSeriesId == null) {
+    // 1. Compute subSeriesIds set to dynamically separate root vs child series
+    final subSeriesIds = seriesList
+        .expand((s) => (s['subSeries'] as List<dynamic>?) ?? [])
+        .map((e) => e.toString())
+        .toSet();
+
+    // Root series are those that are not child sub-series of any other series in this class
+    final rootSeriesList = seriesList.where((s) {
+      final id = s['id']?.toString() ?? '';
+      return !subSeriesIds.contains(id);
+    }).toList();
+
+    // Level 0: Display all top-level Question Bank series directly
+    if (_selectedSeriesStack.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                  onPressed: () {
-                    setState(() {
-                      _selectedQbSubjectId = null;
-                      _selectedQbSubjectName = null;
-                      _selectedSeriesId = null;
-                      _selectedSubSeriesId = null;
-                      _activeExamTab = null;
-                    });
-                  },
-                ),
-                Text(
-                  _selectedQbSubjectName ?? '',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Text(
+              'প্রশ্নব্যাংক সিরিজসমূহ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: theme.primaryColor,
+              ),
             ),
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: seriesList.length,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              itemCount: rootSeriesList.length,
               itemBuilder: (context, index) {
-                final s = seriesList[index] as Map<String, dynamic>;
+                final s = rootSeriesList[index] as Map<String, dynamic>;
                 final name = s['name']?.toString() ?? 'Test Paper';
                 final desc = s['description']?.toString() ?? '';
                 final logo = s['logo']?.toString();
-
-                final slug = s['slug']?.toString() ?? '';
-                if (slug.contains('-mcq') ||
-                    slug.contains('-cq') ||
-                    slug.contains('-kbhandar') ||
-                    slug.contains('-khabhandar') ||
-                    slug.contains('short-ques')) {
-                  return const SizedBox.shrink();
-                }
 
                 return Card(
                   elevation: 1,
@@ -1212,8 +1002,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     borderRadius: BorderRadius.circular(16),
                     onTap: () {
                       setState(() {
-                        _selectedSeriesId = s['id']?.toString();
-                        _selectedSubSeriesId = null;
+                        _selectedSeriesStack.add(s['id']?.toString() ?? '');
                         _activeExamTab = null;
                       });
                     },
@@ -1272,15 +1061,32 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       );
     }
 
-    final parentSeries = seriesList.firstWhere((s) => s['id'] == _selectedSeriesId, orElse: () => null);
-    if (parentSeries == null) {
-      return const Center(child: Text('Series not found'));
+    // Level N: We have navigated inside one or more series
+    final activeId = _selectedSeriesStack.last;
+    final activeSeries = seriesList.firstWhere(
+      (s) => s['id']?.toString() == activeId,
+      orElse: () => null,
+    );
+
+    if (activeSeries == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _selectedSeriesStack.clear();
+        });
+      });
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF017A47)));
     }
 
-    final subSeriesList = parentSeries['subSeries'] as List<dynamic>?;
+    final subSeriesListIds = (activeSeries['subSeries'] as List<dynamic>?) ?? [];
+    final validSubSeries = subSeriesListIds.map((subId) {
+      return seriesList.firstWhere(
+        (s) => s['id']?.toString() == subId.toString(),
+        orElse: () => null,
+      );
+    }).where((s) => s != null).toList();
 
-    // 2. Sub-Series cards selection screen (Image 2 style)
-    if (subSeriesList != null && subSeriesList.isNotEmpty && _selectedSubSeriesId == null) {
+    // 3. Grid of Sub-Series (Image 2 style)
+    if (validSubSeries.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1292,13 +1098,13 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
                   onPressed: () {
                     setState(() {
-                      _selectedSeriesId = null;
+                      _selectedSeriesStack.removeLast();
                     });
                   },
                 ),
                 Expanded(
                   child: Text(
-                    parentSeries['name']?.toString() ?? '',
+                    activeSeries['name']?.toString() ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -1321,12 +1127,10 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
               childAspectRatio: 1.1,
-              children: subSeriesList.map<Widget>((subId) {
-                final subIdStr = subId.toString();
-                final subSeriesObj = seriesList.firstWhere((s) => s['id'] == subIdStr, orElse: () => null);
-                if (subSeriesObj == null) return const SizedBox.shrink();
-
-                final subName = subSeriesObj['name']?.toString() ?? '';
+              children: validSubSeries.map<Widget>((subSeriesObj) {
+                final subSeriesMap = subSeriesObj as Map<String, dynamic>;
+                final subName = subSeriesMap['name']?.toString() ?? '';
+                final subIdStr = subSeriesMap['id']?.toString() ?? '';
 
                 Color cardColor = Colors.lightBlue.shade50;
                 Color textColor = Colors.lightBlue.shade700;
@@ -1371,7 +1175,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     borderRadius: BorderRadius.circular(20),
                     onTap: () {
                       setState(() {
-                        _selectedSubSeriesId = subIdStr;
+                        _selectedSeriesStack.add(subIdStr);
                         _activeExamTab = null;
                       });
                     },
@@ -1380,7 +1184,15 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(icon, style: const TextStyle(fontSize: 32)),
+                          subSeriesMap['logo'] != null && subSeriesMap['logo'].toString().isNotEmpty
+                              ? Image.network(
+                                  subSeriesMap['logo'].toString(),
+                                  width: 38,
+                                  height: 38,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => Text(icon, style: const TextStyle(fontSize: 32)),
+                                )
+                              : Text(icon, style: const TextStyle(fontSize: 32)),
                           const SizedBox(height: 8),
                           Text(
                             title,
@@ -1403,15 +1215,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       );
     }
 
-    // 3. Tabbed Exams Selection Screen (Image 1 style)
-    final activeSeries = _selectedSubSeriesId != null
-        ? seriesList.firstWhere((s) => s['id'] == _selectedSubSeriesId, orElse: () => null)
-        : parentSeries;
-
-    if (activeSeries == null) {
-      return const Center(child: Text('Active series not found'));
-    }
-
+    // 4. Tabbed Exams Selector (Image 1 style)
     final labelNameMap = activeSeries['labelName'] as Map<String, dynamic>? ?? {};
 
     if (labelNameMap.isEmpty) {
@@ -1425,11 +1229,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
                   onPressed: () {
                     setState(() {
-                      if (_selectedSubSeriesId != null) {
-                        _selectedSubSeriesId = null;
-                      } else {
-                        _selectedSeriesId = null;
-                      }
+                      _selectedSeriesStack.removeLast();
                     });
                   },
                 ),
@@ -1456,7 +1256,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
     final tabKeys = labelNameMap.keys.toList();
     _activeExamTab ??= tabKeys.first;
-
     final activeTabExamIds = List<String>.from(labelNameMap[_activeExamTab] ?? []);
 
     return Column(
@@ -1470,11 +1269,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
                 onPressed: () {
                   setState(() {
-                    if (_selectedSubSeriesId != null) {
-                      _selectedSubSeriesId = null;
-                    } else {
-                      _selectedSeriesId = null;
-                    }
+                    _selectedSeriesStack.removeLast();
                   });
                 },
               ),
@@ -1590,196 +1385,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     );
   }
 
-  // Legacy flow selector
-  Widget _buildLegacyQbFlow(ThemeData theme) {
-    if (_selectedQbItemType == null) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                  onPressed: () {
-                    setState(() {
-                      _selectedQbSubjectId = null;
-                      _selectedQbSubjectName = null;
-                      _selectedSeriesId = null;
-                      _selectedSubSeriesId = null;
-                      _activeExamTab = null;
-                    });
-                  },
-                ),
-                Text(
-                  _selectedQbSubjectName ?? '',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                _buildCategoryTypeCard(
-                  title: '🎓 বোর্ড পরীক্ষা সমূহ',
-                  subtitle: 'বিভিন্ন শিক্ষা বোর্ডের প্রশ্ন ব্যাংক (HSC & SSC)',
-                  icon: Icons.school,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'Board';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildCategoryTypeCard(
-                  title: '🏫 নামকরা কলেজ সমূহ',
-                  subtitle: 'শীর্ষস্থানীয় কলেজের টেস্ট পরীক্ষার প্রশ্নপত্র',
-                  icon: Icons.account_balance,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'College';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildCategoryTypeCard(
-                  title: '🔬 বিশ্ববিদ্যালয় ভর্তি পরীক্ষা',
-                  subtitle: 'বিশ্ববিদ্যালয় ও মেডিকেল ভর্তি পরীক্ষার প্রশ্ন',
-                  icon: Icons.biotech,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'Varsity';
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
 
-    if (_selectedQbItemId == null) {
-      final String typeLabel = _selectedQbItemType == 'Board'
-          ? 'বোর্ড পরীক্ষা সমূহ'
-          : _selectedQbItemType == 'College'
-              ? 'নামকরা কলেজ সমূহ'
-              : 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষা';
-
-      Widget contentWidget;
-      if (_selectedQbItemType == 'Board') {
-        final boardsAsync = ref.watch(activeBoardsProvider);
-        contentWidget = boardsAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'Board'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('বোর্ড লোড করা যায়নি')),
-        );
-      } else if (_selectedQbItemType == 'College') {
-        final collegesAsync = ref.watch(activeCollegesProvider);
-        contentWidget = collegesAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'College'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('কলেজ লোড করা যায়নি')),
-        );
-      } else {
-        final varsitiesAsync = ref.watch(activeVarsitiesProvider);
-        contentWidget = varsitiesAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'Varsity'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('বিশ্ববিদ্যালয় লোড করা যায়নি')),
-        );
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                  onPressed: () {
-                    setState(() {
-                      _selectedQbItemType = null;
-                    });
-                  },
-                ),
-                Text(
-                  '$_selectedQbSubjectName > $typeLabel',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: contentWidget,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  // Level 1.5 Category Type Card selector
-  Widget _buildCategoryTypeCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF017A47).withOpacity(0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 28, color: const Color(0xFF017A47)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   // Level 2 Category helper for rendering institutions with common years
   Widget _buildInstitutionsList(List<Map<String, dynamic>> list, String type) {

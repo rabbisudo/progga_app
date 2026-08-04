@@ -134,3 +134,11 @@ final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, List<St
   final repo = ref.watch(academicsRepositoryProvider);
   return repo.fetchExamsByIds(ids);
 });
+
+final qbClassSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchQuestionBankSeries(
+    classId: classId,
+    subjectId: '',
+  );
+});
