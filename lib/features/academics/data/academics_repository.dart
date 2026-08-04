@@ -80,3 +80,57 @@ final studentQbCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((r
     isQuestionBank: true,
   );
 });
+
+// Added Question Bank Series methods to AcademicsRepository
+extension AcademicsRepositoryQBExtensions on AcademicsRepository {
+  Future<List<dynamic>> fetchQuestionBankSeries({
+    required String classId,
+    required String subjectId,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/academics/series',
+        queryParameters: {
+          'classId': classId,
+          'subjectId': subjectId,
+        },
+      );
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+
+  Future<List<dynamic>> fetchExamsByIds(List<String> ids) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/academics/exams-by-ids',
+        queryParameters: {
+          'ids': ids.join(','),
+        },
+      );
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+}
+
+// Providers for Series and Exams
+final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, subjectId) async {
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+    return [];
+  }
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchQuestionBankSeries(
+    classId: profile.classId!,
+    subjectId: subjectId,
+  );
+});
+
+final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, List<String>>((ref, ids) async {
+  if (ids.isEmpty) return [];
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchExamsByIds(ids);
+});

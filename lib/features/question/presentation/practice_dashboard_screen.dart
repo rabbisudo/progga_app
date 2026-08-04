@@ -104,6 +104,11 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   String? _qbNextCursor;
   final ScrollController _qbScrollController = ScrollController();
 
+  // Question Bank Series & Exams States
+  String? _selectedSeriesId;
+  String? _selectedSubSeriesId;
+  String? _activeExamTab;
+
   @override
   void initState() {
     super.initState();
@@ -1011,140 +1016,20 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       );
     }
 
-    // LEVEL 1.5: Question Bank Type Selection Screen (Board vs College vs Varsity)
-    if (_selectedQbItemType == null) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Breadcrumb / Back button
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                  onPressed: () {
-                    setState(() {
-                      _selectedQbSubjectId = null;
-                      _selectedQbSubjectName = null;
-                    });
-                  },
-                ),
-                Text(
-                  _selectedQbSubjectName ?? '',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16.0),
-              children: [
-                _buildCategoryTypeCard(
-                  title: '🎓 বোর্ড পরীক্ষা সমূহ',
-                  subtitle: 'বিভিন্ন শিক্ষা বোর্ডের প্রশ্ন ব্যাংক (HSC & SSC)',
-                  icon: Icons.school,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'Board';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildCategoryTypeCard(
-                  title: '🏫 নামকরা কলেজ সমূহ',
-                  subtitle: 'শীর্ষস্থানীয় কলেজের টেস্ট পরীক্ষার প্রশ্নপত্র',
-                  icon: Icons.account_balance,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'College';
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildCategoryTypeCard(
-                  title: '🔬 বিশ্ববিদ্যালয় ভর্তি পরীক্ষা',
-                  subtitle: 'বিশ্ববিদ্যালয় ও মেডিকেল ভর্তি পরীক্ষার প্রশ্ন',
-                  icon: Icons.biotech,
-                  onTap: () {
-                    setState(() {
-                      _selectedQbItemType = 'Varsity';
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    // LEVEL 2: Board/College/Varsity & Year Selection Screen
-    if (_selectedQbItemId == null) {
-      final String typeLabel = _selectedQbItemType == 'Board'
-          ? 'বোর্ড পরীক্ষা সমূহ'
-          : _selectedQbItemType == 'College'
-              ? 'নামকরা কলেজ সমূহ'
-              : 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষা';
-
-      Widget contentWidget;
-      if (_selectedQbItemType == 'Board') {
-        final boardsAsync = ref.watch(activeBoardsProvider);
-        contentWidget = boardsAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'Board'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('বোর্ড লোড করা যায়নি')),
-        );
-      } else if (_selectedQbItemType == 'College') {
-        final collegesAsync = ref.watch(activeCollegesProvider);
-        contentWidget = collegesAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'College'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('কলেজ লোড করা যায়নি')),
-        );
-      } else {
-        final varsitiesAsync = ref.watch(activeVarsitiesProvider);
-        contentWidget = varsitiesAsync.when(
-          data: (list) => _buildInstitutionsList(list, 'Varsity'),
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
-          error: (_, __) => const Center(child: Text('বিশ্ববিদ্যালয় লোড করা যায়নি')),
-        );
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Breadcrumb / Back button
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
-                  onPressed: () {
-                    setState(() {
-                      _selectedQbItemType = null;
-                    });
-                  },
-                ),
-                Text(
-                  '$_selectedQbSubjectName > $typeLabel',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: contentWidget,
-            ),
-          ),
-        ],
-      );
-    }
+    // LEVEL 1.5 & LEVEL 2: Nested Series Flow with Legacy Fallback
+    final seriesAsync = ref.watch(qbSeriesProvider(_selectedQbSubjectId!));
+    return seriesAsync.when(
+      data: (seriesList) {
+        if (seriesList.isNotEmpty) {
+          return _buildSeriesFlow(seriesList);
+        }
+        return _buildLegacyQbFlow(theme);
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF017A47)),
+      ),
+      error: (err, _) => _buildLegacyQbFlow(theme),
+    );
 
     // LEVEL 3: Questions List Screen
     return Column(
@@ -1263,6 +1148,584 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         ),
       ],
     );
+  }
+
+  // New Series and Tabbed Exam Flow Helper
+  Widget _buildSeriesFlow(List<dynamic> seriesList) {
+    final theme = Theme.of(context);
+
+    // 1. Series Selection Screen
+    if (_selectedSeriesId == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedQbSubjectId = null;
+                      _selectedQbSubjectName = null;
+                      _selectedSeriesId = null;
+                      _selectedSubSeriesId = null;
+                      _activeExamTab = null;
+                    });
+                  },
+                ),
+                Text(
+                  _selectedQbSubjectName ?? '',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: seriesList.length,
+              itemBuilder: (context, index) {
+                final s = seriesList[index] as Map<String, dynamic>;
+                final name = s['name']?.toString() ?? 'Test Paper';
+                final desc = s['description']?.toString() ?? '';
+                final logo = s['logo']?.toString();
+
+                final slug = s['slug']?.toString() ?? '';
+                if (slug.contains('-mcq') ||
+                    slug.contains('-cq') ||
+                    slug.contains('-kbhandar') ||
+                    slug.contains('-khabhandar') ||
+                    slug.contains('short-ques')) {
+                  return const SizedBox.shrink();
+                }
+
+                return Card(
+                  elevation: 1,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      setState(() {
+                        _selectedSeriesId = s['id']?.toString();
+                        _selectedSubSeriesId = null;
+                        _activeExamTab = null;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF017A47).withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: logo != null && logo.isNotEmpty
+                                  ? Image.network(
+                                      logo,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => const Text('📚', style: TextStyle(fontSize: 24)),
+                                    )
+                                  : const Text('📚', style: TextStyle(fontSize: 24)),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                if (desc.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    desc.replaceAll(RegExp(r'<[^>]*>'), ''),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black45),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    }
+
+    final parentSeries = seriesList.firstWhere((s) => s['id'] == _selectedSeriesId, orElse: () => null);
+    if (parentSeries == null) {
+      return const Center(child: Text('Series not found'));
+    }
+
+    final subSeriesList = parentSeries['subSeries'] as List<dynamic>?;
+
+    // 2. Sub-Series cards selection screen (Image 2 style)
+    if (subSeriesList != null && subSeriesList.isNotEmpty && _selectedSubSeriesId == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedSeriesId = null;
+                    });
+                  },
+                ),
+                Expanded(
+                  child: Text(
+                    parentSeries['name']?.toString() ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              'ক্যাটাগরি নির্বাচন করুন',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 0.8),
+            ),
+          ),
+          Expanded(
+            child: GridView.count(
+              padding: const EdgeInsets.all(16.0),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.1,
+              children: subSeriesList.map<Widget>((subId) {
+                final subIdStr = subId.toString();
+                final subSeriesObj = seriesList.firstWhere((s) => s['id'] == subIdStr, orElse: () => null);
+                if (subSeriesObj == null) return const SizedBox.shrink();
+
+                final subName = subSeriesObj['name']?.toString() ?? '';
+
+                Color cardColor = Colors.lightBlue.shade50;
+                Color textColor = Colors.lightBlue.shade700;
+                String icon = '📝';
+                String title = subName;
+
+                if (subName.toLowerCase().contains('mcq')) {
+                  cardColor = const Color(0xFFE3F2FD);
+                  textColor = const Color(0xFF1E88E5);
+                  icon = '📝';
+                  title = 'MCQ';
+                } else if (subName.toLowerCase().contains('cq')) {
+                  cardColor = const Color(0xFFFFF8E1);
+                  textColor = const Color(0xFFF57F17);
+                  icon = '📖';
+                  title = 'CQ';
+                } else if (subName.toLowerCase().contains('kbhandar')) {
+                  cardColor = const Color(0xFFE8EAF6);
+                  textColor = const Color(0xFF3F51B5);
+                  icon = '📚';
+                  title = 'ক ভাণ্ডার';
+                } else if (subName.toLowerCase().contains('khabhandar')) {
+                  cardColor = const Color(0xFFE8F5E9);
+                  textColor = const Color(0xFF4CAF50);
+                  icon = '📚';
+                  title = 'খ ভাণ্ডার';
+                } else if (subName.toLowerCase().contains('short') || subName.toLowerCase().contains('সংক্ষিপ্ত')) {
+                  cardColor = const Color(0xFFF3E5F5);
+                  textColor = const Color(0xFF9C27B0);
+                  icon = '⏱️';
+                  title = 'সংক্ষিপ্ত প্রশ্ন';
+                }
+
+                return Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(color: textColor.withOpacity(0.15), width: 1.5),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      setState(() {
+                        _selectedSubSeriesId = subIdStr;
+                        _activeExamTab = null;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(icon, style: const TextStyle(fontSize: 32)),
+                          const SizedBox(height: 8),
+                          Text(
+                            title,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 3. Tabbed Exams Selection Screen (Image 1 style)
+    final activeSeries = _selectedSubSeriesId != null
+        ? seriesList.firstWhere((s) => s['id'] == _selectedSubSeriesId, orElse: () => null)
+        : parentSeries;
+
+    if (activeSeries == null) {
+      return const Center(child: Text('Active series not found'));
+    }
+
+    final labelNameMap = activeSeries['labelName'] as Map<String, dynamic>? ?? {};
+
+    if (labelNameMap.isEmpty) {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      if (_selectedSubSeriesId != null) {
+                        _selectedSubSeriesId = null;
+                      } else {
+                        _selectedSeriesId = null;
+                      }
+                    });
+                  },
+                ),
+                Expanded(
+                  child: Text(
+                    activeSeries['name']?.toString() ?? '',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Expanded(
+            child: Center(
+              child: Text(
+                'কোনো পরীক্ষা পাওয়া যায়নি।',
+                style: TextStyle(color: Colors.black54),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final tabKeys = labelNameMap.keys.toList();
+    _activeExamTab ??= tabKeys.first;
+
+    final activeTabExamIds = List<String>.from(labelNameMap[_activeExamTab] ?? []);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                onPressed: () {
+                  setState(() {
+                    if (_selectedSubSeriesId != null) {
+                      _selectedSubSeriesId = null;
+                    } else {
+                      _selectedSeriesId = null;
+                    }
+                  });
+                },
+              ),
+              Expanded(
+                child: Text(
+                  activeSeries['name']?.toString() ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        Container(
+          height: 38,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: tabKeys.map<Widget>((key) {
+              final isSelected = _activeExamTab == key;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Text(
+                    key,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedColor: const Color(0xFF017A47),
+                  backgroundColor: Colors.grey.shade100,
+                  checkmarkColor: Colors.white,
+                  onSelected: (val) {
+                    if (val) {
+                      setState(() {
+                        _activeExamTab = key;
+                      });
+                    }
+                  },
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final examsAsync = ref.watch(qbExamsProvider(activeTabExamIds));
+              return examsAsync.when(
+                data: (examsList) {
+                  if (examsList.isEmpty) {
+                    return const Center(child: Text('এই ট্যাবের অধীনে কোনো পরীক্ষা পাওয়া যায়নি।'));
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: examsList.length,
+                    itemBuilder: (context, idx) {
+                      final ex = examsList[idx] as Map<String, dynamic>;
+                      final title = ex['title']?.toString() ?? '';
+                      final duration = ex['duration'] as int? ?? 1500;
+                      final durationMin = (duration / 60).round();
+                      final qCount = ex['qCount'] as int? ?? 25;
+
+                      return Card(
+                        elevation: 1,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          title: Text(
+                            title,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
+                                const SizedBox(width: 4),
+                                Text('$durationMin মিনিট', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                const SizedBox(width: 16),
+                                const Icon(Icons.help_outline, size: 14, color: Colors.grey),
+                                const SizedBox(width: 4),
+                                Text('$qCount টি প্রশ্ন', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward, color: Color(0xFF017A47), size: 18),
+                          onTap: () {
+                            context.push('/exam/${ex['id']}');
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+                error: (err, _) => Center(child: Text('পরীক্ষা লোড করতে ব্যর্থ হয়েছে: $err')),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Legacy flow selector
+  Widget _buildLegacyQbFlow(ThemeData theme) {
+    if (_selectedQbItemType == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedQbSubjectId = null;
+                      _selectedQbSubjectName = null;
+                      _selectedSeriesId = null;
+                      _selectedSubSeriesId = null;
+                      _activeExamTab = null;
+                    });
+                  },
+                ),
+                Text(
+                  _selectedQbSubjectName ?? '',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                _buildCategoryTypeCard(
+                  title: '🎓 বোর্ড পরীক্ষা সমূহ',
+                  subtitle: 'বিভিন্ন শিক্ষা বোর্ডের প্রশ্ন ব্যাংক (HSC & SSC)',
+                  icon: Icons.school,
+                  onTap: () {
+                    setState(() {
+                      _selectedQbItemType = 'Board';
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildCategoryTypeCard(
+                  title: '🏫 নামকরা কলেজ সমূহ',
+                  subtitle: 'শীর্ষস্থানীয় কলেজের টেস্ট পরীক্ষার প্রশ্নপত্র',
+                  icon: Icons.account_balance,
+                  onTap: () {
+                    setState(() {
+                      _selectedQbItemType = 'College';
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildCategoryTypeCard(
+                  title: '🔬 বিশ্ববিদ্যালয় ভর্তি পরীক্ষা',
+                  subtitle: 'বিশ্ববিদ্যালয় ও মেডিকেল ভর্তি পরীক্ষার প্রশ্ন',
+                  icon: Icons.biotech,
+                  onTap: () {
+                    setState(() {
+                      _selectedQbItemType = 'Varsity';
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_selectedQbItemId == null) {
+      final String typeLabel = _selectedQbItemType == 'Board'
+          ? 'বোর্ড পরীক্ষা সমূহ'
+          : _selectedQbItemType == 'College'
+              ? 'নামকরা কলেজ সমূহ'
+              : 'বিশ্ববিদ্যালয় ভর্তি পরীক্ষা';
+
+      Widget contentWidget;
+      if (_selectedQbItemType == 'Board') {
+        final boardsAsync = ref.watch(activeBoardsProvider);
+        contentWidget = boardsAsync.when(
+          data: (list) => _buildInstitutionsList(list, 'Board'),
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+          error: (_, __) => const Center(child: Text('বোর্ড লোড করা যায়নি')),
+        );
+      } else if (_selectedQbItemType == 'College') {
+        final collegesAsync = ref.watch(activeCollegesProvider);
+        contentWidget = collegesAsync.when(
+          data: (list) => _buildInstitutionsList(list, 'College'),
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+          error: (_, __) => const Center(child: Text('কলেজ লোড করা যায়নি')),
+        );
+      } else {
+        final varsitiesAsync = ref.watch(activeVarsitiesProvider);
+        contentWidget = varsitiesAsync.when(
+          data: (list) => _buildInstitutionsList(list, 'Varsity'),
+          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+          error: (_, __) => const Center(child: Text('বিশ্ববিদ্যালয় লোড করা যায়নি')),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
+                  onPressed: () {
+                    setState(() {
+                      _selectedQbItemType = null;
+                    });
+                  },
+                ),
+                Text(
+                  '$_selectedQbSubjectName > $typeLabel',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: contentWidget,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   // Level 1.5 Category Type Card selector
