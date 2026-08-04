@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'practice_notifier.dart';
 import '../../academics/data/academics_repository.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class ExamConfirmScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> setupData;
@@ -338,8 +339,8 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+        leading: CustomBackButton(
+          color: Colors.black87,
           onPressed: () => context.pop(),
         ),
         title: const Text(

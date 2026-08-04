@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 // Fetch full exam session result data
 final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, sessionId) async {
@@ -683,8 +684,8 @@ class ResultScreen extends ConsumerWidget {
         appBar: AppBar(
           backgroundColor: const Color(0xFFF3F4F3),
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () => context.go('/home'),
           ),
         ),
@@ -737,8 +738,8 @@ class ResultScreen extends ConsumerWidget {
             backgroundColor: const Color(0xFFF3F4F3),
             elevation: 0,
             scrolledUnderElevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            leading: CustomBackButton(
+              color: Colors.black87,
               onPressed: () => context.go('/home'),
             ),
             title: Column(
@@ -1622,8 +1623,8 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                 fontSize: 16,
               ),
             ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            leading: CustomBackButton(
+              color: Colors.black87,
               onPressed: () => context.go('/home'),
             ),
           ),

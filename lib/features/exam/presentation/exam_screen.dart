@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class ExamScreen extends ConsumerStatefulWidget {
   final String id;
@@ -596,8 +597,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               fontSize: 16,
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () => context.go('/home'),
           ),
         ),
@@ -625,8 +626,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         appBar: AppBar(
           backgroundColor: const Color(0xFFF3F4F3),
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () => context.go('/home'),
           ),
         ),
@@ -710,8 +711,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               fontSize: 16,
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () async {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {

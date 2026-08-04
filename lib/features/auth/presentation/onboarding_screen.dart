@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../academics/data/academics_repository.dart';
+import '../../../core/widgets/custom_back_button.dart';
 import '../../academics/domain/academics_model.dart';
 import 'auth_notifier.dart';
 
@@ -166,8 +167,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+        leading: CustomBackButton(
+          color: Colors.black87,
           onPressed: _step > 0 ? _prevStep : () => context.go('/login'),
         ),
         actions: [

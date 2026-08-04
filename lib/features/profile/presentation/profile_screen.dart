@@ -7,6 +7,7 @@ import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../question/presentation/practice_notifier.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/custom_avatar.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -80,8 +81,8 @@ class ProfileScreen extends ConsumerWidget {
         ),
         centerTitle: true,
         leading: (ModalRoute.of(context)?.canPop ?? false)
-            ? IconButton(
-                icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+            ? CustomBackButton(
+                color: isDark ? Colors.white : Colors.black,
                 onPressed: () => context.pop(),
               )
             : null,

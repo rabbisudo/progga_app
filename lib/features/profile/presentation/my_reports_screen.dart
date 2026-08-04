@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../exam/data/exam_repository.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 final myReportsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final repo = ref.watch(examRepositoryProvider);
@@ -62,8 +63,8 @@ class MyReportsScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
+        leading: CustomBackButton(
+          color: isDark ? Colors.white : Colors.black87,
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

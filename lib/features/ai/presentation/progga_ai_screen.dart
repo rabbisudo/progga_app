@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../data/ai_repository.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class AiChatMessage {
   final String id;
@@ -749,12 +750,14 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        titleSpacing: 0,
+        titleSpacing: Navigator.of(context).canPop() ? 0 : 16,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 18),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: Navigator.of(context).canPop()
+            ? CustomBackButton(
+                color: const Color(0xFF0F172A),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         title: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../profile/presentation/profile_notifier.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
@@ -25,8 +26,8 @@ class ProgressScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black87),
+        leading: CustomBackButton(
+          color: isDark ? Colors.white : Colors.black87,
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),

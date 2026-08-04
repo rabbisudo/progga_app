@@ -7,6 +7,7 @@ import '../../academics/data/academics_repository.dart';
 import '../../academics/domain/academics_model.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../question/presentation/practice_notifier.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class PersonalInfoScreen extends ConsumerStatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -211,8 +212,8 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+        leading: CustomBackButton(
+          color: isDark ? Colors.white : Colors.black,
           onPressed: () => context.pop(),
         ),
       ),

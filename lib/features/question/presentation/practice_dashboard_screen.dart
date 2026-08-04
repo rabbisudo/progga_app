@@ -15,6 +15,8 @@ import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../academics/data/academics_repository.dart';
+import '../../ai/presentation/progga_ai_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
@@ -111,6 +113,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       _buildHomeDashboardView(state, theme, profileAsync, leaderboardAsync),
       _buildQuestionBankView(theme),
       _buildExamListView(theme),
+      const ProggaAiScreen(),
       const ProfileScreen(),
     ];
 
@@ -137,8 +140,16 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('🔥', style: TextStyle(fontSize: 14)),
-                        const SizedBox(width: 4),
+                        SvgPicture.string(
+                          '''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M12.832 21.801c3.126-.626 7.168-2.875 7.168-8.69c0-5.291-3.873-8.815-6.658-10.434c-.619-.36-1.342.113-1.342.828v1.828c0 1.442-.606 4.074-2.29 5.169c-.86.559-1.79-.278-1.894-1.298l-.086-.838c-.1-.974-1.092-1.565-1.87-.971C4.461 8.46 3 10.33 3 13.11C3 20.221 8.289 22 10.933 22q.232 0 .484-.015C10.111 21.874 8 21.064 8 18.444c0-2.05 1.495-3.435 2.631-4.11c.306-.18.663.055.663.41v.59c0 .45.175 1.155.59 1.637c.47.546 1.159-.026 1.214-.744c.018-.226.246-.37.442-.256c.641.375 1.46 1.175 1.46 2.473c0 2.048-1.129 2.99-2.168 3.357" />
+</svg>''',
+                          width: 16,
+                          height: 16,
+                          colorFilter: const ColorFilter.mode(Color(0xFFFFB300), BlendMode.srcIn),
+                        ),
+                        const SizedBox(width: 6),
                         Text(
                           profileAsync.maybeWhen(
                             data: (user) => '${user.profile?.currentStreak ?? 1}',
@@ -180,7 +191,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 ),
               ],
             )
-          : (_currentNavIndex == 3
+          : (_currentNavIndex == 4 || _currentNavIndex == 3
               ? null
               : AppBar(
                   backgroundColor: Colors.white,
@@ -205,16 +216,29 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         data: NavigationBarThemeData(
           backgroundColor: Colors.white,
           indicatorColor: const Color(0xFFE0ECE6), // Light theme green tint capsule
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const IconThemeData(
+                size: 30, // Increased size for selected tab
+                color: Color(0xFF017A47),
+              );
+            }
+            return const IconThemeData(
+              size: 27, // Increased size for unselected tab
+              color: Color(0xFF495057),
+            );
+          }),
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
               return const TextStyle(
-                fontSize: 12,
+                fontSize: 13, // Increased font size
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF017A47),
               );
             }
             return const TextStyle(
-              fontSize: 12,
+              fontSize: 12.5, // Increased font size
+              fontWeight: FontWeight.w500,
               color: Color(0xFF495057),
             );
           }),
@@ -226,25 +250,116 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               _currentNavIndex = index;
             });
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.home, color: Color(0xFF017A47)),
+              icon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M9.447 15.398a.75.75 0 1 0-.894 1.204A5.77 5.77 0 0 0 12 17.75a5.77 5.77 0 0 0 3.447-1.148a.75.75 0 1 0-.894-1.204A4.27 4.27 0 0 1 12 16.25a4.27 4.27 0 0 1-2.553-.852" />
+	<path fill="currentColor" fill-rule="evenodd" d="M12 1.25c-.708 0-1.351.203-2.05.542c-.674.328-1.454.812-2.427 1.416L5.456 4.491c-.92.572-1.659 1.03-2.227 1.465c-.589.45-1.041.91-1.368 1.507c-.326.595-.472 1.229-.543 1.978c-.068.725-.068 1.613-.068 2.726v1.613c0 1.904 0 3.407.153 4.582c.156 1.205.486 2.178 1.23 2.947c.747.773 1.697 1.119 2.875 1.282c1.14.159 2.598.159 4.434.159h4.116c1.836 0 3.294 0 4.434-.159c1.177-.163 2.128-.509 2.876-1.282c.743-.769 1.073-1.742 1.23-2.947c.152-1.175.152-2.678.152-4.582v-1.613c0-1.113 0-2-.068-2.726c-.07-.75-.217-1.383-.543-1.978c-.327-.597-.78-1.056-1.368-1.507c-.568-.436-1.306-.893-2.227-1.465l-2.067-1.283c-.973-.604-1.753-1.088-2.428-1.416c-.697-.34-1.34-.542-2.049-.542M8.28 4.504c1.015-.63 1.73-1.072 2.327-1.363c.581-.283.993-.391 1.393-.391s.812.108 1.393.391c.598.29 1.312.733 2.327 1.363l2 1.241c.961.597 1.636 1.016 2.14 1.402c.489.375.77.684.963 1.036c.193.353.306.766.365 1.398c.061.648.062 1.465.062 2.623v1.521c0 1.97-.002 3.376-.14 4.443c-.136 1.048-.393 1.656-.82 2.099c-.425.439-1.003.7-2.004.839c-1.026.142-2.379.144-4.286.144h-4c-1.908 0-3.26-.002-4.286-.144c-1.001-.14-1.579-.4-2.003-.84c-.428-.442-.685-1.05-.82-2.098c-.14-1.067-.141-2.472-.141-4.443v-1.521c0-1.158 0-1.975.062-2.623c.059-.632.172-1.045.365-1.398c.193-.352.474-.661.964-1.036c.503-.386 1.178-.805 2.139-1.402z" clip-rule="evenodd" />
+</svg>''',
+                width: 29,
+                height: 29,
+                colorFilter: const ColorFilter.mode(Color(0xFF495057), BlendMode.srcIn),
+              ),
+              selectedIcon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" fill-rule="evenodd" d="M2.52 7.823C2 8.77 2 9.915 2 12.203v1.522c0 3.9 0 5.851 1.172 7.063S6.229 22 10 22h4c3.771 0 5.657 0 6.828-1.212S22 17.626 22 13.725v-1.521c0-2.289 0-3.433-.52-4.381c-.518-.949-1.467-1.537-3.364-2.715l-2-1.241C14.111 2.622 13.108 2 12 2s-2.11.622-4.116 1.867l-2 1.241C3.987 6.286 3.038 6.874 2.519 7.823m6.927 7.575a.75.75 0 1 0-.894 1.204A5.77 5.77 0 0 0 12 17.75a5.77 5.77 0 0 0 3.447-1.148a.75.75 0 1 0-.894-1.204A4.27 4.27 0 0 1 12 16.25a4.27 4.27 0 0 1-2.553-.852" clip-rule="evenodd" />
+</svg>''',
+                width: 35,
+                height: 35,
+                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+              ),
               label: 'হোম',
             ),
             NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.inventory_2, color: Color(0xFF017A47)),
+              icon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 56 56">
+	<path d="M0 0h56v56H0z" fill="none" />
+	<path fill="currentColor" d="M15.144 49.574H40.88c4.593 0 7.054-2.39 7.054-6.984V19.246c2.274-.375 3.493-2.086 3.493-4.594V11.09c0-2.86-1.57-4.664-4.454-4.664H9.027c-2.742 0-4.453 1.804-4.453 4.664v3.562c0 2.508 1.242 4.22 3.492 4.594V42.59c0 4.617 2.485 6.984 7.078 6.984M9.988 15.777c-1.172 0-1.64-.492-1.64-1.664V11.63c0-1.172.468-1.664 1.64-1.664h36.047c1.195 0 1.617.492 1.617 1.664v2.484c0 1.172-.422 1.664-1.617 1.664Zm5.133 30.258c-2.11 0-3.281-1.148-3.281-3.258v-23.46h32.32v23.46c0 2.11-1.172 3.258-3.258 3.258Zm5.156-17.273H35.77c.961 0 1.665-.68 1.665-1.711v-.75c0-1.031-.704-1.688-1.665-1.688H20.277c-.984 0-1.664.657-1.664 1.688v.75c0 1.031.68 1.71 1.664 1.71" />
+</svg>''',
+                width: 27,
+                height: 27,
+                colorFilter: const ColorFilter.mode(Color(0xFF495057), BlendMode.srcIn),
+              ),
+              selectedIcon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 56 56">
+	<path d="M0 0h56v56H0z" fill="none" />
+	<path fill="currentColor" d="M8.559 16.95H47.44c2.649 0 3.985-1.571 3.985-4.196V10.62c0-2.625-1.336-4.195-3.985-4.195H8.56c-2.508 0-3.985 1.57-3.985 4.195v2.133c0 2.625 1.336 4.195 3.985 4.195m6.585 32.624H40.88c4.593 0 7.054-2.39 7.054-6.984V20.16H8.066v22.43c0 4.617 2.485 6.984 7.078 6.984m5.133-20.953c-.984 0-1.664-.68-1.664-1.71v-.727c0-1.032.68-1.688 1.664-1.688H35.77c.961 0 1.665.656 1.665 1.688v.726c0 1.031-.704 1.711-1.665 1.711Z" />
+</svg>''',
+                width: 30,
+                height: 30,
+                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+              ),
               label: 'প্রশ্নব্যাংক',
             ),
             NavigationDestination(
-              icon: Icon(Icons.edit_outlined, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.edit, color: Color(0xFF017A47)),
+              icon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+		<path d="M2 12c0 4.714 0 7.071 1.464 8.535C4.93 22 7.286 22 12 22s7.071 0 8.535-1.465C22 19.072 22 16.714 22 12v-1.5M13.5 2H12C7.286 2 4.929 2 3.464 3.464c-.973.974-1.3 2.343-1.409 4.536" />
+		<path d="m16.652 3.455l.649-.649A2.753 2.753 0 0 1 21.194 6.7l-.65.649m-3.892-3.893s.081 1.379 1.298 2.595c1.216 1.217 2.595 1.298 2.595 1.298m-3.893-3.893L10.687 9.42c-.404.404-.606.606-.78.829q-.308.395-.524.848c-.121.255-.211.526-.392 1.068L8.412 13.9m12.133-6.552l-2.983 2.982m-2.982 2.983c-.404.404-.606.606-.829.78a4.6 4.6 0 0 1-.848.524c-.255.121-.526.211-1.068.392l-1.735.579m0 0l-1.123.374a.742.742 0 0 1-.939-.94l.374-1.122m1.688 1.688L8.412 13.9" />
+	</g>
+</svg>''',
+                width: 27,
+                height: 27,
+                colorFilter: const ColorFilter.mode(Color(0xFF495057), BlendMode.srcIn),
+              ),
+              selectedIcon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M21.194 2.806a2.753 2.753 0 0 1 0 3.893l-.496.496a5 5 0 0 1-.533-.151a5.2 5.2 0 0 1-1.968-1.241a5.2 5.2 0 0 1-1.241-1.968a5 5 0 0 1-.15-.533l.495-.496a2.753 2.753 0 0 1 3.893 0M14.58 13.313c-.404.404-.606.606-.829.78a4.6 4.6 0 0 1-.848.524c-.255.121-.526.211-1.068.392l-2.858.953a.742.742 0 0 1-.939-.94l.953-2.857c.18-.542.27-.813.392-1.068q.217-.453.524-.848c.174-.223.376-.425.78-.83l4.916-4.915a6.7 6.7 0 0 0 1.533 2.36a6.7 6.7 0 0 0 2.36 1.533z" />
+	<path fill="currentColor" d="M20.536 20.536C22 19.07 22 16.714 22 12c0-1.548 0-2.842-.052-3.934l-6.362 6.362c-.351.352-.615.616-.912.847a6 6 0 0 1-1.125.696c-.34.162-.694.28-1.166.437l-2.932.977a2.242 2.242 0 0 1-2.836-2.836l.977-2.932c.157-.472.275-.826.437-1.166q.287-.6.696-1.125c.231-.297.495-.56.847-.912l6.362-6.362C14.842 2 13.548 2 12 2C7.286 2 4.929 2 3.464 3.464C2 4.93 2 7.286 2 12s0 7.071 1.464 8.535C4.93 22 7.286 22 12 22s7.071 0 8.535-1.465" />
+</svg>''',
+                width: 30,
+                height: 30,
+                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+              ),
               label: 'পরীক্ষা',
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded, color: Color(0xFF495057)),
-              selectedIcon: Icon(Icons.person_rounded, color: Color(0xFF017A47)),
+              icon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11h6m-6 4h3m1-12h-1a9 9 0 0 0-9 9v8a1 1 0 0 0 1 1h8a9 9 0 0 0 9-9v-1m-2-9l.13.378a4 4 0 0 0 2.492 2.493L22 5l-.378.13a4 4 0 0 0-2.493 2.492L19 8l-.13-.378a4 4 0 0 0-2.492-2.493L16 5l.378-.13a4 4 0 0 0 2.493-2.492z" />
+</svg>''',
+                width: 27,
+                height: 27,
+                colorFilter: const ColorFilter.mode(Color(0xFF495057), BlendMode.srcIn),
+              ),
+              selectedIcon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="M12 2c.901 0 1.774.12 2.605.344a3 3 0 0 0 .425 5.495l.378.129a1 1 0 0 1 .624.624l.13.378a3 3 0 0 0 5.493.425A10 10 0 0 1 22 12c0 5.523-4.477 10-10 10H4a2 2 0 0 1-2-2v-8C2 6.477 6.477 2 12 2M9 14a1 1 0 1 0 0 2h3a1 1 0 1 0 0-2zm0-4a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2zm10-9a1 1 0 0 1 .946.677l.13.378c.3.879.99 1.57 1.87 1.87l.377.129a1 1 0 0 1 0 1.892l-.378.13c-.879.3-1.57.99-1.87 1.87l-.129.377a1 1 0 0 1-1.892 0l-.13-.378a3 3 0 0 0-1.87-1.87l-.377-.129a1 1 0 0 1 0-1.892l.378-.13c.879-.3 1.57-.99 1.87-1.87l.129-.377A1 1 0 0 1 19 1" />
+</svg>''',
+                width: 30,
+                height: 30,
+                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+              ),
+              label: 'প্রজ্ঞা এআই',
+            ),
+            NavigationDestination(
+              icon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" fill-rule="evenodd" d="M12 1.25a4.75 4.75 0 1 0 0 9.5a4.75 4.75 0 0 0 0-9.5M8.75 6a3.25 3.25 0 1 1 6.5 0a3.25 3.25 0 0 1-6.5 0M12 12.25c-2.313 0-4.445.526-6.024 1.414C4.42 14.54 3.25 15.866 3.25 17.5v.102c-.001 1.162-.002 2.62 1.277 3.662c.629.512 1.51.877 2.7 1.117c1.192.242 2.747.369 4.773.369s3.58-.127 4.774-.369c1.19-.24 2.07-.605 2.7-1.117c1.279-1.042 1.277-2.5 1.276-3.662V17.5c0-1.634-1.17-2.96-2.725-3.836c-1.58-.888-3.711-1.414-6.025-1.414M4.75 17.5c0-.851.622-1.775 1.961-2.528c1.316-.74 3.184-1.222 5.29-1.222c2.104 0 3.972.482 5.288 1.222c1.34.753 1.961 1.677 1.961 2.528c0 1.308-.04 2.044-.724 2.6c-.37.302-.99.597-2.05.811c-1.057.214-2.502.339-4.476.339s-3.42-.125-4.476-.339c-1.06-.214-1.68-.509-2.05-.81c-.684-.557-.724-1.293-.724-2.601" clip-rule="evenodd" />
+</svg>''',
+                width: 27,
+                height: 27,
+                colorFilter: const ColorFilter.mode(Color(0xFF495057), BlendMode.srcIn),
+              ),
+              selectedIcon: SvgPicture.string(
+                '''<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<circle cx="12" cy="6" r="4" fill="currentColor" />
+	<path fill="currentColor" d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5" />
+</svg>''',
+                width: 30,
+                height: 30,
+                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+              ),
               label: 'প্রোফাইল',
             ),
           ],

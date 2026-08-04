@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../academics/data/academics_repository.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class TopicSelectionScreen extends ConsumerStatefulWidget {
   final String subjectId;
@@ -83,8 +84,8 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () => context.pop(),
           ),
           title: const Text(
@@ -101,8 +102,8 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         appBar: AppBar(
           backgroundColor: const Color(0xFFF3F4F3),
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          leading: CustomBackButton(
+            color: Colors.black87,
             onPressed: () => context.pop(),
           ),
           title: const Text(
@@ -142,8 +143,8 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            leading: CustomBackButton(
+              color: Colors.black87,
               onPressed: () {
                 if (_showMultiSubjectHeader) {
                   setState(() {

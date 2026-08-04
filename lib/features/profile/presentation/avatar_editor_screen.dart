@@ -5,6 +5,7 @@ import 'profile_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../question/presentation/practice_notifier.dart';
 import '../../../core/widgets/custom_avatar.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class AvatarEditorScreen extends ConsumerStatefulWidget {
   const AvatarEditorScreen({super.key});
@@ -425,8 +426,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+        leading: CustomBackButton(
+          color: isDark ? Colors.white : Colors.black,
           onPressed: () => context.pop(),
         ),
       ),

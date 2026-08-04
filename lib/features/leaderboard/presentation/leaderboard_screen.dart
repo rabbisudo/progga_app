@@ -7,6 +7,7 @@ import '../domain/leaderboard_model.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../../core/widgets/custom_avatar.dart';
+import '../../../core/widgets/custom_back_button.dart';
 
 class LeagueInfo {
   final String key;
@@ -244,8 +245,8 @@ class LeaderboardScreen extends ConsumerWidget {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: context.canPop()
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 18),
+            ? CustomBackButton(
+                color: Colors.black87,
                 onPressed: () => context.pop(),
               )
             : null,
