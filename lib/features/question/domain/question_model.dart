@@ -50,6 +50,7 @@ class QuestionModel with _$QuestionModel {
     required double marks,
     required double negativeMarks,
     required String status,
+    String? type,
     required List<OptionModel> options,
     List<ExplanationModel>? explanations,
   }) = _QuestionModel;

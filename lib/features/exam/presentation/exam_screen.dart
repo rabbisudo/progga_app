@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import 'package:image_picker/image_picker.dart';
+import '../domain/exam_model.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/custom_back_button.dart';
+
+final Map<String, List<String>> globalCqUploadedImages = {};
 
 class ExamScreen extends ConsumerStatefulWidget {
   final String id;
@@ -34,10 +39,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   final ScrollController _scrollController = ScrollController();
   Timer? _timeSpentTracker;
   final Map<String, Widget> _mathWidgetCache = {};
+  late Map<String, List<String>> _uploadedImages;
 
   @override
   void initState() {
     super.initState();
+    _uploadedImages = {};
 
     // Trigger initial session setup
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,7 +112,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   Future<void> _confirmAndSubmitExam() async {
     final state = ref.read(examRunnerProvider);
     final totalQ = state.exam?.questions.length ?? 0;
-    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length;
+    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length +
+        _uploadedImages.values.where((list) => list.isNotEmpty).length;
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -577,6 +585,232 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     return '${index + 1}';
   }
 
+  String _getCqLabel(int index) {
+    const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+    if (index >= 0 && index < labels.length) {
+      return labels[index];
+    }
+    return '${index + 1}';
+  }
+
+  Future<void> _pickCqAnswerImage(String questionId) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        setState(() {
+          _uploadedImages.putIfAbsent(questionId, () => []);
+          _uploadedImages[questionId]!.add(image.path);
+          globalCqUploadedImages[questionId] = List.from(_uploadedImages[questionId]!);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ইমেজ আপলোড ব্যর্থ হয়েছে: $e')),
+      );
+    }
+  }
+
+  Widget _buildCqQuestionCard(ExamRenderItem item, ExamRunnerState state) {
+    final eq = item.examQuestion!;
+    final q = eq.question;
+    final List<String> paths = _uploadedImages[q.id] ?? [];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${item.questionLabel}. ',
+                style: const TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF017A47),
+                ),
+              ),
+              Expanded(
+                child: _buildMathWidget(
+                  q.questionText,
+                  textStyle: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (q.imageKey != null && q.imageKey!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildQuestionImage(q.imageKey),
+          ],
+          const SizedBox(height: 16),
+          ...q.options.asMap().entries.map((entry) {
+            final optIndex = entry.key;
+            final opt = entry.value;
+            final label = _getCqLabel(optIndex);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$label. ',
+                    style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildMathWidget(
+                      opt.optionText,
+                      textStyle: const TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _pickCqAnswerImage(q.id),
+            icon: const Icon(Icons.add, color: Color(0xFF017A47), size: 18),
+            label: const Text(
+              'পৃষ্ঠা আপলোড করো',
+              style: TextStyle(
+                color: Color(0xFF017A47),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE8F5E9),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          if (paths.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 160,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: paths.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final path = paths[index];
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 150,
+                        margin: const EdgeInsets.only(top: 8, right: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.file(
+                                File(path),
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                bottom: 8,
+                                left: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 8,
+                                right: 8,
+                                child: Icon(
+                                  Icons.drag_indicator,
+                                  color: Colors.white.withOpacity(0.8),
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _uploadedImages[q.id]!.removeAt(index);
+                              globalCqUploadedImages[q.id] = List.from(_uploadedImages[q.id]!);
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(examRunnerProvider);
@@ -683,7 +917,62 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
     final questions = state.exam!.questions;
     final totalQuestions = questions.length;
-    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length;
+
+    // Group questions by passage
+    final List<ExamRenderItem> renderItems = [];
+    String? lastPassage;
+    int currentNumber = 1;
+    int subNumber = 1;
+    String? currentPassageNumber;
+
+    final passageRegex = RegExp(r'^\[PASSAGE:\s*(.*?)\]\s*(.*)$', dotAll: true);
+
+    for (int i = 0; i < questions.length; i++) {
+      final eq = questions[i];
+      final q = eq.question;
+      final match = passageRegex.firstMatch(q.questionText);
+
+      if (match != null) {
+        final passageText = match.group(1)!.trim();
+        final cleanQText = match.group(2)!.trim();
+        final cleanEq = eq.copyWith(question: q.copyWith(questionText: cleanQText));
+
+        if (passageText == lastPassage) {
+          renderItems.add(ExamRenderItem(
+            examQuestion: cleanEq,
+            questionLabel: '$currentPassageNumber.$subNumber',
+          ));
+          subNumber++;
+        } else {
+          lastPassage = passageText;
+          currentPassageNumber = '$currentNumber';
+          subNumber = 1;
+
+          renderItems.add(ExamRenderItem(
+            passage: passageText,
+            passageNumber: currentPassageNumber,
+            questionLabel: '',
+          ));
+
+          renderItems.add(ExamRenderItem(
+            examQuestion: cleanEq,
+            questionLabel: '$currentPassageNumber.$subNumber',
+          ));
+          subNumber++;
+          currentNumber++;
+        }
+      } else {
+        lastPassage = null;
+        renderItems.add(ExamRenderItem(
+          examQuestion: eq,
+          questionLabel: '$currentNumber',
+        ));
+        currentNumber++;
+      }
+    }
+
+    final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length +
+        _uploadedImages.values.where((list) => list.isNotEmpty).length;
     final isLowTime = state.timeLeft < 120;
 
     return PopScope(
@@ -771,10 +1060,65 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 cacheExtent: 500,
                 addAutomaticKeepAlives: false,
                 addRepaintBoundaries: true,
-                itemCount: totalQuestions,
+                itemCount: renderItems.length,
                 itemBuilder: (context, index) {
-                  final eq = questions[index];
+                  final item = renderItems[index];
+
+                  if (item.passage != null) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFFDE7),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFFFF59D), width: 1.2),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.description_outlined, color: Colors.amber, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'উদ্দীপক নং ${item.passageNumber}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 16, color: Colors.black12),
+                          _buildMathWidget(
+                            item.passage!,
+                            textStyle: const TextStyle(
+                              fontSize: 14.5,
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  final eq = item.examQuestion!;
                   final q = eq.question;
+
+                  final isWrittenOrCq = q.type == 'CQ_4' ||
+                      q.type == 'CQ_3' ||
+                      q.type == 'CQ' ||
+                      q.type == 'WRITTEN' ||
+                      q.type == 'CQ_N' ||
+                      (q.type?.startsWith('CQ_') ?? false) ||
+                      q.marks > 1.1;
+
+                  if (isWrittenOrCq) {
+                    return _buildCqQuestionCard(item, state);
+                  }
+
                   final selectedOptId = state.selectedOptions[q.id];
 
                   return Container(
@@ -816,7 +1160,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${index + 1}. ',
+                              '${item.questionLabel}. ',
                               style: const TextStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.bold,
@@ -1173,4 +1517,18 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
       },
     );
   }
+}
+
+class ExamRenderItem {
+  final String? passage;
+  final String? passageNumber;
+  final ExamQuestionModel? examQuestion;
+  final String questionLabel;
+
+  ExamRenderItem({
+    this.passage,
+    this.passageNumber,
+    this.examQuestion,
+    required this.questionLabel,
+  });
 }

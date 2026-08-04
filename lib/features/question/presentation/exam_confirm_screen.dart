@@ -321,11 +321,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         ? <String>[] 
         : availableTypes.toList();
 
-    if (typesToDisplay.isNotEmpty && !typesToDisplay.contains('FULL')) {
-      typesToDisplay.add('FULL');
-    }
-
-    const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FILL', 'FULL'];
+    const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FILL'];
     typesToDisplay.sort((a, b) {
       final indexA = sortOrder.indexOf(a);
       final indexB = sortOrder.indexOf(b);
@@ -608,7 +604,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           if (type == 'CQ') displayName = 'CQ (সৃজনশীল)';
                           if (type == 'WRITTEN') displayName = 'WRITTEN (লিখিত)';
                           if (type == 'FILL') displayName = 'FILL (শূন্যস্থান)';
-                          if (type == 'FULL') displayName = 'FULL (সব ধরন)';
 
                           return Padding(
                             padding: const EdgeInsets.only(right: 8.0),

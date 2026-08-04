@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
+import '../../exam/presentation/exam_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/custom_back_button.dart';
 
@@ -1077,237 +1080,11 @@ class ResultScreen extends ConsumerWidget {
                   addRepaintBoundaries: true,
                   itemBuilder: (context, index) {
                     final eqItem = examQuestionsList[index] as Map<String, dynamic>;
-                    final qData = (eqItem['question'] as Map<String, dynamic>?) ?? {};
-                    final qId = qData['id'] as String? ?? '';
-                    final questionText = qData['questionText'] as String? ?? '';
-                    final imageKey = qData['imageKey'] as String?;
-                    final latexFormula = qData['latexFormula'] as String?;
-                    final board = qData['board'] as String?;
-                    final year = qData['year'] as int?;
-
-                    final userAns = answersMap[qId];
-                    final selectedOptionId = userAns?['selectedOptionId'] as String?;
-
-                    final optionsList = (qData['options'] as List<dynamic>?) ?? [];
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Question Header Row (Title + Marks Badge)
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${index + 1}. ',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Expanded(
-                                child: _buildResultMathWidget(
-                                  questionText,
-                                  textStyle: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Question Media Image
-                          if (imageKey != null && imageKey.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            _buildQuestionImage(imageKey),
-                          ],
-
-                          // LaTeX Formula (if present)
-                          if (latexFormula != null && latexFormula.isNotEmpty) ...[
-                            const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF4F9F6),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFD4E8DC)),
-                              ),
-                              child: Math.tex(
-                                latexFormula,
-                                textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47)),
-                                onErrorFallback: (err) => Text(
-                                  latexFormula,
-                                  style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
-                                ),
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 16),
-
-                          // Options List
-                          ...optionsList.asMap().entries.map((optEntry) {
-                            final optIdx = optEntry.key;
-                            final optData = optEntry.value as Map<String, dynamic>;
-                            final optId = optData['id'] as String?;
-                            final optionText = optData['optionText'] as String? ?? '';
-                            final optImageKey = optData['imageKey'] as String?;
-                            final isCorrect = optData['isCorrect'] as bool? ?? false;
-                            final isUserSelected = selectedOptionId == optId;
-
-                            final label = _getOptionLabel(optIdx);
-
-                            // Background and border colors matching screenshot
-                            Color bgColor = const Color(0xFFF8F9FA);
-                            Color borderColor = Colors.transparent;
-                            Color labelBgColor = Colors.grey.shade200;
-                            Color labelTextColor = Colors.black87;
-
-                            if (isCorrect) {
-                              // Correct answer highlight (Golden Yellow / Amber)
-                              bgColor = const Color(0xFFFFFBEB);
-                              borderColor = const Color(0xFFF59E0B);
-                              labelBgColor = const Color(0xFFF59E0B);
-                              labelTextColor = Colors.white;
-                            } else if (isUserSelected) {
-                              // User wrong choice highlight (Light Red)
-                              bgColor = const Color(0xFFFFEBEE);
-                              borderColor = Colors.redAccent;
-                              labelBgColor = Colors.redAccent;
-                              labelTextColor = Colors.white;
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: borderColor, width: 1.2),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 26,
-                                          height: 26,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: labelBgColor,
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              label,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: labelTextColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildResultMathWidget(
-                                            optionText,
-                                            textStyle: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: (isCorrect || isUserSelected) ? FontWeight.bold : FontWeight.w500,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (optImageKey != null && optImageKey.isNotEmpty) ...[
-                                      const SizedBox(height: 6),
-                                      _buildQuestionImage(optImageKey),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-
-                          // Secure On-Demand Explanation Unlock Widget
-                          _ExplanationCard(
-                            questionId: qId,
-                            remainingQuota: remainingDaily,
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Footer Row (Board/Year & Tags + Action Icons)
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Board / Year & Custom Tags
-                              Expanded(
-                                child: Wrap(
-                                  spacing: 6,
-                                  runSpacing: 4,
-                                  children: [
-                                    if (board != null || year != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE5E7EB),
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Text(
-                                          '${board ?? ''} ${year != null ? _toBengaliDigit(year) : ''}'.trim(),
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                    ...((qData['tags'] as List<dynamic>?) ?? []).map((t) {
-                                      final tStr = t.toString().trim();
-                                      if (tStr.isEmpty) return const SizedBox.shrink();
-                                      return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFDCFCE7),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFF86EFAC)),
-                                        ),
-                                        child: Text(
-                                          tStr,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF166534),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // Action icons (Bookmark & Report Flag)
-                              _QuestionActionButtons(questionId: qId),
-                            ],
-                          ),
-                        ],
-                      ),
+                    return _QuestionReviewCard(
+                      eqItem: eqItem,
+                      index: index,
+                      answersMap: answersMap,
+                      remainingQuota: remainingDaily,
                     );
                   },
                 ),
@@ -1981,6 +1758,579 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
           ),
         );
       },
+    );
+  }
+}
+
+class _QuestionReviewCard extends ConsumerStatefulWidget {
+  final Map<String, dynamic> eqItem;
+  final int index;
+  final Map<String, Map<String, dynamic>> answersMap;
+  final int remainingQuota;
+
+  const _QuestionReviewCard({
+    super.key,
+    required this.eqItem,
+    required this.index,
+    required this.answersMap,
+    required this.remainingQuota,
+  });
+
+  @override
+  ConsumerState<_QuestionReviewCard> createState() => _QuestionReviewCardState();
+}
+
+class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
+  bool _isUnlocked = false;
+  bool _isLoading = false;
+  String? _activeSubKey;
+  final Map<String, bool> _subExplanationExpanded = {
+    'A': false,
+    'B': false,
+    'C': false,
+    'D': false,
+    'E': false,
+    'F': false,
+  };
+  final Map<String, String> _parsedExplanations = {};
+
+  String _getSubKey(int index) {
+    const keys = ['A', 'B', 'C', 'D', 'E', 'F'];
+    if (index >= 0 && index < keys.length) {
+      return keys[index];
+    }
+    return 'A';
+  }
+
+  String _getCqLabel(int index) {
+    const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+    if (index >= 0 && index < labels.length) {
+      return labels[index];
+    }
+    return '${index + 1}';
+  }
+
+  void _showLimitDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'ঠিক আছে',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _toggleSubExplanation(String questionId, String subKey) async {
+    if (_isUnlocked) {
+      setState(() {
+        _subExplanationExpanded[subKey] = !(_subExplanationExpanded[subKey] ?? false);
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _activeSubKey = subKey;
+    });
+
+    try {
+      final repo = ref.read(examRepositoryProvider);
+      final res = await repo.unlockExplanation(questionId);
+
+      if (mounted) {
+        final newRemaining = (res['remainingDaily'] as num?)?.toInt();
+        if (newRemaining != null) {
+          ref.read(dailyQuotaProvider.notifier).setQuota(newRemaining);
+        }
+
+        final rawExplanations = res['explanations'] as List<dynamic>? ?? [];
+        if (rawExplanations.isNotEmpty) {
+          final expText = rawExplanations[0]['text'] as String? ?? '';
+          try {
+            final Map<String, dynamic> parsed = jsonDecode(expText);
+            parsed.forEach((key, value) {
+              _parsedExplanations[key] = value.toString();
+            });
+          } catch (e) {
+            _parsedExplanations['A'] = expText;
+          }
+        }
+
+        setState(() {
+          _isUnlocked = true;
+          _subExplanationExpanded[subKey] = true;
+          _isLoading = false;
+          _activeSubKey = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _activeSubKey = null;
+        });
+        _showLimitDialog(context);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final qData = (widget.eqItem['question'] as Map<String, dynamic>?) ?? {};
+    final qId = qData['id'] as String? ?? '';
+    final questionText = qData['questionText'] as String? ?? '';
+    final imageKey = qData['imageKey'] as String?;
+    final latexFormula = qData['latexFormula'] as String?;
+    final board = qData['board'] as String?;
+    final year = qData['year'] as int?;
+    final qType = qData['type'] as String?;
+    final qMarks = (qData['marks'] as num?)?.toDouble() ?? 1.0;
+
+    final userAns = widget.answersMap[qId];
+    final selectedOptionId = userAns?['selectedOptionId'] as String?;
+
+    final optionsList = (qData['options'] as List<dynamic>?) ?? [];
+    final List<String> localPaths = globalCqUploadedImages[qId] ?? [];
+
+    final isWrittenOrCq = qType == 'CQ_4' ||
+        qType == 'CQ_3' ||
+        qType == 'CQ' ||
+        qType == 'WRITTEN' ||
+        qType == 'CQ_N' ||
+        (qType?.startsWith('CQ_') ?? false) ||
+        qMarks > 1.1;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Question Header Row (Title)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${widget.index + 1}. ',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Expanded(
+                child: _buildResultMathWidget(
+                  questionText,
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Question Media Image
+          if (imageKey != null && imageKey.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildQuestionImage(imageKey),
+          ],
+
+          // LaTeX Formula (if present)
+          if (latexFormula != null && latexFormula.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F9F6),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFD4E8DC)),
+              ),
+              child: Math.tex(
+                latexFormula,
+                textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47)),
+                onErrorFallback: (err) => Text(
+                  latexFormula,
+                  style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
+                ),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+
+          // Uploaded Pages List
+          if (isWrittenOrCq && localPaths.isNotEmpty) ...[
+            const Text(
+              'আপনার আপলোডকৃত উত্তরসমূহ:',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 140,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: localPaths.length,
+                separatorBuilder: (context, idx) => const SizedBox(width: 12),
+                itemBuilder: (context, idx) {
+                  final path = localPaths[idx];
+                  return Container(
+                    width: 100,
+                    height: 130,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.file(
+                            File(path),
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            left: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '${idx + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Content body based on type
+          if (isWrittenOrCq) ...[
+            // Written / CQ Content: Flat text subquestions with separate explanation button
+            ...optionsList.asMap().entries.map((optEntry) {
+              final optIdx = optEntry.key;
+              final optData = optEntry.value as Map<String, dynamic>;
+              final optionText = optData['optionText'] as String? ?? '';
+              final label = _getCqLabel(optIdx);
+              final subKey = _getSubKey(optIdx);
+              final isExpanded = _subExplanationExpanded[subKey] ?? false;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$label. ',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildResultMathWidget(
+                            optionText,
+                            textStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: InkWell(
+                        onTap: () => _toggleSubExplanation(qId, subKey),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isLoading && _activeSubKey == subKey)
+                                const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFF017A47)),
+                                )
+                              else
+                                const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 13),
+                              const SizedBox(width: 6),
+                              Text(
+                                isExpanded ? 'ব্যাখ্যা বন্ধ করো' : '$label এর ব্যাখ্যা',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF017A47),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                color: const Color(0xFF017A47),
+                                size: 14,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (isExpanded) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: _buildResultMathWidget(
+                          _parsedExplanations[subKey] ?? 'কোনো ব্যাখ্যা পাওয়া যায়নি।',
+                          textStyle: const TextStyle(
+                            fontSize: 13.5,
+                            color: Colors.black87,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }),
+          ] else ...[
+            // MCQ Content: Selectable Options review
+            ...optionsList.asMap().entries.map((optEntry) {
+              final optIdx = optEntry.key;
+              final optData = optEntry.value as Map<String, dynamic>;
+              final optId = optData['id'] as String?;
+              final optionText = optData['optionText'] as String? ?? '';
+              final optImageKey = optData['imageKey'] as String?;
+              final isCorrect = optData['isCorrect'] as bool? ?? false;
+              final isUserSelected = selectedOptionId == optId;
+
+              final label = _getOptionLabel(optIdx);
+
+              Color bgColor = const Color(0xFFF8F9FA);
+              Color borderColor = Colors.transparent;
+              Color labelBgColor = Colors.grey.shade200;
+              Color labelTextColor = Colors.black87;
+
+              if (isCorrect) {
+                bgColor = const Color(0xFFFFFBEB);
+                borderColor = const Color(0xFFF59E0B);
+                labelBgColor = const Color(0xFFF59E0B);
+                labelTextColor = Colors.white;
+              } else if (isUserSelected) {
+                bgColor = const Color(0xFFFFEBEE);
+                borderColor = Colors.redAccent;
+                labelBgColor = Colors.redAccent;
+                labelTextColor = Colors.white;
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor, width: 1.2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: labelBgColor,
+                            ),
+                            child: Center(
+                              child: Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: labelTextColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildResultMathWidget(
+                              optionText,
+                              textStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: (isCorrect || isUserSelected) ? FontWeight.bold : FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (optImageKey != null && optImageKey.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        _buildQuestionImage(optImageKey),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }),
+            _ExplanationCard(
+              questionId: qId,
+              remainingQuota: widget.remainingQuota,
+            ),
+          ],
+
+          const SizedBox(height: 12),
+
+          // Footer Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    if (board != null || year != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE5E7EB),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${board ?? ''} ${year != null ? _toBengaliDigit(year) : ''}'.trim(),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ...((qData['tags'] as List<dynamic>?) ?? []).map((t) {
+                      final tStr = t.toString().trim();
+                      if (tStr.isEmpty) return const SizedBox.shrink();
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFF86EFAC)),
+                        ),
+                        child: Text(
+                          tStr,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF166534),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _QuestionActionButtons(questionId: qId),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
