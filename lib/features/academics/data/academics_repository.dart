@@ -129,7 +129,9 @@ final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String
   );
 });
 
-final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, List<String>>((ref, ids) async {
+final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, idsStr) async {
+  if (idsStr.isEmpty) return [];
+  final ids = idsStr.split(',').where((id) => id.trim().isNotEmpty).toList();
   if (ids.isEmpty) return [];
   final repo = ref.watch(academicsRepositoryProvider);
   return repo.fetchExamsByIds(ids);

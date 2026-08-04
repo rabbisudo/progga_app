@@ -22,7 +22,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   bool _isTopicsExpanded = true;
   late Map<String, int> _subjectQuestionCounts;
   late int _totalTimeMinutes;
-  final String _selectedQuestionType = 'MCQ';
+  String _selectedQuestionType = 'MCQ';
 
   @override
   void initState() {
@@ -51,13 +51,16 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     if (upper == 'MCQ' || upper.startsWith('MCQ_') || upper == 'MCQ_N') {
       return 'MCQ';
     }
+    if (upper == 'CQ_N') {
+      return 'WRITTEN';
+    }
     if (upper.startsWith('CQ_') || upper == 'CQ') {
       return 'CQ';
     }
-    if (upper == 'WRITTEN') {
-      return 'WRITTEN';
+    if (upper == 'FILL_IN_THE_GAP' || upper == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' || upper.contains('FILL')) {
+      return 'FILL';
     }
-    if (upper.contains('FILL')) {
+    if (upper == 'WRITTEN') {
       return 'WRITTEN';
     }
     return null;
@@ -322,7 +325,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
       typesToDisplay.add('FULL');
     }
 
-    const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FULL'];
+    const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FILL', 'FULL'];
     typesToDisplay.sort((a, b) {
       final indexA = sortOrder.indexOf(a);
       final indexB = sortOrder.indexOf(b);
@@ -580,6 +583,67 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                         ),
                       ),
                     ],
+
+                    const SizedBox(height: 24),
+
+                    // 2. Question Type Selection ("প্রশ্নের ধরন")
+                    const Text(
+                      'প্রশ্নের ধরন',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 38,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: typesToDisplay.map<Widget>((type) {
+                          final isSelected = _selectedQuestionType == type;
+
+                          String displayName = type;
+                          if (type == 'MCQ') displayName = 'MCQ (বহুনির্বাচনী)';
+                          if (type == 'CQ') displayName = 'CQ (সৃজনশীল)';
+                          if (type == 'WRITTEN') displayName = 'WRITTEN (লিখিত)';
+                          if (type == 'FILL') displayName = 'FILL (শূন্যস্থান)';
+                          if (type == 'FULL') displayName = 'FULL (সব ধরন)';
+
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              showCheckmark: false,
+                              label: Text(
+                                displayName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              selected: isSelected,
+                              selectedColor: const Color(0xFF017A47),
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(
+                                  color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade300,
+                                  width: 1.2,
+                                ),
+                              ),
+                              onSelected: (val) {
+                                if (val) {
+                                  setState(() {
+                                    _selectedQuestionType = type;
+                                  });
+                                }
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
 
                     const SizedBox(height: 24),
 

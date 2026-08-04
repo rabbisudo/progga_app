@@ -107,6 +107,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
   // Question Bank Series & Exams States
   final List<String> _selectedSeriesStack = [];
   String? _activeExamTab;
+  String _examSearchQuery = '';
 
   @override
   void initState() {
@@ -312,7 +313,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 ),
               ],
             )
-          : (_currentNavIndex == 4 || _currentNavIndex == 3
+          : ((_currentNavIndex == 4 || _currentNavIndex == 3 || (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty))
               ? null
               : AppBar(
                   backgroundColor: Colors.white,
@@ -329,12 +330,20 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   ),
                   centerTitle: true,
                 )),
-      body: IndexedStack(
-        index: _currentNavIndex,
-        children: views,
+      body: SafeArea(
+        top: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty) ||
+            _currentNavIndex == 4 ||
+            _currentNavIndex == 3,
+        bottom: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty),
+        child: IndexedStack(
+          index: _currentNavIndex,
+          children: views,
+        ),
       ),
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
+      bottomNavigationBar: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty)
+          ? null
+          : NavigationBarTheme(
+              data: NavigationBarThemeData(
           backgroundColor: Colors.white,
           indicatorColor: const Color(0xFFE0ECE6), // Light theme green tint capsule
           iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -898,6 +907,144 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     );
   }
 
+  LinearGradient _getSubjectGradient(String subjectName) {
+    final name = subjectName.toLowerCase();
+    if (name.contains('পদার্থ') || name.contains('physics')) {
+      return const LinearGradient(
+        colors: [Color(0xFF001F4D), Color(0xFF004080)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (name.contains('উচ্চতর') || name.contains('higher')) {
+      return const LinearGradient(
+        colors: [Color(0xFF4D2600), Color(0xFF804000)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (name.contains('জীববিজ্ঞান') || name.contains('biology')) {
+      return const LinearGradient(
+        colors: [Color(0xFF330033), Color(0xFF660066)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (name.contains('রসায়ন') || name.contains('chemistry')) {
+      return const LinearGradient(
+        colors: [Color(0xFF1F003D), Color(0xFF400080)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (name.contains('গণিত') || name.contains('math')) {
+      return const LinearGradient(
+        colors: [Color(0xFF4D3D00), Color(0xFF806600)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (name.contains('ইংরেজী') || name.contains('english')) {
+      return const LinearGradient(
+        colors: [Color(0xFF4D0000), Color(0xFF800000)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    return const LinearGradient(
+      colors: [Color(0xFF003D24), Color(0xFF00804C)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+  }
+
+  Widget _buildSubjectTitle(String title) {
+    List<String> parts = [];
+    if (title.contains('ইংরেজী ১ম')) {
+      parts = ['ইংরেজী', '১ম পত্র'];
+    } else if (title.contains('ইংরেজী ২য়')) {
+      parts = ['ইংরেজী', '২য় পত্র'];
+    } else if (title.contains('English 1st')) {
+      parts = ['English', '1st Paper'];
+    } else if (title.contains('English 2nd')) {
+      parts = ['English', '2nd Paper'];
+    } else if (title.contains('বাংলা ১ম')) {
+      parts = ['বাংলা', '১ম পত্র'];
+    } else if (title.contains('বাংলা ২য়')) {
+      parts = ['বাংলা', '২য় পত্র'];
+    } else {
+      parts = [title];
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: parts.map((part) => Text(
+        part,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Noto Sans Bengali',
+          height: 1.15,
+        ),
+      )).toList(),
+    );
+  }
+
+  int _getCategoryCount(Map<String, dynamic> series) {
+    final subSeriesList = (series['subSeries'] as List<dynamic>?) ?? [];
+    if (subSeriesList.isNotEmpty) {
+      return subSeriesList.length;
+    }
+    final labelNameMap = Map<String, dynamic>.from(series['labelName'] as Map? ?? {});
+    if (labelNameMap.isNotEmpty) {
+      int count = 0;
+      for (final val in labelNameMap.values) {
+        if (val is List) count += val.length;
+      }
+      if (count > 0) return count;
+    }
+    final examsStr = series['exams']?.toString() ?? '';
+    if (examsStr.isNotEmpty) {
+      return examsStr.split(',').where((x) => x.trim().isNotEmpty).length;
+    }
+    return 0;
+  }
+
+  String _toBengaliDigits(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bengali = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String result = input;
+    for (int i = 0; i < 10; i++) {
+      result = result.replaceAll(english[i], bengali[i]);
+    }
+    return result;
+  }
+
+  String _getExamDateStr(dynamic createdAt, String examTitle) {
+    try {
+      if (createdAt != null) {
+        final dt = DateTime.parse(createdAt.toString());
+        final months = [
+          'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+          'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+        ];
+        final dayStr = _toBengaliDigits(dt.day.toString());
+        final monthStr = months[dt.month - 1];
+        final yearStr = _toBengaliDigits(dt.year.toString());
+        return '$dayStr $monthStr, $yearStr';
+      }
+    } catch (_) {}
+
+    final regExp = RegExp(r'\d{4}');
+    final match = regExp.firstMatch(examTitle);
+    if (match != null) {
+      final year = match.group(0)!;
+      return '${_toBengaliDigits("২৪")} মে, ${_toBengaliDigits(year)}';
+    }
+    final bnRegExp = RegExp(r'[০-৯]{4}');
+    final bnMatch = bnRegExp.firstMatch(examTitle);
+    if (bnMatch != null) {
+      final year = bnMatch.group(0)!;
+      return '২৪ মে, $year';
+    }
+    return '২৪ মে, ২০২৬';
+  }
+
   // View 1: Question Bank View (Cascading Navigation flow)
   Widget _buildQuestionBankView(ThemeData theme) {
     final profile = ref.watch(userProfileProvider).value?.profile;
@@ -931,7 +1078,15 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             ),
           );
         }
-        return _buildHierarchicalSeriesFlow(seriesList);
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          switchInCurve: Curves.easeInOut,
+          switchOutCurve: Curves.easeInOut,
+          child: KeyedSubtree(
+            key: ValueKey(_selectedSeriesStack.length),
+            child: _buildHierarchicalSeriesFlow(seriesList),
+          ),
+        );
       },
       loading: () => const Center(
         child: CircularProgressIndicator(color: Color(0xFF017A47)),
@@ -967,97 +1122,180 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
     // Level 0: Display all top-level Question Bank series directly
     if (_selectedSeriesStack.isEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Text(
-              'প্রশ্নব্যাংক সিরিজসমূহ',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
+      final Map<String, List<Map<String, dynamic>>> groupedBySubject = {};
+      for (final s in rootSeriesList) {
+        if (s is Map<String, dynamic>) {
+          final subId = s['subjectId']?.toString() ?? 'other';
+          groupedBySubject.putIfAbsent(subId, () => []).add(s);
+        }
+      }
+
+      final sortedSubjectIds = groupedBySubject.keys.toList()
+        ..sort((a, b) {
+          final subA = groupedBySubject[a]!.first['subject'] as Map<String, dynamic>?;
+          final subB = groupedBySubject[b]!.first['subject'] as Map<String, dynamic>?;
+          final orderA = subA?['sortOrder'] as int? ?? 100;
+          final orderB = subB?['sortOrder'] as int? ?? 100;
+          return orderA.compareTo(orderB);
+        });
+
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1.0,
               ),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              itemCount: rootSeriesList.length,
+              itemCount: sortedSubjectIds.length,
               itemBuilder: (context, index) {
-                final s = rootSeriesList[index] as Map<String, dynamic>;
-                final name = s['name']?.toString() ?? 'Test Paper';
-                final desc = s['description']?.toString() ?? '';
-                final logo = s['logo']?.toString();
+                final subjectId = sortedSubjectIds[index];
+                final subjectSeries = groupedBySubject[subjectId]!;
+                final firstSeries = subjectSeries.first;
+                final subjectObj = firstSeries['subject'] as Map<String, dynamic>?;
+                final subjectName = subjectObj?['name']?.toString() ?? firstSeries['name']?.toString() ?? 'অন্যান্য';
+                final subjectIcon = subjectObj?['icon']?.toString();
+                final imageUrl = firstSeries['logo']?.toString() ?? firstSeries['banner']?.toString() ?? subjectObj?['imageUrl']?.toString() ?? '';
+                final count = _getCategoryCount(firstSeries);
 
                 return Card(
-                  elevation: 1,
-                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 0,
+                  margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      setState(() {
-                        _selectedSeriesStack.add(s['id']?.toString() ?? '');
-                        _activeExamTab = null;
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF017A47).withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: logo != null && logo.isNotEmpty
-                                  ? Image.network(
-                                      logo,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => const Text('📚', style: TextStyle(fontSize: 24)),
-                                    )
-                                  : const Text('📚', style: TextStyle(fontSize: 24)),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                                ),
-                                if (desc.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    desc.replaceAll(RegExp(r'<[^>]*>'), ''),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (imageUrl.isNotEmpty)
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                            if (wasSynchronouslyLoaded) return child;
+                            return AnimatedOpacity(
+                              opacity: frame == null ? 0 : 1,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              child: child,
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey.shade50,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF017A47),
                                   ),
-                                ],
-                              ],
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, _, __) => Container(
+                            decoration: BoxDecoration(
+                              gradient: _getSubjectGradient(subjectName),
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black45),
-                        ],
+                        )
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: _getSubjectGradient(subjectName),
+                          ),
+                        ),
+
+                      if (imageUrl.isEmpty)
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          right: 16,
+                          child: _buildSubjectTitle(subjectName),
+                        ),
+                      if (imageUrl.isEmpty)
+                        Positioned(
+                          bottom: 16,
+                          right: 16,
+                          child: Text(
+                            subjectIcon ?? '📚',
+                            style: const TextStyle(fontSize: 48),
+                          ),
+                        ),
+
+                      Positioned(
+                        bottom: 16,
+                        left: 16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: Color(0xFF495057),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$count',
+                                style: const TextStyle(
+                                  color: Color(0xFF212529),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+
+                      Positioned.fill(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            splashColor: const Color(0xFF017A47).withOpacity(0.08),
+                            highlightColor: const Color(0xFF017A47).withOpacity(0.04),
+                            onTap: () {
+                              setState(() {
+                                _selectedSeriesStack.add(firstSeries['id']?.toString() ?? '');
+                                _activeExamTab = null;
+                                _examSearchQuery = '';
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+          ],
+        ),
       );
     }
 
@@ -1113,20 +1351,14 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Text(
-              'ক্যাটাগরি নির্বাচন করুন',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 0.8),
-            ),
-          ),
+          const SizedBox(height: 8),
           Expanded(
             child: GridView.count(
               padding: const EdgeInsets.all(16.0),
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 1.1,
+              childAspectRatio: 1.0,
               children: validSubSeries.map<Widget>((subSeriesObj) {
                 final subSeriesMap = subSeriesObj as Map<String, dynamic>;
                 final subName = subSeriesMap['name']?.toString() ?? '';
@@ -1164,6 +1396,90 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   title = 'সংক্ষিপ্ত প্রশ্ন';
                 }
 
+                final subLogo = subSeriesMap['logo']?.toString() ?? subSeriesMap['banner']?.toString() ?? '';
+
+                if (subLogo.isNotEmpty) {
+                  return Card(
+                    elevation: 0,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.network(
+                          subLogo,
+                          fit: BoxFit.cover,
+                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                            if (wasSynchronouslyLoaded) return child;
+                            return AnimatedOpacity(
+                              opacity: frame == null ? 0 : 1,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                              child: child,
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey.shade50,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF017A47),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, _, __) => Container(
+                            color: cardColor,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(icon, style: const TextStyle(fontSize: 32)),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    title,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              splashColor: const Color(0xFF017A47).withOpacity(0.08),
+                              highlightColor: const Color(0xFF017A47).withOpacity(0.04),
+                              onTap: () {
+                                setState(() {
+                                  _selectedSeriesStack.add(subIdStr);
+                                  _activeExamTab = null;
+                                  _examSearchQuery = '';
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 return Card(
                   elevation: 0,
                   color: cardColor,
@@ -1184,15 +1500,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          subSeriesMap['logo'] != null && subSeriesMap['logo'].toString().isNotEmpty
-                              ? Image.network(
-                                  subSeriesMap['logo'].toString(),
-                                  width: 38,
-                                  height: 38,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => Text(icon, style: const TextStyle(fontSize: 32)),
-                                )
-                              : Text(icon, style: const TextStyle(fontSize: 32)),
+                          Text(icon, style: const TextStyle(fontSize: 32)),
                           const SizedBox(height: 8),
                           Text(
                             title,
@@ -1267,8 +1575,12 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     }
 
     final tabKeys = labelNameMap.keys.toList();
-    _activeExamTab ??= tabKeys.first;
-    final activeTabExamIds = List<String>.from(labelNameMap[_activeExamTab] ?? []);
+    final displayTabs = ['সব', ...tabKeys];
+    _activeExamTab ??= 'সব';
+    if (!displayTabs.contains(_activeExamTab)) {
+      _activeExamTab = 'সব';
+    }
+    final hasMultipleLevels = tabKeys.length > 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1282,6 +1594,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 onPressed: () {
                   setState(() {
                     _selectedSeriesStack.removeLast();
+                    _examSearchQuery = '';
                   });
                 },
               ),
@@ -1297,91 +1610,223 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           ),
         ),
 
-        Container(
-          height: 38,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: tabKeys.map<Widget>((key) {
-              final isSelected = _activeExamTab == key;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ChoiceChip(
-                  label: Text(
-                    key,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Colors.black87,
-                    ),
+        if (hasMultipleLevels) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: SizedBox(
+              height: 44,
+              child: TextField(
+                onChanged: (val) {
+                  setState(() {
+                    _examSearchQuery = val;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'পরীক্ষা খুঁজে বের করো',
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
                   ),
-                  selected: isSelected,
-                  selectedColor: const Color(0xFF017A47),
-                  backgroundColor: Colors.grey.shade100,
-                  checkmarkColor: Colors.white,
-                  onSelected: (val) {
-                    if (val) {
-                      setState(() {
-                        _activeExamTab = key;
-                      });
-                    }
-                  },
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: const BorderSide(color: Color(0xFF017A47)),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF8F9FA),
                 ),
-              );
-            }).toList(),
+              ),
+            ),
           ),
-        ),
+          Container(
+            height: 38,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: displayTabs.map<Widget>((key) {
+                final isSelected = _activeExamTab == key;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: ChoiceChip(
+                    showCheckmark: false,
+                    label: Text(
+                      key,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFFF1F3F5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                        width: 1.2,
+                      ),
+                    ),
+                    onSelected: (val) {
+                      if (val) {
+                        setState(() {
+                          _activeExamTab = key;
+                          _examSearchQuery = '';
+                        });
+                      }
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
 
         Expanded(
           child: Consumer(
             builder: (context, ref, _) {
-              final examsAsync = ref.watch(qbExamsProvider(activeTabExamIds));
+              final List<String> idsToLoad;
+              if (hasMultipleLevels) {
+                if (_activeExamTab == 'সব') {
+                  idsToLoad = tabKeys
+                      .expand((k) => List<String>.from(labelNameMap[k] ?? []))
+                      .toSet()
+                      .toList();
+                } else {
+                  idsToLoad = List<String>.from(labelNameMap[_activeExamTab] ?? []);
+                }
+              } else {
+                idsToLoad = List<String>.from(labelNameMap[tabKeys.first] ?? []);
+              }
+
+              final examsAsync = ref.watch(qbExamsProvider(idsToLoad.join(',')));
               return examsAsync.when(
                 data: (examsList) {
-                  if (examsList.isEmpty) {
-                    return const Center(child: Text('এই ট্যাবের অধীনে কোনো পরীক্ষা পাওয়া যায়নি।'));
+                  var filteredList = examsList;
+                  if (hasMultipleLevels && _examSearchQuery.isNotEmpty) {
+                    filteredList = examsList.where((ex) {
+                      final title = ex['title']?.toString() ?? '';
+                      return title.toLowerCase().contains(_examSearchQuery.toLowerCase());
+                    }).toList();
+                  }
+
+                  if (filteredList.isEmpty) {
+                    return const Center(child: Text('কোনো পরীক্ষা পাওয়া যায়নি।'));
                   }
                   return ListView.builder(
                     padding: const EdgeInsets.all(16.0),
-                    itemCount: examsList.length,
+                    itemCount: filteredList.length,
                     itemBuilder: (context, idx) {
-                      final ex = examsList[idx] as Map<String, dynamic>;
+                      final ex = filteredList[idx] as Map<String, dynamic>;
                       final title = ex['title']?.toString() ?? '';
                       final duration = ex['duration'] as int? ?? 1500;
                       final durationMin = (duration / 60).round();
                       final qCount = ex['qCount'] as int? ?? 25;
 
+                      final createdAt = ex['createdAt'];
+                      final dateStr = _getExamDateStr(createdAt, title);
+
                       return Card(
-                        elevation: 1,
-                        margin: const EdgeInsets.only(bottom: 12),
+                        elevation: 0,
+                        margin: const EdgeInsets.only(bottom: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.grey.shade200),
+                          borderRadius: BorderRadius.circular(24),
+                          side: BorderSide(color: Colors.grey.shade200, width: 1.5),
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          title: Text(
-                            title,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 6.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text('$durationMin মিনিট', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                const SizedBox(width: 16),
-                                const Icon(Icons.help_outline, size: 14, color: Colors.grey),
-                                const SizedBox(width: 4),
-                                Text('$qCount টি প্রশ্ন', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                              ],
-                            ),
-                          ),
-                          trailing: const Icon(Icons.arrow_forward, color: Color(0xFF017A47), size: 18),
+                        clipBehavior: Clip.antiAlias,
+                        color: Colors.white,
+                        child: InkWell(
                           onTap: () {
                             context.push('/exam/${ex['id']}');
                           },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF212529),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // 1. Timer
+                                    const Icon(
+                                      Icons.timer_outlined,
+                                      size: 16,
+                                      color: Color(0xFFE03131),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _toBengaliDigits(durationMin.toString()) + ' মিনিট',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Container(
+                                      width: 1.2,
+                                      height: 14,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(width: 16),
+
+                                    // 2. Questions Count
+                                    const Icon(
+                                      Icons.edit_outlined,
+                                      size: 16,
+                                      color: Color(0xFF2B8A3E),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _toBengaliDigits(qCount.toString()) + 'টি প্রশ্ন',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Container(
+                                      width: 1.2,
+                                      height: 14,
+                                      color: Colors.grey.shade300,
+                                    ),
+                                    const SizedBox(width: 16),
+
+                                    // 3. Date
+                                    const Icon(
+                                      Icons.calendar_month_outlined,
+                                      size: 16,
+                                      color: Color(0xFF364FC7),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      dateStr,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },
