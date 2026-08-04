@@ -25,6 +25,7 @@ class AcademicsRepository {
     required String classId,
     String? groupId,
     String? userId,
+    bool isQuestionBank = false,
   }) async {
     try {
       final response = await _apiClient.dio.get(
@@ -33,6 +34,7 @@ class AcademicsRepository {
           'classId': classId,
           if (groupId != null && groupId.isNotEmpty) 'groupId': groupId,
           if (userId != null && userId.isNotEmpty) 'userId': userId,
+          if (isQuestionBank) 'isQuestionBank': 'true',
         },
       );
       return response.data as List<dynamic>;
@@ -62,5 +64,19 @@ final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref
     classId: profile.classId!,
     groupId: profile.groupId,
     userId: profile.userId,
+  );
+});
+
+final studentQbCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+    return [];
+  }
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchStudentCurriculum(
+    classId: profile.classId!,
+    groupId: profile.groupId,
+    userId: profile.userId,
+    isQuestionBank: true,
   );
 });

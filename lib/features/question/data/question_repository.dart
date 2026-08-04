@@ -24,6 +24,9 @@ class QuestionRepository {
     String? collegeId,
     String? varsityId,
     String? year,
+    String? type,
+    String? classId,
+    String? groupId,
     String? cursor,
     int limit = 20,
   }) async {
@@ -38,6 +41,9 @@ class QuestionRepository {
         if (collegeId != null && collegeId.isNotEmpty) 'collegeId': collegeId,
         if (varsityId != null && varsityId.isNotEmpty) 'varsityId': varsityId,
         if (year != null && year.isNotEmpty) 'year': year,
+        if (type != null && type.isNotEmpty) 'type': type,
+        if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (groupId != null && groupId.isNotEmpty) 'groupId': groupId,
         if (cursor != null) 'cursor': cursor,
       };
 
