@@ -120,22 +120,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               fontFamily: 'Noto Sans Bengali',
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.ios_share, color: isDark ? Colors.white : Colors.black87),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'স্ট্রিক শেয়ার করার লিংক ক্লিপবোর্ডে কপি করা হয়েছে!',
-                      style: TextStyle(fontFamily: 'Noto Sans Bengali'),
-                    ),
-                    backgroundColor: Color(0xFF017A47),
-                  ),
-                );
-              },
-            ),
-          ],
+
           bottom: TabBar(
             indicatorColor: const Color(0xFF017A47),
             indicatorWeight: 3,
@@ -153,8 +138,14 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
           ),
         ),
         body: profileAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+          loading: () => TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildPersonalTabSkeleton(context, isDark),
+              const Center(
+                child: CircularProgressIndicator(color: Color(0xFF017A47)),
+              ),
+            ],
           ),
           error: (err, stack) => Center(
             child: Text(
@@ -201,6 +192,192 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildPersonalTabSkeleton(BuildContext context, bool isDark) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        children: [
+          // 1. Green top banner placeholder
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A1A1A) : Colors.grey.shade100,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          ShimmerSkeleton(width: 80, height: 48, borderRadius: 8),
+                          SizedBox(height: 10),
+                          ShimmerSkeleton(width: 120, height: 20, borderRadius: 4),
+                        ],
+                      ),
+                    ),
+                    const ShimmerSkeleton(width: 80, height: 80, borderRadius: 40),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Banner white warning card placeholder
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: const [
+                      ShimmerSkeleton(width: 24, height: 24, borderRadius: 12),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: ShimmerSkeleton(width: double.infinity, height: 16, borderRadius: 4),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 2. Month Calendar Title placeholder
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                ShimmerSkeleton(width: 32, height: 32, borderRadius: 16),
+                ShimmerSkeleton(width: 120, height: 22, borderRadius: 4),
+                ShimmerSkeleton(width: 32, height: 32, borderRadius: 16),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 3. Status card row placeholder
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 90,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? Colors.white10 : Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: const [
+                        ShimmerSkeleton(width: 36, height: 36, borderRadius: 18),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ShimmerSkeleton(width: 60, height: 24, borderRadius: 4),
+                              SizedBox(height: 4),
+                              ShimmerSkeleton(width: 80, height: 14, borderRadius: 3),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 90,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? Colors.white10 : Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: const [
+                        ShimmerSkeleton(width: 36, height: 36, borderRadius: 18),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ShimmerSkeleton(width: 60, height: 24, borderRadius: 4),
+                              SizedBox(height: 4),
+                              ShimmerSkeleton(width: 80, height: 14, borderRadius: 3),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // 4. Calendar container placeholder
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                ),
+              ),
+              child: Column(
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: 35,
+                    itemBuilder: (context, index) => const Center(
+                      child: ShimmerSkeleton(width: 30, height: 30, borderRadius: 15),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
@@ -1082,4 +1259,84 @@ Widget _buildRankOverlayBadge(int rank, bool isDark) {
       border: Border.all(color: isDark ? const Color(0xFF121212) : Colors.white, width: 1.5),
     ),
   );
+}
+
+class ShimmerSkeleton extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  const ShimmerSkeleton({
+    super.key,
+    required this.width,
+    required this.height,
+    this.borderRadius = 8.0,
+  });
+
+  @override
+  State<ShimmerSkeleton> createState() => _ShimmerSkeletonState();
+}
+
+class _ShimmerSkeletonState extends State<ShimmerSkeleton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+    _animation = Tween<double>(begin: -2.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: const [0.35, 0.5, 0.65],
+              colors: [
+                baseColor,
+                highlightColor,
+                baseColor,
+              ],
+              transform: _SlidingGradientTransform(slidePercent: _animation.value),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SlidingGradientTransform extends GradientTransform {
+  final double slidePercent;
+  const _SlidingGradientTransform({required this.slidePercent});
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * slidePercent, 0.0, 0.0);
+  }
 }
