@@ -137,11 +137,11 @@ class MyReportsScreen extends ConsumerWidget {
                 final isResolved = status == 'RESOLVED';
                 final statusText = isResolved ? 'সমাধান করা হয়েছে' : 'পেন্ডিং';
                 final statusBgColor = isResolved
-                    ? const Color(0xFFE8F5E9)
-                    : const Color(0xFFFFF3E0);
+                    ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+                    : (isDark ? const Color(0xFF3E2200) : const Color(0xFFFFF3E0));
                 final statusTextColor = isResolved
-                    ? const Color(0xFF017A47)
-                    : const Color(0xFFE65100);
+                    ? const Color(0xFF00C569)
+                    : const Color(0xFFFFA726);
 
                 return Card(
                   elevation: 0,
@@ -483,12 +483,14 @@ class _ReportedExplanationCardState extends ConsumerState<ReportedExplanationCar
   }
 
   void _showLimitDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
@@ -498,21 +500,21 @@ class _ReportedExplanationCardState extends ConsumerState<ReportedExplanationCar
               Container(
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFEF3C7),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3E2D00) : const Color(0xFFFEF3C7),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Noto Sans Bengali'),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87, fontFamily: 'Noto Sans Bengali'),
               ),
               const SizedBox(height: 8),
               Text(
                 'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4, fontFamily: 'Noto Sans Bengali'),
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey.shade600, height: 1.4, fontFamily: 'Noto Sans Bengali'),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

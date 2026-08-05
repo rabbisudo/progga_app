@@ -88,57 +88,69 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
     final curriculumAsync = ref.watch(studentCurriculumProvider);
 
     return curriculumAsync.when(
-      loading: () => Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          surfaceTintColor: Colors.transparent,
-          leading: CustomBackButton(
-            color: Colors.black87,
-            onPressed: () => context.pop(),
+      loading: () {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final scaffoldBg = isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F3);
+        final textColor = isDark ? Colors.white : Colors.black87;
+        return Scaffold(
+          backgroundColor: scaffoldBg,
+          appBar: AppBar(
+            backgroundColor: scaffoldBg,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            leading: CustomBackButton(
+              color: textColor,
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              'টপিক সিলেক্ট করো',
+              style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ),
-          title: const Text(
-            'টপিক সিলেক্ট করো',
-            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
+          body: const Center(
+            child: CircularProgressIndicator(color: Color(0xFF017A47)),
           ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF017A47)),
-        ),
-      ),
-      error: (err, stack) => Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
-          elevation: 0,
-          leading: CustomBackButton(
-            color: Colors.black87,
-            onPressed: () => context.pop(),
+        );
+      },
+      error: (err, stack) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final scaffoldBg = isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F3);
+        final textColor = isDark ? Colors.white : Colors.black87;
+        return Scaffold(
+          backgroundColor: scaffoldBg,
+          appBar: AppBar(
+            backgroundColor: scaffoldBg,
+            elevation: 0,
+            leading: CustomBackButton(
+              color: textColor,
+              onPressed: () => context.pop(),
+            ),
+            title: Text(
+              'টপিক সিলেক্ট করো',
+              style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
+            ),
           ),
-          title: const Text(
-            'টপিক সিলেক্ট করো',
-            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 40, color: Colors.red),
+                const SizedBox(height: 12),
+                Text('তথ্য লোড করতে সমস্যা হয়েছে: $err', style: TextStyle(color: textColor)),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => ref.refresh(studentCurriculumProvider),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
+                  child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
           ),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 40, color: Colors.red),
-              const SizedBox(height: 12),
-              Text('তথ্য লোড করতে সমস্যা হয়েছে: $err', style: const TextStyle(color: Colors.black87)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => ref.refresh(studentCurriculumProvider),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-                child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ),
-      ),
+        );
+      },
       data: (subjects) {
         final activeSubjects = subjects.where((s) => _selectedSubjectIds.contains(s['id'])).toList();
         final currentSubject = subjects.firstWhere(
@@ -147,15 +159,25 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         );
         final singleSubjectChapters = (currentSubject['chapters'] as List<dynamic>?) ?? [];
 
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final scaffoldBg = isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F3);
+        final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+        final textColor = isDark ? Colors.white : Colors.black87;
+        final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200;
+        final stepsBgColor = isDark ? const Color(0xFF017A47).withOpacity(0.2) : const Color(0xFFD4E8DC);
+        final questionCountBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
+        final progressTrackBgColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE3E7E4);
+
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: scaffoldBg,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF3F4F3),
+            backgroundColor: scaffoldBg,
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
             leading: CustomBackButton(
-              color: Colors.black87,
+              color: textColor,
               onPressed: () {
                 if (_showMultiSubjectHeader) {
                   setState(() {
@@ -166,10 +188,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                 }
               },
             ),
-            title: const Text(
+            title: Text(
               'টপিক সিলেক্ট করো',
               style: TextStyle(
-                color: Colors.black87,
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -191,7 +213,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD4E8DC),
+                        color: stepsBgColor,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
                       ),
@@ -220,7 +242,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                       child: Container(
                         height: 5,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE3E7E4),
+                          color: progressTrackBgColor,
                           borderRadius: BorderRadius.circular(2.5),
                         ),
                         child: TweenAnimationBuilder<double>(
@@ -254,7 +276,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                       child: Container(
                         height: 5,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE3E7E4),
+                          color: progressTrackBgColor,
                           borderRadius: BorderRadius.circular(2.5),
                         ),
                       ),
@@ -282,9 +304,9 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                         // Collapsible "সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো" Bar
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: borderColor),
                           ),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(20),
@@ -298,19 +320,19 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: textColor,
                                     ),
                                   ),
                                   Icon(
                                     _isTopicsExpanded
                                         ? Icons.keyboard_arrow_up_rounded
                                         : Icons.keyboard_arrow_down_rounded,
-                                    color: Colors.black87,
+                                    color: textColor,
                                   ),
                                 ],
                               ),
@@ -334,10 +356,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
               // Bottom Action Banner
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardColor,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                   border: Border(
-                    top: BorderSide(color: Colors.grey.shade200),
+                    top: BorderSide(color: borderColor),
                   ),
                 ),
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -350,18 +372,18 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF0F4F1),
+                          color: questionCountBgColor,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'প্রশ্নের সংখ্যা',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: textColor,
                               ),
                             ),
                             Row(
@@ -380,12 +402,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: const Color(0xFFECEFF1)),
+                                      border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
+                                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -403,18 +425,18 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: textColor,
                                     ),
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: Colors.white,
+                                      fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                                       contentPadding: EdgeInsets.zero,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(color: Colors.grey.shade200),
+                                        borderSide: BorderSide(color: borderColor),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
@@ -444,12 +466,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: const Color(0xFFECEFF1)),
+                                      border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
+                                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -478,17 +500,17 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                               },
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                side: BorderSide(color: Colors.grey.shade300),
+                                side: BorderSide(color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: const Text(
+                              child: Text(
                                 '+ আরেকটি বিষয়',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: textColor,
                                 ),
                               ),
                             ),
@@ -623,6 +645,13 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
   }
 
   Widget _buildSubjectSelectionChips(List<dynamic> allSubjects) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final chipSelectedBgColor = isDark ? const Color(0xFF017A47).withOpacity(0.15) : const Color(0xFFE8F5E9);
+    final chipTextColor = isDark ? Colors.white70 : Colors.black87;
+    final chipBorderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200;
+
     return Center(
       child: Wrap(
         alignment: WrapAlignment.center,
@@ -653,10 +682,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
+                color: isSelected ? chipSelectedBgColor : chipBgColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade200,
+                  color: isSelected ? const Color(0xFF017A47) : chipBorderColor,
                   width: isSelected ? 1.5 : 1.0,
                 ),
               ),
@@ -665,7 +694,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                  color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                  color: isSelected ? const Color(0xFF017A47) : chipTextColor,
                 ),
               ),
             ),
@@ -676,6 +705,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
   }
 
   Widget _buildMultiSubjectSummaryBlock(Map<String, dynamic> subject) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final lineColor = isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300;
+
     final sId = subject['id'] as String;
     final subjectName = subject['name'] ?? 'বিষয়';
     final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
@@ -723,7 +758,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFD4E8DC),
+                    color: const Color(0xFF017A47).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
@@ -745,9 +780,9 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
               padding: const EdgeInsets.only(left: 16.0),
               child: Text(
                 '$solvedSubjectQuestions/$totalSubjectQuestions টি প্রশ্ন সলভ করা হয়েছে',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Colors.black54,
+                  color: subTextColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -767,7 +802,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                     child: Container(
                       width: 2,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: lineColor,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -795,14 +830,14 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                         }
 
                         if (filteredChapters.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.only(bottom: 8.0),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
                             child: Text(
                               'সকল অধ্যায় ও টপিক',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black54,
+                                color: subTextColor,
                               ),
                             ),
                           );
@@ -821,10 +856,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                 children: [
                                   Text(
                                     cName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: textColor,
                                     ),
                                   ),
                                   if (selTopics.isNotEmpty) ...[
@@ -836,10 +871,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                         padding: const EdgeInsets.only(left: 12.0, top: 2.0),
                                         child: Text(
                                           tName,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.black54,
+                                            color: subTextColor,
                                           ),
                                         ),
                                       );
@@ -863,6 +898,14 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
   }
 
   Widget _buildChapterBlock(Map<String, dynamic> chapter) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBgColor = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FBF9);
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final treeLineColor = isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.15);
+
     final chapterId = chapter['id'] as String;
     final chapterName = chapter['name'] ?? 'অধ্যায়';
     final topics = (chapter['topics'] as List<dynamic>?) ?? [];
@@ -881,12 +924,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
           decoration: BoxDecoration(
             color: isChapterSelected 
                 ? const Color(0xFF017A47).withOpacity(0.04) 
-                : const Color(0xFFF9FBF9),
+                : cardBgColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isChapterSelected 
                   ? const Color(0xFF017A47).withOpacity(0.3) 
-                  : const Color(0xFFECEFF1),
+                  : borderColor,
               width: isChapterSelected ? 1.5 : 1.0,
             ),
           ),
@@ -910,7 +953,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: isChapterSelected ? const Color(0xFF017A47) : Colors.black87,
+                              color: isChapterSelected ? const Color(0xFF017A47) : textColor,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -922,7 +965,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: isChapterSelected ? const Color(0xFF017A47) : Colors.black54,
+                            color: isChapterSelected ? const Color(0xFF017A47) : subTextColor,
                           ),
                         ),
                       ],
@@ -934,13 +977,13 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
               Container(
                 width: 1,
                 height: 24,
-                color: Colors.grey.shade300,
+                color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300,
               ),
               IconButton(
                 icon: AnimatedRotation(
                   turns: isCollapsed ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 200),
-                  child: const Icon(Icons.keyboard_arrow_up_rounded, size: 22, color: Colors.black54),
+                  child: Icon(Icons.keyboard_arrow_up_rounded, size: 22, color: subTextColor),
                 ),
                 onPressed: () => _toggleChapterCollapse(chapterId),
               ),
@@ -961,7 +1004,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                   child: Container(
                     width: 2,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF017A47).withOpacity(0.15),
+                      color: treeLineColor,
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -983,12 +1026,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                         decoration: BoxDecoration(
                           color: isTopicSelected 
                               ? const Color(0xFF017A47).withOpacity(0.03) 
-                              : Colors.white,
+                              : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isTopicSelected 
                                 ? const Color(0xFF017A47).withOpacity(0.2) 
-                                : const Color(0xFFECEFF1),
+                                : borderColor,
                             width: isTopicSelected ? 1.2 : 1.0,
                           ),
                           boxShadow: isTopicSelected
@@ -1018,7 +1061,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: isTopicSelected ? FontWeight.bold : FontWeight.w500,
-                                      color: isTopicSelected ? const Color(0xFF017A47) : Colors.black87,
+                                      color: isTopicSelected ? const Color(0xFF017A47) : textColor,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -1030,7 +1073,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.bold,
-                                    color: isTopicSelected ? const Color(0xFF017A47) : Colors.black54,
+                                    color: isTopicSelected ? const Color(0xFF017A47) : subTextColor,
                                   ),
                                 ),
                               ],
@@ -1049,6 +1092,8 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
   }
 
   Widget _buildCheckboxWidget(bool isChecked) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return AnimatedScale(
       scale: isChecked ? 1.05 : 1.0,
       duration: const Duration(milliseconds: 150),
@@ -1057,10 +1102,10 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         width: 22,
         height: 22,
         decoration: BoxDecoration(
-          color: isChecked ? const Color(0xFF017A47) : Colors.white,
+          color: isChecked ? const Color(0xFF017A47) : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isChecked ? const Color(0xFF017A47) : const Color(0xFFCFD8DC),
+            color: isChecked ? const Color(0xFF017A47) : (isDark ? Colors.white.withOpacity(0.15) : const Color(0xFFCFD8DC)),
             width: isChecked ? 0.0 : 1.5,
           ),
           boxShadow: isChecked

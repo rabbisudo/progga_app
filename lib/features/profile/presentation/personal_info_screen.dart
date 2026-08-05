@@ -112,12 +112,19 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: brandTealColor,
-              onPrimary: Colors.white,
-              onSurface: isDark ? Colors.white : Colors.black87,
-              surface: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            ),
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: brandTealColor,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.white,
+                    surface: Color(0xFF1E1E1E),
+                  )
+                : const ColorScheme.light(
+                    primary: brandTealColor,
+                    onPrimary: Colors.white,
+                    onSurface: Colors.black87,
+                    surface: Colors.white,
+                  ),
             dialogBackgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           ),
           child: child!,

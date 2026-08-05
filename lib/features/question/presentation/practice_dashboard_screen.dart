@@ -379,8 +379,8 @@ class PremiumBottomNavBar extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: isDark
                                 ? [
-                                    const Color(0xFFF18881).withOpacity(0.18),
-                                    const Color(0xFFD9746E).withOpacity(0.08)
+                                    const Color(0xFF017A47).withOpacity(0.18),
+                                    const Color(0xFF017A47).withOpacity(0.08)
                                   ]
                                 : [
                                     const Color(0xFFE0ECE6),
@@ -392,7 +392,7 @@ class PremiumBottomNavBar extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
                             color: isDark 
-                                ? const Color(0xFFF18881).withOpacity(0.15) 
+                                ? const Color(0xFF017A47).withOpacity(0.15) 
                                 : const Color(0xFF017A47).withOpacity(0.06),
                             width: 1,
                           ),
@@ -441,7 +441,7 @@ class PremiumBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final activeColor = isDark ? const Color(0xFFF18881) : const Color(0xFF017A47);
+    final activeColor = const Color(0xFF017A47);
     final inactiveColor = isDark ? Colors.grey[400]! : const Color(0xFF495057);
 
     return Expanded(
@@ -669,10 +669,10 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFFF18881).withOpacity(0.15) : const Color(0xFFE0ECE6),
+                        color: isDark ? const Color(0xFF017A47).withOpacity(0.15) : const Color(0xFFE0ECE6),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isDark ? const Color(0xFFF18881).withOpacity(0.3) : const Color(0xFFB9D8C9),
+                          color: isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFFB9D8C9),
                         ),
                       ),
                       child: Row(
@@ -692,8 +692,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                               data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 1}'),
                               orElse: () => '১',
                             ),
-                            style: TextStyle(
-                              color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                            style: const TextStyle(
+                              color: Color(0xFF017A47),
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -728,14 +728,14 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                            color: const Color(0xFF017A47),
                             width: 2,
                           ),
                         ),
                         child: CustomAvatar(
                           avatarUrl: profileAsync.value?.profile?.avatarKey,
                           radius: 17,
-                          backgroundColor: const Color(0xFFF18881),
+                          backgroundColor: const Color(0xFF017A47),
                           fallbackWidget: const Text(
                             '👨‍🎓',
                             style: TextStyle(fontSize: 16),
@@ -944,14 +944,14 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                            color: const Color(0xFF017A47),
                           ),
                         ),
                         const SizedBox(width: 4),
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 10,
-                          color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                          color: const Color(0xFF017A47),
                         ),
                       ],
                     ),
@@ -1026,7 +1026,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   height: 32,
                                   decoration: BoxDecoration(
                                     color: isDark 
-                                        ? const Color(0xFFF18881).withOpacity(0.12) 
+                                        ? const Color(0xFF017A47).withOpacity(0.12) 
                                         : const Color(0xFF017A47).withOpacity(0.06),
                                     shape: BoxShape.circle,
                                   ),
@@ -1136,16 +1136,16 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: isDark 
-                                        ? const Color(0xFFF18881).withOpacity(0.15) 
+                                        ? const Color(0xFF017A47).withOpacity(0.15) 
                                         : const Color(0xFF017A47).withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
                                     leagueName,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                      color: Color(0xFF017A47),
                                     ),
                                   ),
                                 ),
@@ -1158,14 +1158,14 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                    color: const Color(0xFF017A47),
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
                                   Icons.arrow_forward_ios, 
                                   size: 12, 
-                                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  color: const Color(0xFF017A47),
                                 ),
                               ],
                             ),
@@ -1218,7 +1218,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold, 
                                     fontSize: 13, 
-                                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                    color: const Color(0xFF017A47),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -1508,12 +1508,12 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       child: Container(
         decoration: BoxDecoration(
           color: isCurrentUser
-              ? (isDark ? const Color(0xFFF18881).withOpacity(0.12) : const Color(0xFF017A47).withOpacity(0.06))
+              ? (isDark ? const Color(0xFF017A47).withOpacity(0.12) : const Color(0xFF017A47).withOpacity(0.06))
               : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isCurrentUser
-                ? (isDark ? const Color(0xFFF18881).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.2))
+                ? (isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.2))
                 : (isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFECEFF1)),
             width: 1.5,
           ),
@@ -1521,7 +1521,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               ? [
                   BoxShadow(
                     color: isDark 
-                        ? const Color(0xFFF18881).withOpacity(0.04) 
+                        ? const Color(0xFF017A47).withOpacity(0.04) 
                         : const Color(0xFF017A47).withOpacity(0.03),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
@@ -1544,7 +1544,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                           shape: BoxShape.circle,
                           border: isCurrentUser
                               ? Border.all(
-                                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  color: const Color(0xFF017A47),
                                   width: 2,
                                 )
                               : null,
@@ -1560,7 +1560,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                           shape: BoxShape.circle,
                           border: isCurrentUser
                               ? Border.all(
-                                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  color: const Color(0xFF017A47),
                                   width: 2,
                                 )
                               : null,
@@ -1588,7 +1588,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
                       fontSize: 14,
                       color: isCurrentUser 
-                          ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)) 
+                          ? const Color(0xFF017A47) 
                           : (isDark ? Colors.white : Colors.black87),
                     ),
                   ),
@@ -1598,7 +1598,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                    color: const Color(0xFF017A47),
                   ),
                 ),
               ],
@@ -2067,7 +2067,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)),
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
                   onPressed: () {
                     setState(() {
                       _selectedSeriesStack.removeLast();
@@ -2275,7 +2275,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             child: Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.arrow_back, color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)),
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFF017A47)),
                   onPressed: () {
                     setState(() {
                       _selectedSeriesStack.removeLast();
@@ -2322,7 +2322,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   size: 20,
-                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                  color: const Color(0xFF017A47),
                 ),
                 onPressed: () {
                   setState(() {
@@ -2379,7 +2379,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47), width: 1.5),
+                    borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
                   ),
                   filled: true,
                   fillColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5),
@@ -2409,19 +2409,19 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47))
+                            ? const Color(0xFF017A47)
                             : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5)),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47))
+                              ? const Color(0xFF017A47)
                               : Colors.transparent,
                           width: 1.2,
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)).withOpacity(0.2),
+                                  color: const Color(0xFF017A47).withOpacity(0.2),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 )
@@ -2536,25 +2536,25 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFFFF5F5),
+                                        color: isDark ? const Color(0xFF3D1616) : const Color(0xFFFFF5F5),
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: const Color(0xFFFFE3E3), width: 1),
+                                        border: Border.all(color: isDark ? const Color(0xFF731D1D) : const Color(0xFFFFE3E3), width: 1),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.timer_outlined,
                                             size: 13,
-                                            color: Color(0xFFE03131),
+                                            color: isDark ? const Color(0xFFF87171) : const Color(0xFFE03131),
                                           ),
                                           const SizedBox(width: 5),
                                           Text(
                                             '${_toBengaliDigits(durationMin.toString())} মিনিট',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFFC92A2A),
+                                              color: isDark ? const Color(0xFFF87171) : const Color(0xFFC92A2A),
                                               fontFamily: 'Noto Sans Bengali',
                                             ),
                                           ),
@@ -2565,25 +2565,25 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFE6FCF5),
+                                        color: isDark ? const Color(0xFF00381C) : const Color(0xFFE6FCF5),
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: const Color(0xFFC3FAE8), width: 1),
+                                        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFC3FAE8), width: 1),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.edit_note_outlined,
                                             size: 14,
-                                            color: Color(0xFF099268),
+                                            color: isDark ? const Color(0xFF00C569) : const Color(0xFF099268),
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
                                             '${_toBengaliDigits(qCount.toString())}টি প্রশ্ন',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF087F5B),
+                                              color: isDark ? const Color(0xFF00C569) : const Color(0xFF087F5B),
                                               fontFamily: 'Noto Sans Bengali',
                                             ),
                                           ),
@@ -2594,25 +2594,25 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFEDF2FF),
+                                        color: isDark ? const Color(0xFF1E2B5C) : const Color(0xFFEDF2FF),
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: const Color(0xFFDBE4FF), width: 1),
+                                        border: Border.all(color: isDark ? const Color(0xFF2D3B73) : const Color(0xFFDBE4FF), width: 1),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.calendar_month_outlined,
                                             size: 13,
-                                            color: Color(0xFF364FC7),
+                                            color: isDark ? const Color(0xFF8DA2FB) : const Color(0xFF364FC7),
                                           ),
                                           const SizedBox(width: 5),
                                           Text(
                                             dateStr,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF2B4C7E),
+                                              color: isDark ? const Color(0xFF8DA2FB) : const Color(0xFF2B4C7E),
                                               fontFamily: 'Noto Sans Bengali',
                                             ),
                                           ),
@@ -3071,7 +3071,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         height: 32,
                         decoration: BoxDecoration(
                           color: isDark 
-                              ? const Color(0xFFF18881).withOpacity(0.12) 
+                              ? const Color(0xFF017A47).withOpacity(0.12) 
                               : const Color(0xFF017A47).withOpacity(0.06),
                           shape: BoxShape.circle,
                         ),
@@ -3128,11 +3128,15 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final durationMin = (duration / 60).round();
     final qCount = ex['qCount'] as int? ?? 25;
     final examId = ex['id'] as String? ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -3156,7 +3160,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     height: 4.5,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -3165,8 +3169,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.black87,
+                  style: TextStyle(
+                    color: textColor,
                     fontSize: 16.5,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Noto Sans Bengali',
@@ -3177,9 +3181,9 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 20.0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF121212) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                    border: Border.all(color: borderColor, width: 1.5),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -3188,18 +3192,18 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.access_time_rounded,
-                            color: Color(0xFFC92A2A),
+                            color: isDark ? const Color(0xFFF87171) : const Color(0xFFC92A2A),
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '${_toBengaliDigits(durationMin.toString())} মিনিট',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: textColor,
                               fontFamily: 'Noto Sans Bengali',
                             ),
                           ),
@@ -3209,24 +3213,24 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       Container(
                         width: 1.5,
                         height: 24,
-                        color: Colors.grey.shade200,
+                        color: borderColor,
                       ),
                       // Question Count
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.edit_note_rounded,
-                            color: Color(0xFF2B8A3E),
+                            color: isDark ? const Color(0xFF00C569) : const Color(0xFF2B8A3E),
                             size: 24,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             '${_toBengaliDigits(qCount.toString())}টি প্রশ্ন',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: textColor,
                               fontFamily: 'Noto Sans Bengali',
                             ),
                           ),
@@ -3268,10 +3272,10 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     context.push('/exam-preview/$examId', extra: title);
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF017A47),
-                    side: const BorderSide(color: Color(0xFF017A47), width: 1.5),
+                    foregroundColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                    side: BorderSide(color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47), width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: const Color(0xFFECEFF1).withOpacity(0.5),
+                    backgroundColor: isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFECEFF1).withOpacity(0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

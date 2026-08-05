@@ -72,6 +72,15 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   }
 
   void _showEditSubjectQuestionCountModal(String id, String name, int currentCount) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade300;
+    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
+    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F7F6);
+
     final controller = TextEditingController(text: '$currentCount');
     int localCount = currentCount;
     showModalBottomSheet(
@@ -82,9 +91,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.only(
                 left: 24,
@@ -102,13 +111,13 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       Expanded(
                         child: Text(
                           '$name - প্রশ্ন সংখ্যা',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                        icon: Icon(Icons.close_rounded, color: subTextColor),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -131,9 +140,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4F1),
+                            color: counterBgColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            border: Border.all(color: borderColor),
                           ),
                           child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
                         ),
@@ -147,14 +156,14 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: const Color(0xFFF5F7F6),
+                            fillColor: textInputBgColor,
                             contentPadding: EdgeInsets.zero,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: borderColor),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -186,9 +195,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4F1),
+                            color: counterBgColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            border: Border.all(color: borderColor),
                           ),
                           child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
                         ),
@@ -228,6 +237,15 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   }
 
   void _showEditTotalTimeModal() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade300;
+    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
+    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F7F6);
+
     final controller = TextEditingController(text: '$_totalTimeMinutes');
     int localTime = _totalTimeMinutes;
     showModalBottomSheet(
@@ -238,9 +256,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.only(
                 left: 24,
@@ -255,12 +273,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'মোট সময় (মিনিট)',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                        icon: Icon(Icons.close_rounded, color: subTextColor),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
@@ -283,9 +301,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4F1),
+                            color: counterBgColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            border: Border.all(color: borderColor),
                           ),
                           child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
                         ),
@@ -299,14 +317,14 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
                           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: const Color(0xFFF5F7F6),
+                            fillColor: textInputBgColor,
                             contentPadding: EdgeInsets.zero,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(color: borderColor),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -338,9 +356,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4F1),
+                            color: counterBgColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            border: Border.all(color: borderColor),
                           ),
                           child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
                         ),
@@ -486,20 +504,32 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
 
     // Question type locked to MCQ currently
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF121212) : const Color(0xFFF4F5F7);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+    final mutedTextColor = isDark ? Colors.white54 : Colors.black45;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1);
+    final progressTrackBg = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE3E7E4);
+    final stepsBgColor = isDark ? const Color(0xFF017A47).withOpacity(0.2) : const Color(0xFFD4E8DC);
+    final selectPillBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F5F7),
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: CustomBackButton(
-          color: Colors.black87,
+          color: textColor,
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'নিশ্চিত করো',
           style: TextStyle(
-            color: Colors.black87,
+            color: textColor,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -519,7 +549,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
               margin: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFD4E8DC),
+                color: stepsBgColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
               ),
@@ -565,7 +595,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                     child: Container(
                       height: 5,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE3E7E4),
+                        color: progressTrackBg,
                         borderRadius: BorderRadius.circular(2.5),
                       ),
                       child: TweenAnimationBuilder<double>(
@@ -610,10 +640,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       children: [
                         Text(
                           'সিলেক্টেড বিষয় (${selectedSubjects.length})',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: textColor,
                           ),
                         ),
                         Text(
@@ -642,12 +672,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: cardColor,
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: const Color(0xFFECEFF1)),
+                                border: Border.all(color: borderColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.015),
+                                    color: Colors.black.withOpacity(isDark ? 0.2 : 0.015),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -669,10 +699,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                       const SizedBox(width: 10),
                                       Text(
                                         name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                          color: textColor,
                                         ),
                                       ),
                                     ],
@@ -720,12 +750,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                     const SizedBox(height: 24),
 
                     // 2. Question Type Selection ("প্রশ্নের ধরন")
-                    const Text(
+                    Text(
                       'প্রশ্নের ধরন',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -741,12 +771,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                         return Container(
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0F4F1),
+                            color: selectPillBgColor,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            border: Border.all(color: borderColor),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.02),
+                                color: Colors.black.withOpacity(isDark ? 0.2 : 0.02),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -798,7 +828,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: isSelected ? Colors.white : Colors.black54,
+                                            color: isSelected ? Colors.white : subTextColor,
                                           ),
                                           child: Text(type),
                                         ),
@@ -818,12 +848,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                     // 3. Selected Topics Accordion (with smooth AnimatedSize and AnimatedRotation)
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFECEFF1)),
+                        border: Border.all(color: borderColor),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.01),
+                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.01),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -843,20 +873,20 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
+                                      color: textColor,
                                     ),
                                   ),
                                   AnimatedRotation(
                                     turns: _isTopicsExpanded ? 0.5 : 0.0,
                                     duration: const Duration(milliseconds: 200),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.keyboard_arrow_up_rounded,
-                                      color: Colors.black54,
+                                      color: subTextColor,
                                     ),
                                   ),
                                 ],
@@ -869,7 +899,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             child: _isTopicsExpanded
                                 ? Column(
                                     children: [
-                                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                                      Divider(height: 1, color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFEEEEEE)),
                                       Padding(
                                         padding: const EdgeInsets.all(16.0),
                                         child: Column(
@@ -922,9 +952,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                                     padding: const EdgeInsets.only(left: 16.0),
                                                     child: Text(
                                                       solvedText,
-                                                      style: const TextStyle(
+                                                      style: TextStyle(
                                                         fontSize: 11,
-                                                        color: Colors.black45,
+                                                        color: mutedTextColor,
                                                       ),
                                                     ),
                                                   ),
@@ -937,10 +967,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                                             padding: const EdgeInsets.only(bottom: 4.0),
                                                             child: Text(
                                                               t,
-                                                              style: const TextStyle(
+                                                              style: TextStyle(
                                                                 fontSize: 12,
                                                                 fontWeight: FontWeight.w600,
-                                                                color: Colors.black87,
+                                                                color: textColor,
                                                               ),
                                                             ),
                                                           )).toList(),
@@ -970,14 +1000,14 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
             Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 border: Border(
-                  top: BorderSide(color: Colors.grey.shade200),
+                  top: BorderSide(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, -3),
                   ),
@@ -990,12 +1020,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                   children: [
                     Row(
                     children: [
-                      const Text(
+                      Text(
                         'মোট সময়',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -1005,9 +1035,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0F4F1),
+                              color: selectPillBgColor,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFECEFF1)),
+                              border: Border.all(color: borderColor),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,

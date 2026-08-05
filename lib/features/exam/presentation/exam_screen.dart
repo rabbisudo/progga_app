@@ -106,23 +106,27 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   Future<bool> _onWillPop() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'পরীক্ষা বাতিল করতে চান?',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontFamily: 'Noto Sans Bengali',
             fontSize: 16,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
-        content: const Text(
+        content: Text(
           'এখন বের হয়ে গেলে আপনার বর্তমান উত্তরগুলো সংরক্ষিত জমা হয়ে যাবে।',
           style: TextStyle(
             fontFamily: 'Noto Sans Bengali',
             fontSize: 14,
+            color: isDark ? Colors.white70 : Colors.black87,
           ),
         ),
         actions: [
@@ -159,6 +163,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   Future<void> _confirmAndSubmitExam() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.read(examRunnerProvider);
     final totalQ = state.exam?.questions.length ?? 0;
     final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length +
@@ -167,20 +172,23 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'পরীক্ষা জমা দিতে চান?',
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontFamily: 'Noto Sans Bengali',
             fontSize: 16,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
         content: Text(
           'আপনি $totalQ টি প্রশ্নের মধ্যে $answeredCount টির উত্তর দিয়েছেন।\nনিশ্চিতভাবে পরীক্ষা জমা দিতে চান?',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'Noto Sans Bengali',
             fontSize: 14,
+            color: isDark ? Colors.white70 : Colors.black87,
           ),
         ),
         actions: [
@@ -722,6 +730,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   WidgetSpan _buildGapSpan(String qId, String gapLabel, String rawPassage) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final answers = _fitbAnswers[qId] ?? {};
     final filledVal = answers[gapLabel];
     final isActive = _activeGapQuestionId == qId && _activeGapLabel == gapLabel;
@@ -735,13 +744,21 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: filledVal != null
-                ? (isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF1F8F5))
-                : (isActive ? const Color(0xFFFFF9C4) : const Color(0xFFF5F5F5)),
+                ? (isActive
+                    ? (isDark ? const Color(0xFF004D25) : const Color(0xFFE8F5E9))
+                    : (isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF1F8F5)))
+                : (isActive
+                    ? (isDark ? const Color(0xFF423B1E) : const Color(0xFFFFF9C4))
+                    : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5))),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isActive
-                  ? (filledVal != null ? const Color(0xFF017A47) : const Color(0xFFF57F17))
-                  : (filledVal != null ? const Color(0xFF81C784) : Colors.grey.shade400),
+                  ? (filledVal != null
+                      ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                      : (isDark ? const Color(0xFFFBC02D) : const Color(0xFFF57F17)))
+                  : (filledVal != null
+                      ? (isDark ? const Color(0xFF2E7D32) : const Color(0xFF81C784))
+                      : (isDark ? Colors.white24 : Colors.grey.shade400)),
               width: isActive ? 2.0 : 1.2,
             ),
             boxShadow: isActive
@@ -762,7 +779,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: filledVal != null ? const Color(0xFF017A47) : Colors.grey.shade700,
+                  color: filledVal != null
+                      ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                      : (isDark ? Colors.white60 : Colors.grey.shade700),
                 ),
               ),
               Text(
@@ -770,7 +789,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: filledVal != null ? FontWeight.bold : FontWeight.normal,
-                  color: filledVal != null ? Colors.black87 : Colors.grey.shade500,
+                  color: filledVal != null
+                      ? (isDark ? Colors.white : Colors.black87)
+                      : (isDark ? Colors.white38 : Colors.grey.shade500),
                 ),
               ),
               if (filledVal != null) ...[
@@ -789,7 +810,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   child: Icon(
                     Icons.cancel,
                     size: 14,
-                    color: Colors.grey.shade500,
+                    color: isDark ? Colors.white38 : Colors.grey.shade500,
                   ),
                 ),
               ]
@@ -801,6 +822,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   Widget _buildFitbPassage(String qId, String rawPassage, bool hasClues) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cleanPassage = _getPassageWithoutTable(rawPassage);
     final paragraphs = cleanPassage.split(RegExp(r'</p>|<p>|<br\s*/?>'));
 
@@ -823,7 +845,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         if (m.start > lastEnd) {
           spans.add(TextSpan(
             text: _cleanText(trimmed.substring(lastEnd, m.start)),
-            style: const TextStyle(fontSize: 15.5, color: Colors.black87, height: 1.6),
+            style: TextStyle(fontSize: 15.5, color: isDark ? Colors.white70 : Colors.black87, height: 1.6),
           ));
         }
 
@@ -858,7 +880,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       if (lastEnd < trimmed.length) {
         spans.add(TextSpan(
           text: _cleanText(trimmed.substring(lastEnd)),
-          style: const TextStyle(fontSize: 15.5, color: Colors.black87, height: 1.6),
+          style: TextStyle(fontSize: 15.5, color: isDark ? Colors.white70 : Colors.black87, height: 1.6),
         ));
       }
 
@@ -882,6 +904,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   Widget _buildFitbClues(String qId, List<String> clues, String rawPassage) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -892,12 +915,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           children: [
             const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFF017A47)),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               'ক্লুসমূহ (শব্দ ভাণ্ডার):',
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
-                color: Colors.black54,
+                color: isDark ? Colors.white60 : Colors.black54,
               ),
             ),
           ],
@@ -914,20 +937,20 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               label: Text(
                 clue,
                 style: TextStyle(
-                  color: isUsed ? Colors.grey.shade600 : Colors.white,
+                  color: isUsed ? (isDark ? Colors.white30 : Colors.grey.shade600) : Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
               ),
               selected: false,
               backgroundColor: const Color(0xFF017A47),
-              disabledColor: Colors.grey.shade100,
+              disabledColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
               elevation: isUsed ? 0 : 2,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(100),
                 side: BorderSide(
-                  color: isUsed ? Colors.grey.shade300 : const Color(0xFF017A47),
+                  color: isUsed ? (isDark ? Colors.white10 : Colors.grey.shade300) : const Color(0xFF017A47),
                 ),
               ),
               onSelected: isUsed
@@ -1005,14 +1028,16 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final totalGaps = _getTotalGapsCount(q.questionText);
     final filledCount = _getFilledCount(q.id, q.questionText);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.only(bottom: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Color(0xFFECEFF1),
+            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
             width: 1.2,
           ),
         ),
@@ -1032,13 +1057,13 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   fontFamily: 'Noto Sans Bengali',
                 ),
               ),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'শূন্যস্থান পূরণ করো (ক্লুসহ)',
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                     fontFamily: 'Noto Sans Bengali',
                   ),
                 ),
@@ -1057,8 +1082,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: filledCount == totalGaps
-                      ? const Color(0xFFE8F5E9)
-                      : const Color(0xFFECEFF1),
+                      ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+                      : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFECEFF1)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1067,7 +1092,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     Icon(
                       filledCount == totalGaps ? Icons.check_circle : Icons.info_outline,
                       size: 16,
-                      color: filledCount == totalGaps ? const Color(0xFF017A47) : Colors.black54,
+                      color: filledCount == totalGaps
+                          ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                          : (isDark ? Colors.white60 : Colors.black54),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -1075,7 +1102,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: filledCount == totalGaps ? const Color(0xFF017A47) : Colors.black87,
+                        color: filledCount == totalGaps
+                            ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                            : (isDark ? Colors.white60 : Colors.black87),
                       ),
                     ),
                   ],
@@ -1130,6 +1159,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   }
 
   Widget _buildCqQuestionCard(ExamRenderItem item, ExamRunnerState state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final eq = item.examQuestion!;
     final q = eq.question;
     final List<String> paths = _uploadedImages[q.id] ?? [];
@@ -1137,11 +1167,11 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.only(bottom: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Color(0xFFECEFF1),
+            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
             width: 1.2,
           ),
         ),
@@ -1164,10 +1194,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               Expanded(
                 child: _buildMathWidget(
                   q.questionText,
-                  textStyle: const TextStyle(
+                  textStyle: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                     height: 1.4,
                     fontFamily: 'Noto Sans Bengali',
                   ),
@@ -1193,19 +1223,19 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   children: [
                     Text(
                       '$label. ',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                     Expanded(
                       child: _buildMathWidget(
                         opt.optionText,
-                        textStyle: const TextStyle(
+                        textStyle: TextStyle(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w500,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white70 : Colors.black87,
                           height: 1.4,
                         ),
                       ),
@@ -1218,17 +1248,17 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => _pickCqAnswerImage(q.id),
-            icon: const Icon(Icons.add, color: Color(0xFF017A47), size: 18),
-            label: const Text(
+            icon: Icon(Icons.add, color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47), size: 18),
+            label: Text(
               'পৃষ্ঠা আপলোড করো',
               style: TextStyle(
-                color: Color(0xFF017A47),
+                color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE8F5E9),
+              backgroundColor: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
@@ -1248,15 +1278,15 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   final path = paths[index];
                   return Stack(
                     children: [
-                      Container(
-                        width: 110,
-                        height: 150,
-                        margin: const EdgeInsets.only(top: 8, right: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
+                       Container(
+                         width: 110,
+                         height: 150,
+                         margin: const EdgeInsets.only(top: 8, right: 8),
+                         decoration: BoxDecoration(
+                           color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                           borderRadius: BorderRadius.circular(12),
+                           border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Stack(
@@ -1336,25 +1366,26 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(examRunnerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (state.isLoading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           title: Text(
             'পরীক্ষা লোড হচ্ছে...',
-            style: const TextStyle(
-              color: Colors.black87,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
           ),
           leading: CustomBackButton(
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             onPressed: () => context.go('/home'),
           ),
         ),
@@ -1378,12 +1409,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       }
 
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
           elevation: 0,
           leading: CustomBackButton(
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             onPressed: () => context.go('/home'),
           ),
         ),
@@ -1403,8 +1434,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 const SizedBox(height: 16),
                 Text(
                   userFriendlyError,
-                  style: const TextStyle(
-                    color: Colors.black87, 
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black87, 
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     height: 1.4,
@@ -1429,10 +1460,13 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     }
 
     if (state.exam == null) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         body: Center(
-          child: Text('পরীক্ষার সময়সূচী লোড হচ্ছে...', style: TextStyle(color: Colors.black87)),
+          child: Text(
+            'পরীক্ষার সময়সূচী লোড হচ্ছে...',
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+          ),
         ),
       );
     }
@@ -1508,23 +1542,23 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           title: Text(
             state.exam!.title,
-            style: const TextStyle(
-              color: Colors.black87,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 16,
               letterSpacing: 0.1,
             ),
           ),
           leading: CustomBackButton(
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             onPressed: () async {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {
@@ -1538,12 +1572,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: isLowTime ? const Color(0xFFFFF1F0) : const Color(0xFFEAF6EE),
+                color: isLowTime
+                    ? (isDark ? const Color(0xFF3D1616) : const Color(0xFFFFF1F0))
+                    : (isDark ? const Color(0xFF00381C) : const Color(0xFFEAF6EE)),
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(
                   color: isLowTime 
-                      ? const Color(0xFFFFA39E) 
-                      : const Color(0xFFB7EB8F),
+                      ? (isDark ? const Color(0xFF731D1D) : const Color(0xFFFFA39E)) 
+                      : (isDark ? const Color(0xFF0D5E35) : const Color(0xFFB7EB8F)),
                   width: 1,
                 ),
                 boxShadow: [
@@ -1560,7 +1596,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   Icon(
                     Icons.timer_outlined,
                     size: 15,
-                    color: isLowTime ? const Color(0xFFCF1322) : const Color(0xFF017A47),
+                    color: isLowTime
+                        ? (isDark ? const Color(0xFFF87171) : const Color(0xFFCF1322))
+                        : (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -1568,7 +1606,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: isLowTime ? const Color(0xFFCF1322) : const Color(0xFF017A47),
+                      color: isLowTime
+                          ? (isDark ? const Color(0xFFF87171) : const Color(0xFFCF1322))
+                          : (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
                     ),
                   ),
                 ],
@@ -1585,7 +1625,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 height: 160,
                 margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -1594,7 +1634,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                       offset: const Offset(0, 3),
                     ),
                   ],
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1605,12 +1645,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                         children: [
                           const Icon(Icons.image_outlined, color: Color(0xFF017A47), size: 18),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'প্রশ্নপত্রের উদ্দীপক / চিত্রসমূহ',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                           const Spacer(),
@@ -1618,13 +1658,13 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             '(${state.exam!.sourceImages.length} টি চিত্র)',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey.shade600,
+                              color: isDark ? Colors.white54 : Colors.grey.shade600,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Divider(height: 1, color: Colors.black12),
+                    Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
                     Expanded(
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
@@ -1661,7 +1701,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                 borderRadius: BorderRadius.circular(10),
                                 child: Container(
                                   width: 120,
-                                  color: Colors.grey.shade100,
+                                  color: isDark ? const Color(0xFF2E2E2E) : Colors.grey.shade100,
                                   child: Image.network(
                                     img.url,
                                     width: 120,
@@ -1699,9 +1739,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFFDE7),
+                        color: isDark ? const Color(0xFF38351B) : const Color(0xFFFFFDE7),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFFFF59D), width: 1.2),
+                        border: Border.all(color: isDark ? const Color(0xFF5E5924) : const Color(0xFFFFF59D), width: 1.2),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1712,20 +1752,20 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                               const SizedBox(width: 8),
                               Text(
                                 'উদ্দীপক নং ${item.passageNumber}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: isDark ? Colors.white : Colors.black87,
                                 ),
                               ),
                             ],
                           ),
-                          const Divider(height: 16, color: Colors.black12),
+                          Divider(height: 16, color: isDark ? Colors.white10 : Colors.black12),
                           _buildMathWidget(
                             item.passage!,
-                            textStyle: const TextStyle(
+                            textStyle: TextStyle(
                               fontSize: 14.5,
-                              color: Colors.black87,
+                              color: isDark ? Colors.white70 : Colors.black87,
                               height: 1.5,
                             ),
                           ),
@@ -1765,11 +1805,11 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 24),
                     padding: const EdgeInsets.only(bottom: 24),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF121212) : Colors.white,
                       border: Border(
                         bottom: BorderSide(
-                          color: Color(0xFFECEFF1),
+                          color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
                           width: 1.2,
                         ),
                       ),
@@ -1784,7 +1824,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
+                                color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -1792,7 +1832,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade700,
+                                  color: isDark ? Colors.white70 : Colors.grey.shade700,
                                 ),
                               ),
                             ),
@@ -1807,19 +1847,18 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             Text(
                               '${item.questionLabel}. ',
                               style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF017A47),
-                                fontFamily: 'Noto Sans Bengali',
-                              ),
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF017A47),
+                                  fontFamily: 'Noto Sans Bengali'),
                             ),
                             Expanded(
                               child: _buildMathWidget(
                                 q.questionText,
-                                textStyle: const TextStyle(
+                                textStyle: TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: isDark ? Colors.white : Colors.black87,
                                   height: 1.4,
                                   fontFamily: 'Noto Sans Bengali',
                                 ),
@@ -1840,16 +1879,16 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF4F9F6),
+                              color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF4F9F6),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFD4E8DC)),
+                              border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
                             ),
                             child: Math.tex(
                               q.latexFormula!,
-                              textStyle: const TextStyle(fontSize: 17.5, color: Color(0xFF017A47)),
+                              textStyle: TextStyle(fontSize: 17.5, color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
                               onErrorFallback: (err) => Text(
                                 q.latexFormula!,
-                                style: const TextStyle(fontSize: 16.5, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
+                                style: TextStyle(fontSize: 16.5, fontStyle: FontStyle.italic, color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
                               ),
                             ),
                           ),
@@ -1884,8 +1923,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   decoration: BoxDecoration(
                                     color: isSelected 
-                                        ? const Color(0xFF017A47).withOpacity(0.08) 
-                                        : const Color(0xFFFAFAFA),
+                                        ? const Color(0xFF017A47).withOpacity(0.12) 
+                                        : (isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA)),
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: isSelected
                                         ? [
@@ -1910,11 +1949,11 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                               shape: BoxShape.circle,
                                               color: isSelected 
                                                   ? const Color(0xFF017A47) 
-                                                  : Colors.white,
+                                                  : (isDark ? Colors.white10 : Colors.white),
                                               border: Border.all(
                                                 color: isSelected 
                                                     ? const Color(0xFF017A47) 
-                                                    : const Color(0xFFCFD8DC),
+                                                    : (isDark ? Colors.white30 : const Color(0xFFCFD8DC)),
                                                 width: isSelected ? 0.0 : 1.5,
                                               ),
                                             ),
@@ -1924,7 +1963,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
-                                                  color: isSelected ? Colors.white : Colors.black54,
+                                                  color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
                                                   fontFamily: 'Noto Sans Bengali',
                                                 ),
                                               ),
@@ -1937,10 +1976,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                               textStyle: TextStyle(
                                                 fontSize: 13.5,
                                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                                color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                                color: isSelected
+                                                    ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                                    : (isDark ? Colors.white70 : Colors.black87),
                                                 fontFamily: 'Noto Sans Bengali',
                                               ),
-                                              mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                              mathColor: isSelected
+                                                  ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                                  : (isDark ? Colors.white70 : Colors.black87),
                                             ),
                                           ),
                                         ],
@@ -1976,7 +2019,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF017A47).withOpacity(0.3),
+                        color: isDark ? Colors.black45 : const Color(0xFF017A47).withOpacity(0.3),
                         blurRadius: 12,
                         spreadRadius: 1,
                         offset: const Offset(0, 6),
@@ -2090,6 +2133,7 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -2097,11 +2141,11 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
         return Container(
           margin: const EdgeInsets.only(bottom: 24),
           padding: const EdgeInsets.only(bottom: 24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF121212) : Colors.white,
             border: Border(
               bottom: BorderSide(
-                color: Color(0xFFECEFF1),
+                color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
                 width: 1.2,
               ),
             ),
@@ -2130,7 +2174,7 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
                           width: double.infinity,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200.withOpacity(opacity),
+                            color: (isDark ? Colors.grey.shade800 : Colors.grey.shade200).withOpacity(opacity),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -2139,7 +2183,7 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
                           width: 150,
                           height: 16,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200.withOpacity(opacity),
+                            color: (isDark ? Colors.grey.shade800 : Colors.grey.shade200).withOpacity(opacity),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -2156,10 +2200,10 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? Colors.white.withOpacity(0.02) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.grey.shade100,
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
                         width: 1.2,
                       ),
                     ),
@@ -2170,7 +2214,7 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
                           height: 28,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey.shade100.withOpacity(opacity),
+                            color: (isDark ? Colors.grey.shade800 : Colors.grey.shade100).withOpacity(opacity),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -2178,7 +2222,7 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
                           width: 120 + (index * 20 % 50),
                           height: 14,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200.withOpacity(opacity),
+                            color: (isDark ? Colors.grey.shade800 : Colors.grey.shade200).withOpacity(opacity),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -2254,16 +2298,21 @@ class _InlineGapInputState extends State<InlineGapInput> {
   @override
   Widget build(BuildContext context) {
     final hasText = _controller.text.isNotEmpty;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       width: hasText ? 115 : 90,
       height: 32,
       decoration: BoxDecoration(
-        color: hasText ? const Color(0xFFF1F8F5) : const Color(0xFFF5F5F5),
+        color: hasText
+            ? (isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF1F8F5))
+            : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F5F5)),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: hasText ? const Color(0xFF81C784) : Colors.grey.shade400,
+          color: hasText
+              ? (isDark ? const Color(0xFF2E7D32) : const Color(0xFF81C784))
+              : (isDark ? Colors.white24 : Colors.grey.shade400),
           width: 1.2,
         ),
       ),
@@ -2277,17 +2326,19 @@ class _InlineGapInputState extends State<InlineGapInput> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: hasText ? const Color(0xFF017A47) : Colors.grey.shade700,
+                color: hasText
+                    ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                    : (isDark ? Colors.white60 : Colors.grey.shade700),
               ),
             ),
           ),
           Expanded(
             child: TextField(
               controller: _controller,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: isDark ? Colors.white : Colors.black87,
               ),
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.fromLTRB(4, 0, 4, 10),

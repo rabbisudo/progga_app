@@ -84,7 +84,7 @@ class ProfileScreen extends ConsumerWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: isDark ? const Color(0xFFF18881) : const Color(0xFF086057),
+          color: isDark ? const Color(0xFF00C569) : const Color(0xFF086057),
           fontWeight: FontWeight.bold,
           fontSize: 11,
           fontFamily: 'Noto Sans Bengali',
@@ -380,6 +380,7 @@ class ProfileScreen extends ConsumerWidget {
                         final shouldLogout = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
+                            backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),

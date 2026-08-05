@@ -222,27 +222,27 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFE6F4EA),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFE6F4EA),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.history_toggle_off, size: 48, color: Color(0xFF017A47)),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'কোনো পরীক্ষার History পাওয়া যায়নি!',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black54,
+                    color: isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'পরীক্ষা শেষ করার পর এখানে History দেখতে পারবেন।',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey,
+                    color: isDark ? Colors.white30 : Colors.grey,
                   ),
                 ),
               ],
@@ -335,7 +335,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE6F4EA),
+                            color: isDark ? const Color(0xFF00381C) : const Color(0xFFE6F4EA),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(

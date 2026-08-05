@@ -568,12 +568,14 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
   }
 
   void _showLimitDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
@@ -583,21 +585,21 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
               Container(
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFEF3C7),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3E2D00) : const Color(0xFFFEF3C7),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
               ),
               const SizedBox(height: 8),
               Text(
                 'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey.shade600, height: 1.4),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -626,12 +628,15 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
   @override
   Widget build(BuildContext context) {
     final currentQuota = ref.watch(dailyQuotaProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
+        color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
       ),
       child: Column(
         children: [
@@ -670,7 +675,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                               : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!',
                           style: TextStyle(
                             fontSize: 11.5,
-                            color: Colors.grey.shade700,
+                            color: isDark ? Colors.white70 : Colors.grey.shade700,
                             fontFamily: 'Noto Sans Bengali',
                           ),
                         ),
@@ -698,21 +703,28 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Divider(color: Color(0xFFA7F3D0)),
+                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
                   const SizedBox(height: 6),
                   ..._explanations.map((expData) {
                     final expMap = expData as Map<String, dynamic>;
                     final expText = expMap['text'] as String? ?? '';
                     final expImgKey = expMap['imageKey'] as String?;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildResultMathWidget(expText),
-                        if (expImgKey != null && expImgKey.isNotEmpty)
-                          _buildQuestionImage(expImgKey),
-                      ],
-                    );
+                     return Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         _buildResultMathWidget(
+                           expText,
+                           textStyle: TextStyle(
+                             fontSize: 13.5,
+                             color: isDark ? Colors.white70 : Colors.black87,
+                             fontWeight: FontWeight.w500,
+                           ),
+                         ),
+                         if (expImgKey != null && expImgKey.isNotEmpty)
+                           _buildQuestionImage(expImgKey),
+                       ],
+                     );
                   }),
                 ],
               ),
@@ -752,20 +764,28 @@ class ResultScreen extends ConsumerWidget {
 
     return resultAsync.when(
       loading: () => const _SkeletonResultScreen(),
-      error: (err, stack) => Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: CustomBackButton(
-            color: Colors.black87,
-            onPressed: () => context.go('/home'),
+      error: (err, stack) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final scaffoldBg = isDark ? const Color(0xFF121212) : Colors.white;
+        final textColor = isDark ? Colors.white : Colors.black87;
+        return Scaffold(
+          backgroundColor: scaffoldBg,
+          appBar: AppBar(
+            backgroundColor: scaffoldBg,
+            elevation: 0,
+            leading: CustomBackButton(
+              color: textColor,
+              onPressed: () => context.go('/home'),
+            ),
           ),
-        ),
-        body: Center(
-          child: Text('ফলাফল সম্বলিত ডেটা লোড করতে সমস্যা: $err', style: const TextStyle(color: Colors.black54)),
-        ),
-      ),
+          body: Center(
+            child: Text(
+              'ফলাফল সম্বলিত ডেটা লোড করতে সমস্যা: $err',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+          ),
+        );
+      },
       data: (data) {
         final examData = data['exam'] as Map<String, dynamic>?;
         final title = examData?['title'] as String? ?? 'মক পরীক্ষা';
@@ -805,14 +825,19 @@ class ResultScreen extends ConsumerWidget {
         // Exam questions list
         final examQuestionsList = (examData?['questions'] as List<dynamic>?) ?? [];
 
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final scaffoldBg = isDark ? const Color(0xFF121212) : Colors.white;
+        final textColor = isDark ? Colors.white : Colors.black87;
+
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: scaffoldBg,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: scaffoldBg,
             elevation: 0,
             scrolledUnderElevation: 0,
             leading: CustomBackButton(
-              color: Colors.black87,
+              color: textColor,
               onPressed: () => context.go('/home'),
             ),
             title: Column(
@@ -821,9 +846,9 @@ class ResultScreen extends ConsumerWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: textColor,
                     fontSize: 18,
                   ),
                 ),
@@ -833,7 +858,7 @@ class ResultScreen extends ConsumerWidget {
                       : 'সময়: ${_toBengaliDigit(durationMinutes)} মিনিট',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: isDark ? Colors.white60 : Colors.grey.shade600,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
@@ -859,12 +884,12 @@ class ResultScreen extends ConsumerWidget {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFFBEB),
+                                color: isDark ? const Color(0xFF2B2516) : const Color(0xFFFFFBEB),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF5D4A16) : const Color(0xFFFDE68A), width: 1.2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFFF59E0B).withOpacity(0.06),
+                                    color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.2 : 0.06),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -898,10 +923,10 @@ class ResultScreen extends ConsumerWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           _toBengaliDigit(points),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF78350F),
+                                            color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF78350F),
                                           ),
                                         ),
                                       ],
@@ -917,12 +942,12 @@ class ResultScreen extends ConsumerWidget {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5),
+                                color: isDark ? const Color(0xFF162E24) : const Color(0xFFECFDF5),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFA7F3D0), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF1D5A3F) : const Color(0xFFA7F3D0), width: 1.2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF017A47).withOpacity(0.06),
+                                    color: const Color(0xFF017A47).withOpacity(isDark ? 0.2 : 0.06),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -956,10 +981,10 @@ class ResultScreen extends ConsumerWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           '${_toBengaliDigit(score.toInt())} / ${_toBengaliDigit(totalQuestions)}',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF064E3B),
+                                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF064E3B),
                                           ),
                                         ),
                                       ],
@@ -975,12 +1000,12 @@ class ResultScreen extends ConsumerWidget {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF0F9FF),
+                                color: isDark ? const Color(0xFF162D3D) : const Color(0xFFF0F9FF),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFBAE6FD), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF1D5273) : const Color(0xFFBAE6FD), width: 1.2),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF0EA5E9).withOpacity(0.06),
+                                    color: const Color(0xFF0EA5E9).withOpacity(isDark ? 0.2 : 0.06),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -1014,10 +1039,10 @@ class ResultScreen extends ConsumerWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           '${_toBengaliDigit(timeTakenMinutes)} মি.',
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0C4A6E),
+                                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E),
                                           ),
                                         ),
                                       ],
@@ -1039,9 +1064,9 @@ class ResultScreen extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
+                                color: isDark ? const Color(0xFF00381C) : const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: const Color(0xFF86EFAC), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFF86EFAC), width: 1.2),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1057,10 +1082,10 @@ class ResultScreen extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     '${_toBengaliDigit(correctCount)} সঠিক',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF15803D),
+                                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF15803D),
                                     ),
                                   ),
                                 ],
@@ -1074,9 +1099,9 @@ class ResultScreen extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEE2E2),
+                                color: isDark ? const Color(0xFF3D1616) : const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: const Color(0xFFFECACA), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF731D1D) : const Color(0xFFFECACA), width: 1.2),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1092,10 +1117,10 @@ class ResultScreen extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     '${_toBengaliDigit(wrongCount)} ভুল',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFFB91C1C),
+                                      color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
                                     ),
                                   ),
                                 ],
@@ -1109,9 +1134,9 @@ class ResultScreen extends ConsumerWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF3F4F6),
+                                color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF3F4F6),
                                 borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: const Color(0xFFE5E7EB), width: 1.2),
+                                border: Border.all(color: isDark ? const Color(0xFF3C3C3C) : const Color(0xFFE5E7EB), width: 1.2),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1127,10 +1152,10 @@ class ResultScreen extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     '${_toBengaliDigit(skippedCount)} স্কিপ',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                                      color: isDark ? Colors.white70 : Colors.black87,
                                     ),
                                   ),
                                 ],
@@ -1227,6 +1252,9 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
   }
 
   void _showReportDialog() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     String selectedReason = 'প্রশ্নে বা উত্তরে ভুল আছে';
     final controller = TextEditingController();
 
@@ -1236,7 +1264,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
@@ -1256,18 +1284,18 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: isDark ? Colors.white10 : Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'প্রশ্ন রিপোর্ট করুন',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -1284,7 +1312,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         reason,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : Colors.black87),
                       ),
                       onChanged: (val) {
                         if (val != null) {
@@ -1300,23 +1328,24 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                     controller: controller,
                     maxLines: 2,
                     maxLength: 500,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     onChanged: (val) {
                       setModalState(() {});
                     },
                     decoration: InputDecoration(
                       hintText: 'অতিরিক্ত তথ্য লিখুন (ন্যূনতম ২০ অক্ষর)...',
                       counterText: '',
-                      hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                      hintStyle: TextStyle(fontSize: 12, color: isDark ? Colors.white30 : Colors.grey.shade500),
                       filled: true,
-                      fillColor: const Color(0xFFF9FAFB),
+                      fillColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF9FAFB),
                       contentPadding: const EdgeInsets.all(12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -1370,8 +1399,8 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF017A47),
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.grey.shade300,
-                        disabledForegroundColor: Colors.grey.shade500,
+                        disabledBackgroundColor: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade300,
+                        disabledForegroundColor: isDark ? Colors.white30 : Colors.grey.shade500,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
@@ -1454,27 +1483,35 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF121212) : Colors.white;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100;
+    final skeletonColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
         final opacity = _animation.value;
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: scaffoldBg,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: scaffoldBg,
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
             title: Text(
               'ফলাফল প্রস্তুত হচ্ছে...',
-              style: const TextStyle(
-                color: Colors.black87,
+              style: TextStyle(
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
             leading: CustomBackButton(
-              color: Colors.black87,
+              color: textColor,
               onPressed: () => context.go('/home'),
             ),
           ),
@@ -1493,9 +1530,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade100),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Column(
                             children: [
@@ -1512,7 +1549,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                     width: 50,
                                     height: 16,
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      color: skeletonColor.withOpacity(opacity),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -1528,9 +1565,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade100),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Column(
                             children: [
@@ -1547,7 +1584,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                     width: 50,
                                     height: 16,
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      color: skeletonColor.withOpacity(opacity),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -1563,9 +1600,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.grey.shade100),
+                            border: Border.all(color: borderColor),
                           ),
                           child: Column(
                             children: [
@@ -1582,7 +1619,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                     width: 50,
                                     height: 16,
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.shade200.withOpacity(opacity),
+                                      color: skeletonColor.withOpacity(opacity),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                   ),
@@ -1604,9 +1641,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9).withOpacity(0.8), // light green
+                            color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9).withOpacity(0.8), // light green
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                            border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
                           ),
                           child: Center(
                             child: Container(
@@ -1626,9 +1663,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFEBEE).withOpacity(0.8), // light red
+                            color: isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE).withOpacity(0.8), // light red
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: const Color(0xFFFECACA).withOpacity(0.5)),
+                            border: Border.all(color: (isDark ? const Color(0xFF731D1D) : const Color(0xFFFECACA)).withOpacity(0.5)),
                           ),
                           child: Center(
                             child: Container(
@@ -1648,16 +1685,16 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100, // light grey
+                            color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade100, // light grey
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: Colors.grey.shade200),
+                            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                           ),
                           child: Center(
                             child: Container(
                               width: 50,
                               height: 12,
                               decoration: BoxDecoration(
-                                color: Colors.grey.shade400.withOpacity(opacity * 0.3),
+                                color: (isDark ? Colors.white30 : Colors.grey.shade400).withOpacity(opacity * 0.3),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -1674,9 +1711,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1688,7 +1725,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 width: 24,
                                 height: 16,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade300.withOpacity(opacity),
+                                  color: (isDark ? Colors.grey.shade700 : Colors.grey.shade300).withOpacity(opacity),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
@@ -1701,7 +1738,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                       width: double.infinity,
                                       height: 16,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        color: skeletonColor.withOpacity(opacity),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                     ),
@@ -1710,7 +1747,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                       width: 200,
                                       height: 16,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        color: skeletonColor.withOpacity(opacity),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                     ),
@@ -1726,10 +1763,10 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: cardColor,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.grey.shade100,
+                                    color: borderColor,
                                     width: 1.2,
                                   ),
                                 ),
@@ -1740,7 +1777,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                       height: 28,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.grey.shade100.withOpacity(opacity),
+                                        color: (isDark ? Colors.grey.shade800 : Colors.grey.shade100).withOpacity(opacity),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -1748,7 +1785,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                       width: 100 + (optIndex * 20 % 60),
                                       height: 14,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade200.withOpacity(opacity),
+                                        color: skeletonColor.withOpacity(opacity),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                     ),
@@ -1763,9 +1800,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                             height: 44,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0FDF4),
+                              color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                              border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             child: Row(
@@ -1773,8 +1810,8 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 Container(
                                   width: 24,
                                   height: 24,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFD1FAE5),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF00381C) : const Color(0xFFD1FAE5),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -1800,9 +1837,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 width: 50,
                                 height: 20,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5E9),
+                                  color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                                  border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -1810,9 +1847,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 width: 50,
                                 height: 20,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5E9),
+                                  color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFA7F3D0).withOpacity(0.5)),
+                                  border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
                                 ),
                               ),
                               const Spacer(),
@@ -1902,6 +1939,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
   }
 
   WidgetSpan _buildFitbReviewGapSpan(String gapLabel, Map<String, String> userMap, Map<String, String> correctMap) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final uAns = userMap[gapLabel];
     final cAns = correctMap[gapLabel];
     final isCorrect = _isFitbAnswerCorrect(uAns, cAns);
@@ -1912,17 +1951,17 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     Color textColor;
 
     if (isCorrect) {
-      bgColor = const Color(0xFFE8F5E9);
-      borderColor = const Color(0xFF81C784);
-      textColor = const Color(0xFF017A47);
+      bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
+      borderColor = isDark ? const Color(0xFF0D5E35) : const Color(0xFF81C784);
+      textColor = isDark ? const Color(0xFF00C569) : const Color(0xFF017A47);
     } else if (isSkipped) {
-      bgColor = const Color(0xFFFFFBEB);
-      borderColor = const Color(0xFFFCD34D);
-      textColor = const Color(0xFFD97706);
+      bgColor = isDark ? const Color(0xFF2B2516) : const Color(0xFFFFFBEB);
+      borderColor = isDark ? const Color(0xFF5D4A16) : const Color(0xFFFCD34D);
+      textColor = isDark ? const Color(0xFFFCD34D) : const Color(0xFFD97706);
     } else {
-      bgColor = const Color(0xFFFFEBEE);
-      borderColor = const Color(0xFFEF5350);
-      textColor = Colors.red.shade900;
+      bgColor = isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE);
+      borderColor = isDark ? const Color(0xFF731D1D) : const Color(0xFFEF5350);
+      textColor = isDark ? const Color(0xFFF87171) : Colors.red.shade900;
     }
 
     return WidgetSpan(
@@ -1953,7 +1992,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isCorrect ? Colors.black87 : textColor,
+                color: isCorrect ? (isDark ? Colors.white : Colors.black87) : textColor,
               ),
             ),
             // Removed inline correct answer text as requested
@@ -1964,6 +2003,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
   }
 
   Widget _buildFitbReviewPassage(String qId, String rawPassage, Map<String, String> userMap, Map<String, String> correctMap) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final cleanPassage = rawPassage
         .replaceAll(RegExp(r'<table[^>]*>([\s\S]*?)<\/table>', caseSensitive: false), '')
         .replaceAll(RegExp(r'</?span[^>]*>', caseSensitive: false), '')
@@ -1989,7 +2030,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         if (m.start > lastEnd) {
           spans.add(TextSpan(
             text: trimmed.substring(lastEnd, m.start).replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' ').trim(),
-            style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.6),
+            style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87, height: 1.6),
           ));
         }
 
@@ -2002,7 +2043,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
       if (lastEnd < trimmed.length) {
         spans.add(TextSpan(
           text: trimmed.substring(lastEnd).replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' ').trim(),
-          style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.6),
+          style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87, height: 1.6),
         ));
       }
 
@@ -2013,6 +2054,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             child: Text.rich(
               TextSpan(children: spans),
               softWrap: true,
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
             ),
           ),
         );
@@ -2071,12 +2113,14 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
   }
 
   void _showLimitDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(24.0),
@@ -2086,21 +2130,21 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
               Container(
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFEF3C7),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3E2D00) : const Color(0xFFFEF3C7),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
               ),
               const SizedBox(height: 8),
               Text(
                 'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey.shade600, height: 1.4),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -2211,14 +2255,17 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         questionText.contains('(a)') &&
         RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(questionText));
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.only(bottom: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF121212) : Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Color(0xFFECEFF1),
+            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
             width: 1.2,
           ),
         ),
@@ -2243,10 +2290,10 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                 Expanded(
                   child: _buildResultMathWidget(
                     questionText,
-                    textStyle: const TextStyle(
+                    textStyle: TextStyle(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: isDark ? Colors.white : Colors.black87,
                       height: 1.4,
                       fontFamily: 'Noto Sans Bengali',
                     ),
@@ -2267,9 +2314,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4F9F6),
+                color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF4F9F6),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFD4E8DC)),
+                border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
               ),
               child: Math.tex(
                 latexFormula,
@@ -2286,12 +2333,12 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
           // Uploaded Pages List
           if (isWrittenOrCq && !isFitb && localPaths.isNotEmpty) ...[
-            const Text(
+            Text(
               'আপনার আপলোডকৃত উত্তরসমূহ:',
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.bold,
-                color: Colors.black54,
+                color: isDark ? Colors.white60 : Colors.black54,
               ),
             ),
             const SizedBox(height: 8),
@@ -2307,9 +2354,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                     width: 100,
                     height: 130,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
@@ -2373,19 +2420,19 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                       children: [
                         Text(
                           '$label. ',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
                         Expanded(
                           child: _buildResultMathWidget(
                             optionText,
-                            textStyle: const TextStyle(
+                            textStyle: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.black87,
+                              color: isDark ? Colors.white70 : Colors.black87,
                               height: 1.4,
                             ),
                           ),
@@ -2401,9 +2448,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
+                            color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                            border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -2442,15 +2489,15 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF9FAFB),
+                          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.grey.shade200),
+                          border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200),
                         ),
                         child: _buildResultMathWidget(
                           _parsedExplanations[subKey] ?? 'কোনো ব্যাখ্যা পাওয়া যায়নি।',
-                          textStyle: const TextStyle(
+                          textStyle: TextStyle(
                             fontSize: 13.5,
-                            color: Colors.black87,
+                            color: isDark ? Colors.white70 : Colors.black87,
                             height: 1.5,
                           ),
                         ),
@@ -2473,18 +2520,18 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
               final label = _getOptionLabel(optIdx);
 
-              Color bgColor = const Color(0xFFFAFAFA);
-              Color labelBgColor = Colors.white;
-              Color labelTextColor = Colors.black54;
-              Border? labelBorder = Border.all(color: const Color(0xFFCFD8DC), width: 1.5);
+              Color bgColor = isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA);
+              Color labelBgColor = isDark ? Colors.white10 : Colors.white;
+              Color labelTextColor = isDark ? Colors.white60 : Colors.black54;
+              Border? labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.5);
 
               if (isCorrect) {
-                bgColor = const Color(0xFFE8F5E9);
+                bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
                 labelBgColor = const Color(0xFF017A47);
                 labelTextColor = Colors.white;
                 labelBorder = null;
               } else if (isUserSelected) {
-                bgColor = const Color(0xFFFFEBEE);
+                bgColor = isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE);
                 labelBgColor = Colors.redAccent;
                 labelTextColor = Colors.white;
                 labelBorder = null;
@@ -2531,8 +2578,10 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                 fontSize: 13.5,
                                 fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
                                 color: isCorrect
-                                    ? const Color(0xFF017A47)
-                                    : (isUserSelected ? Colors.red.shade900 : Colors.black87),
+                                    ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                    : (isUserSelected
+                                        ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
+                                        : (isDark ? Colors.white70 : Colors.black87)),
                                 fontFamily: 'Noto Sans Bengali',
                               ),
                             ),
