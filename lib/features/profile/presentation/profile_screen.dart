@@ -96,7 +96,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider);
-    final themeMode = ref.watch(themeModeProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -219,25 +218,7 @@ class ProfileScreen extends ConsumerWidget {
                       icon: Icons.person_rounded,
                       title: 'ব্যক্তিগত তথ্য',
                       isDark: isDark,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.green.withOpacity(0.15) : const Color(0xFFE6FCF5),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.green.withOpacity(0.3), width: 1),
-                            ),
-                            child: const Text(
-                              '+Add Phone number',
-                              style: TextStyle(color: Color(0xFF087F5B), fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white30 : Colors.grey.shade400),
-                        ],
-                      ),
+
                       onTap: () => context.push('/personal-info'),
                     ),
                     _buildFlatMenuTile(
@@ -264,56 +245,7 @@ class ProfileScreen extends ConsumerWidget {
                       isDark: isDark,
                       onTap: () => context.push('/avatar-editor'),
                     ),
-                    _buildFlatMenuTile(
-                      theme: theme,
-                      color: const Color(0xFFFFA500),
-                      icon: Icons.workspace_premium_rounded,
-                      title: 'আপগ্রেড',
-                      isDark: isDark,
-                      onTap: () => context.push('/premium'),
-                    ),
-                    _buildFlatMenuTile(
-                      theme: theme,
-                      color: const Color(0xFF007AFF),
-                      icon: Icons.credit_card_rounded,
-                      title: 'সাবস্ক্রিপশন',
-                      isDark: isDark,
-                      onTap: () => context.push('/premium'),
-                    ),
-                    _buildFlatMenuTile(
-                      theme: theme,
-                      color: const Color(0xFFFF8A00),
-                      icon: Icons.equalizer_rounded,
-                      title: 'অ্যাক্টিভিটি',
-                      isDark: isDark,
-                      onTap: () {},
-                    ),
-                    _buildFlatMenuTile(
-                      theme: theme,
-                      color: const Color(0xFFFF3B30),
-                      icon: Icons.notifications_rounded,
-                      title: 'নোটিফিকেশনস',
-                      isDark: isDark,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFD1D1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Text(
-                              '0',
-                              style: TextStyle(color: Color(0xFFFF3B30), fontSize: 11, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white30 : Colors.grey.shade400),
-                        ],
-                      ),
-                      onTap: () {},
-                    ),
+
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF007AFF),
