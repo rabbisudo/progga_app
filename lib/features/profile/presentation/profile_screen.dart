@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'profile_notifier.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
@@ -241,14 +242,6 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     _buildFlatMenuTile(
                       theme: theme,
-                      color: const Color(0xFF017A47),
-                      icon: Icons.speed_rounded,
-                      title: 'আমার প্রোগ্রেস',
-                      isDark: isDark,
-                      onTap: () => context.push('/progress'),
-                    ),
-                    _buildFlatMenuTile(
-                      theme: theme,
                       color: const Color(0xFFFFB300),
                       icon: Icons.emoji_events_rounded,
                       title: 'লিডারবোর্ড',
@@ -345,6 +338,36 @@ class ProfileScreen extends ConsumerWidget {
                           isDark ? ThemeMode.light : ThemeMode.dark,
                         );
                         ref.read(userProfileProvider.notifier).updateSettings({'darkMode': !isDark});
+                      },
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFF009688),
+                      icon: Icons.privacy_tip_rounded,
+                      title: 'প্রাইভেসি পলিসি',
+                      isDark: isDark,
+                      onTap: () async {
+                        final url = Uri.parse('https://chorcha.net/privacy-policy');
+                        try {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } catch (e) {
+                          debugPrint('Error launching url: $e');
+                        }
+                      },
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFF607D8B),
+                      icon: Icons.description_rounded,
+                      title: 'শর্তাবলী ও নিয়মাবলী',
+                      isDark: isDark,
+                      onTap: () async {
+                        final url = Uri.parse('https://chorcha.net/terms-and-conditions');
+                        try {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        } catch (e) {
+                          debugPrint('Error launching url: $e');
+                        }
                       },
                     ),
                     _buildFlatMenuTile(

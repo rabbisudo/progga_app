@@ -171,9 +171,9 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
+            content: const Text(
               'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
-              style: const TextStyle(),
+              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
             ),
             backgroundColor: const Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
@@ -186,7 +186,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           SnackBar(
             content: Text(
               'আপডেট করতে সমস্যা হয়েছে: $e',
-              style: const TextStyle(),
+              style: const TextStyle(fontFamily: 'Noto Sans Bengali'),
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
@@ -209,11 +209,16 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       appBar: AppBar(
         title: Text(
           'ব্যক্তিগত তথ্য ও অ্যাকাডেমিক',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontFamily: 'Noto Sans Bengali',
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         centerTitle: true,
         leading: CustomBackButton(
-          color: isDark ? Colors.white : Colors.black,
+          color: isDark ? Colors.white : Colors.black87,
           onPressed: () => context.pop(),
         ),
       ),
@@ -255,16 +260,25 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                     label: 'বায়ো (Bio)',
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
+                  _buildCustomDropdown<String>(
+                    context: context,
+                    label: 'লিঙ্গ',
                     value: _gender,
-                    style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color,
-                      fontSize: 15,
-                    ),
-                    decoration: _getInputDecoration(context, 'লিঙ্গ'),
                     items: [
-                      DropdownMenuItem(value: 'MALE', child: Text('ছেলে', style: const TextStyle())),
-                      DropdownMenuItem(value: 'FEMALE', child: Text('মেয়ে', style: const TextStyle())),
+                      DropdownMenuItem(
+                        value: 'MALE', 
+                        child: Text(
+                          'ছাত্র', 
+                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'FEMALE', 
+                        child: Text(
+                          'ছাত্রী', 
+                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                        ),
+                      ),
                     ],
                     onChanged: (val) => setState(() => _gender = val ?? 'MALE'),
                   ),
@@ -313,21 +327,18 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             label: 'শিক্ষা প্রতিষ্ঠান (স্কুল / কলেজ)',
                           ),
                           const SizedBox(height: 16),
-                          DropdownButtonFormField<AcademicClassModel>(
+                          _buildCustomDropdown<AcademicClassModel>(
+                            context: context,
+                            label: 'শ্রেণী',
                             value: _selectedClass,
-                            style: TextStyle(
-                              color: theme.textTheme.bodyLarge?.color,
-                              fontSize: 15,
-                            ),
-                            hint: Text(
-                              profile.className ?? 'শ্রেণী নির্বাচন করুন',
-                              style: const TextStyle(),
-                            ),
-                            decoration: _getInputDecoration(context, 'শ্রেণী'),
+                            hintText: profile.className ?? 'শ্রেণী নির্বাচন করুন',
                             items: classes
                                 .map((c) => DropdownMenuItem(
                                       value: c,
-                                      child: Text(c.name, style: const TextStyle()),
+                                      child: Text(
+                                        c.name, 
+                                        style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                      ),
                                     ))
                                 .toList(),
                             onChanged: (val) {
@@ -340,21 +351,18 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           ),
                           if (availableGroups.isNotEmpty) ...[
                             const SizedBox(height: 16),
-                            DropdownButtonFormField<SubjectGroupModel>(
+                            _buildCustomDropdown<SubjectGroupModel>(
+                              context: context,
+                              label: 'বিভাগ / গ্রুপ',
                               value: _selectedGroup,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyLarge?.color,
-                                fontSize: 15,
-                              ),
-                              hint: Text(
-                                profile.targetExam ?? 'বিভাগ নির্বাচন করুন',
-                                style: const TextStyle(),
-                              ),
-                              decoration: _getInputDecoration(context, 'বিভাগ / গ্রুপ'),
+                              hintText: profile.targetExam ?? 'বিভাগ নির্বাচন করুন',
                               items: availableGroups
                                   .map((g) => DropdownMenuItem(
                                         value: g,
-                                        child: Text(g.name, style: const TextStyle()),
+                                        child: Text(
+                                          g.name, 
+                                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                        ),
                                       ))
                                   .toList(),
                               onChanged: (val) {
@@ -367,21 +375,18 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           ],
                           if (availableBatches.isNotEmpty) ...[
                             const SizedBox(height: 16),
-                            DropdownButtonFormField<AcademicBatchModel>(
+                            _buildCustomDropdown<AcademicBatchModel>(
+                              context: context,
+                              label: 'ব্যাচ',
                               value: _selectedBatch,
-                              style: TextStyle(
-                                color: theme.textTheme.bodyLarge?.color,
-                                fontSize: 15,
-                              ),
-                              hint: Text(
-                                profile.batch ?? 'ব্যাচ নির্বাচন করুন',
-                                style: const TextStyle(),
-                              ),
-                              decoration: _getInputDecoration(context, 'ব্যাচ'),
+                              hintText: profile.batch ?? 'ব্যাচ নির্বাচন করুন',
                               items: availableBatches
                                   .map((b) => DropdownMenuItem(
                                         value: b,
-                                        child: Text(b.name, style: const TextStyle()),
+                                        child: Text(
+                                          b.name, 
+                                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                        ),
                                       ))
                                   .toList(),
                               onChanged: (val) => setState(() => _selectedBatch = val),
@@ -395,19 +400,23 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
 
                   // Save Details Button
                   SizedBox(
-                    height: 50,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandTealColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
                       ),
                       child: _isSaving
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Text(
                               'সংরক্ষণ করুন',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15, fontFamily: 'Noto Sans Bengali'),
                             ),
                     ),
                   ),
@@ -422,14 +431,16 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   }
 
   Widget _buildSectionHeader(String title, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
       child: Text(
         title,
         style: TextStyle(
-          fontSize: 15,
+          fontSize: 13.5,
           fontWeight: FontWeight.bold,
-          color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
+          color: isDark ? Colors.grey[400] : Colors.grey.shade700,
+          fontFamily: 'Noto Sans Bengali',
         ),
       ),
     );
@@ -443,25 +454,26 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       labelText: label,
       labelStyle: TextStyle(
         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
-        fontSize: 14,
+        fontSize: 13,
+        fontFamily: 'Noto Sans Bengali',
       ),
       filled: true,
       fillColor: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8F9FA),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
           color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(
           color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: brandTealColor, width: 1.5),
       ),
     );
@@ -478,10 +490,129 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       controller: controller,
       style: TextStyle(
         color: theme.textTheme.bodyLarge?.color,
-        fontSize: 15,
+        fontSize: 14,
+        fontFamily: 'Noto Sans Bengali',
       ),
       validator: validator,
       decoration: _getInputDecoration(context, label),
+    );
+  }
+
+  Widget _buildCustomDropdown<T>({
+    required BuildContext context,
+    required String label,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+    String? hintText,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    String displayText = hintText ?? '';
+    if (value != null) {
+      final selectedItem = items.firstWhere(
+        (item) => item.value == value,
+        orElse: () => items.first,
+      );
+      if (selectedItem.child is Text) {
+        displayText = (selectedItem.child as Text).data ?? '';
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.isNotEmpty) ...[
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.grey[400] : Colors.grey.shade700,
+              fontFamily: 'Noto Sans Bengali',
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
+        MenuAnchor(
+          style: MenuStyle(
+            backgroundColor: MaterialStateProperty.all(isDark ? const Color(0xFF1E1E1E) : Colors.white),
+            surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+              ),
+            ),
+            elevation: MaterialStateProperty.all(4),
+          ),
+          builder: (BuildContext context, MenuController controller, Widget? child) {
+            return InkWell(
+              onTap: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: controller.isOpen
+                        ? brandTealColor
+                        : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06)),
+                    width: controller.isOpen ? 1.5 : 1.0,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: value == null 
+                              ? (isDark ? Colors.white30 : Colors.black38) 
+                              : (isDark ? Colors.white : Colors.black87),
+                          fontFamily: 'Noto Sans Bengali',
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down_rounded, 
+                      color: isDark ? Colors.white54 : Colors.black45,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          menuChildren: items.map((item) {
+            final isSelected = item.value == value;
+            return MenuItemButton(
+              onPressed: () => onChanged(item.value),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(
+                  isSelected 
+                      ? (isDark ? brandTealColor.withOpacity(0.15) : const Color(0xFFE6FCF5))
+                      : Colors.transparent
+                ),
+                padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+              ),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width - 48,
+                child: item.child,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }

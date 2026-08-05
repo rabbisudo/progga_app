@@ -48,6 +48,7 @@ dependencies:
   # FCM (Firebase Notifications)
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.10
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
