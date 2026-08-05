@@ -6,6 +6,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/personal_info_screen.dart';
 import '../../features/profile/presentation/progress_screen.dart';
 import '../../features/profile/presentation/my_reports_screen.dart';
+import '../../features/profile/presentation/streak_screen.dart';
 import '../../features/profile/presentation/avatar_editor_screen.dart';
 import '../../features/question/presentation/practice_dashboard_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
@@ -72,6 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/my-reports',
         builder: (context, state) => const MyReportsScreen(),
+      ),
+      GoRoute(
+        path: '/streak',
+        builder: (context, state) => const StreakScreen(),
       ),
       GoRoute(
         path: '/topic-selection/:subjectId',

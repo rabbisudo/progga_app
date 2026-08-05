@@ -40,6 +40,8 @@ class UserProfile with _$UserProfile {
     required int totalStudyTime,
     required int currentStreak,
     required int longestStreak,
+    @Default(5) int streakFreezes,
+    @Default(0) int usedStreakFreezes,
     required int xp,
     required int coins,
     required int level,
@@ -119,6 +121,8 @@ class UserData with _$UserData {
     required String createdAt,
     UserProfile? profile,
     List<bool>? streakHistory,
+    List<String>? monthlyActiveDates,
+    List<String>? frozenStreakDates,
   }) = _UserData;
 
   factory UserData.fromJson(Map<String, dynamic> json) => _$UserDataFromJson(json);

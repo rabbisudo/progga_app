@@ -22,9 +22,18 @@ class LeaderboardRepository {
 
   LeaderboardRepository(this._apiClient);
 
-  Future<List<LeaderboardEntryModel>> fetchLeaderboard({String scope = 'global', String league = ''}) async {
+  Future<List<LeaderboardEntryModel>> fetchLeaderboard({
+    String scope = 'global',
+    String league = '',
+    int limit = 50,
+    int offset = 0,
+  }) async {
     try {
-      final Map<String, dynamic> params = {'scope': scope, 'limit': 50};
+      final Map<String, dynamic> params = {
+        'scope': scope,
+        'limit': limit,
+        'offset': offset,
+      };
       if (league.isNotEmpty) {
         params['league'] = league;
       }

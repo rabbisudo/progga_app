@@ -284,6 +284,7 @@ class LeaderboardScreen extends ConsumerWidget {
                 level: profile.level,
                 solvedQuestionsCount: profile.solvedQuestionsCount,
                 league: profile.league,
+                currentStreak: profile.currentStreak,
               );
             }
           }

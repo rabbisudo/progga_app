@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../../core/widgets/custom_back_button.dart';
@@ -52,41 +53,43 @@ class ProgressScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Streaks multiplier card
-                Card(
-                  elevation: 0,
-                  color: isDark ? const Color(0xFF2C1C0A) : const Color(0xFFFFF3E0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 32)),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$streak দিনের স্ট্রিক!',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFE65100),
+                 GestureDetector(
+                  onTap: () => context.push('/streak'),
+                  child: Card(
+                    elevation: 0,
+                    color: isDark ? const Color(0xFF2C1C0A) : const Color(0xFFFFF3E0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          const Text('🔥', style: TextStyle(fontSize: 32)),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '$streak দিনের স্ট্রিক!',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFE65100),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'প্রতিদিন কুইজ ও পরীক্ষা দিয়ে স্ট্রিক সচল রাখুন।',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark ? Colors.orange[300] : Colors.orange[800],
+                                const SizedBox(height: 4),
+                                Text(
+                                  'প্রতিদিন কুইজ ও পরীক্ষা দিয়ে স্ট্রিক সচল রাখুন।',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark ? Colors.orange[300] : Colors.orange[800],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -39,6 +39,8 @@ _$UserProfileImpl _$$UserProfileImplFromJson(Map<String, dynamic> json) =>
       totalStudyTime: (json['totalStudyTime'] as num).toInt(),
       currentStreak: (json['currentStreak'] as num).toInt(),
       longestStreak: (json['longestStreak'] as num).toInt(),
+      streakFreezes: (json['streakFreezes'] as num?)?.toInt() ?? 5,
+      usedStreakFreezes: (json['usedStreakFreezes'] as num?)?.toInt() ?? 0,
       xp: (json['xp'] as num).toInt(),
       coins: (json['coins'] as num).toInt(),
       level: (json['level'] as num).toInt(),
@@ -79,6 +81,8 @@ Map<String, dynamic> _$$UserProfileImplToJson(_$UserProfileImpl instance) =>
       'totalStudyTime': instance.totalStudyTime,
       'currentStreak': instance.currentStreak,
       'longestStreak': instance.longestStreak,
+      'streakFreezes': instance.streakFreezes,
+      'usedStreakFreezes': instance.usedStreakFreezes,
       'xp': instance.xp,
       'coins': instance.coins,
       'level': instance.level,
@@ -100,6 +104,12 @@ _$UserDataImpl _$$UserDataImplFromJson(Map<String, dynamic> json) =>
       streakHistory: (json['streakHistory'] as List<dynamic>?)
           ?.map((e) => e as bool)
           .toList(),
+      monthlyActiveDates: (json['monthlyActiveDates'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      frozenStreakDates: (json['frozenStreakDates'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$$UserDataImplToJson(_$UserDataImpl instance) =>
@@ -112,4 +122,6 @@ Map<String, dynamic> _$$UserDataImplToJson(_$UserDataImpl instance) =>
       'createdAt': instance.createdAt,
       'profile': instance.profile,
       'streakHistory': instance.streakHistory,
+      'monthlyActiveDates': instance.monthlyActiveDates,
+      'frozenStreakDates': instance.frozenStreakDates,
     };

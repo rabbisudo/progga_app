@@ -47,6 +47,8 @@ mixin _$UserProfile {
   int get totalStudyTime => throw _privateConstructorUsedError;
   int get currentStreak => throw _privateConstructorUsedError;
   int get longestStreak => throw _privateConstructorUsedError;
+  int get streakFreezes => throw _privateConstructorUsedError;
+  int get usedStreakFreezes => throw _privateConstructorUsedError;
   int get xp => throw _privateConstructorUsedError;
   int get coins => throw _privateConstructorUsedError;
   int get level => throw _privateConstructorUsedError;
@@ -96,6 +98,8 @@ abstract class $UserProfileCopyWith<$Res> {
       int totalStudyTime,
       int currentStreak,
       int longestStreak,
+      int streakFreezes,
+      int usedStreakFreezes,
       int xp,
       int coins,
       int level,
@@ -147,6 +151,8 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? totalStudyTime = null,
     Object? currentStreak = null,
     Object? longestStreak = null,
+    Object? streakFreezes = null,
+    Object? usedStreakFreezes = null,
     Object? xp = null,
     Object? coins = null,
     Object? level = null,
@@ -278,6 +284,14 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           ? _value.longestStreak
           : longestStreak // ignore: cast_nullable_to_non_nullable
               as int,
+      streakFreezes: null == streakFreezes
+          ? _value.streakFreezes
+          : streakFreezes // ignore: cast_nullable_to_non_nullable
+              as int,
+      usedStreakFreezes: null == usedStreakFreezes
+          ? _value.usedStreakFreezes
+          : usedStreakFreezes // ignore: cast_nullable_to_non_nullable
+              as int,
       xp: null == xp
           ? _value.xp
           : xp // ignore: cast_nullable_to_non_nullable
@@ -342,6 +356,8 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       int totalStudyTime,
       int currentStreak,
       int longestStreak,
+      int streakFreezes,
+      int usedStreakFreezes,
       int xp,
       int coins,
       int level,
@@ -391,6 +407,8 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? totalStudyTime = null,
     Object? currentStreak = null,
     Object? longestStreak = null,
+    Object? streakFreezes = null,
+    Object? usedStreakFreezes = null,
     Object? xp = null,
     Object? coins = null,
     Object? level = null,
@@ -522,6 +540,14 @@ class __$$UserProfileImplCopyWithImpl<$Res>
           ? _value.longestStreak
           : longestStreak // ignore: cast_nullable_to_non_nullable
               as int,
+      streakFreezes: null == streakFreezes
+          ? _value.streakFreezes
+          : streakFreezes // ignore: cast_nullable_to_non_nullable
+              as int,
+      usedStreakFreezes: null == usedStreakFreezes
+          ? _value.usedStreakFreezes
+          : usedStreakFreezes // ignore: cast_nullable_to_non_nullable
+              as int,
       xp: null == xp
           ? _value.xp
           : xp // ignore: cast_nullable_to_non_nullable
@@ -582,6 +608,8 @@ class _$UserProfileImpl extends _UserProfile {
       required this.totalStudyTime,
       required this.currentStreak,
       required this.longestStreak,
+      this.streakFreezes = 5,
+      this.usedStreakFreezes = 0,
       required this.xp,
       required this.coins,
       required this.level,
@@ -652,6 +680,12 @@ class _$UserProfileImpl extends _UserProfile {
   @override
   final int longestStreak;
   @override
+  @JsonKey()
+  final int streakFreezes;
+  @override
+  @JsonKey()
+  final int usedStreakFreezes;
+  @override
   final int xp;
   @override
   final int coins;
@@ -664,7 +698,7 @@ class _$UserProfileImpl extends _UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, birthday: $birthday, gender: $gender, address: $address, institution: $institution, className: $className, batch: $batch, board: $board, targetExam: $targetExam, classId: $classId, groupId: $groupId, batchId: $batchId, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
+    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, birthday: $birthday, gender: $gender, address: $address, institution: $institution, className: $className, batch: $batch, board: $board, targetExam: $targetExam, classId: $classId, groupId: $groupId, batchId: $batchId, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, streakFreezes: $streakFreezes, usedStreakFreezes: $usedStreakFreezes, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
   }
 
   @override
@@ -723,6 +757,10 @@ class _$UserProfileImpl extends _UserProfile {
                 other.currentStreak == currentStreak) &&
             (identical(other.longestStreak, longestStreak) ||
                 other.longestStreak == longestStreak) &&
+            (identical(other.streakFreezes, streakFreezes) ||
+                other.streakFreezes == streakFreezes) &&
+            (identical(other.usedStreakFreezes, usedStreakFreezes) ||
+                other.usedStreakFreezes == usedStreakFreezes) &&
             (identical(other.xp, xp) || other.xp == xp) &&
             (identical(other.coins, coins) || other.coins == coins) &&
             (identical(other.level, level) || other.level == level) &&
@@ -765,6 +803,8 @@ class _$UserProfileImpl extends _UserProfile {
         totalStudyTime,
         currentStreak,
         longestStreak,
+        streakFreezes,
+        usedStreakFreezes,
         xp,
         coins,
         level,
@@ -812,6 +852,8 @@ abstract class _UserProfile extends UserProfile {
       required final int totalStudyTime,
       required final int currentStreak,
       required final int longestStreak,
+      final int streakFreezes,
+      final int usedStreakFreezes,
       required final int xp,
       required final int coins,
       required final int level,
@@ -882,6 +924,10 @@ abstract class _UserProfile extends UserProfile {
   @override
   int get longestStreak;
   @override
+  int get streakFreezes;
+  @override
+  int get usedStreakFreezes;
+  @override
   int get xp;
   @override
   int get coins;
@@ -911,6 +957,8 @@ mixin _$UserData {
   String get createdAt => throw _privateConstructorUsedError;
   UserProfile? get profile => throw _privateConstructorUsedError;
   List<bool>? get streakHistory => throw _privateConstructorUsedError;
+  List<String>? get monthlyActiveDates => throw _privateConstructorUsedError;
+  List<String>? get frozenStreakDates => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -931,7 +979,9 @@ abstract class $UserDataCopyWith<$Res> {
       bool isActive,
       String createdAt,
       UserProfile? profile,
-      List<bool>? streakHistory});
+      List<bool>? streakHistory,
+      List<String>? monthlyActiveDates,
+      List<String>? frozenStreakDates});
 
   $UserProfileCopyWith<$Res>? get profile;
 }
@@ -957,6 +1007,8 @@ class _$UserDataCopyWithImpl<$Res, $Val extends UserData>
     Object? createdAt = null,
     Object? profile = freezed,
     Object? streakHistory = freezed,
+    Object? monthlyActiveDates = freezed,
+    Object? frozenStreakDates = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -991,6 +1043,14 @@ class _$UserDataCopyWithImpl<$Res, $Val extends UserData>
           ? _value.streakHistory
           : streakHistory // ignore: cast_nullable_to_non_nullable
               as List<bool>?,
+      monthlyActiveDates: freezed == monthlyActiveDates
+          ? _value.monthlyActiveDates
+          : monthlyActiveDates // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      frozenStreakDates: freezed == frozenStreakDates
+          ? _value.frozenStreakDates
+          : frozenStreakDates // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ) as $Val);
   }
 
@@ -1023,7 +1083,9 @@ abstract class _$$UserDataImplCopyWith<$Res>
       bool isActive,
       String createdAt,
       UserProfile? profile,
-      List<bool>? streakHistory});
+      List<bool>? streakHistory,
+      List<String>? monthlyActiveDates,
+      List<String>? frozenStreakDates});
 
   @override
   $UserProfileCopyWith<$Res>? get profile;
@@ -1048,6 +1110,8 @@ class __$$UserDataImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? profile = freezed,
     Object? streakHistory = freezed,
+    Object? monthlyActiveDates = freezed,
+    Object? frozenStreakDates = freezed,
   }) {
     return _then(_$UserDataImpl(
       id: null == id
@@ -1082,6 +1146,14 @@ class __$$UserDataImplCopyWithImpl<$Res>
           ? _value._streakHistory
           : streakHistory // ignore: cast_nullable_to_non_nullable
               as List<bool>?,
+      monthlyActiveDates: freezed == monthlyActiveDates
+          ? _value._monthlyActiveDates
+          : monthlyActiveDates // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      frozenStreakDates: freezed == frozenStreakDates
+          ? _value._frozenStreakDates
+          : frozenStreakDates // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ));
   }
 }
@@ -1097,8 +1169,12 @@ class _$UserDataImpl implements _UserData {
       required this.isActive,
       required this.createdAt,
       this.profile,
-      final List<bool>? streakHistory})
-      : _streakHistory = streakHistory;
+      final List<bool>? streakHistory,
+      final List<String>? monthlyActiveDates,
+      final List<String>? frozenStreakDates})
+      : _streakHistory = streakHistory,
+        _monthlyActiveDates = monthlyActiveDates,
+        _frozenStreakDates = frozenStreakDates;
 
   factory _$UserDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserDataImplFromJson(json);
@@ -1128,9 +1204,31 @@ class _$UserDataImpl implements _UserData {
     return EqualUnmodifiableListView(value);
   }
 
+  final List<String>? _monthlyActiveDates;
+  @override
+  List<String>? get monthlyActiveDates {
+    final value = _monthlyActiveDates;
+    if (value == null) return null;
+    if (_monthlyActiveDates is EqualUnmodifiableListView)
+      return _monthlyActiveDates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  final List<String>? _frozenStreakDates;
+  @override
+  List<String>? get frozenStreakDates {
+    final value = _frozenStreakDates;
+    if (value == null) return null;
+    if (_frozenStreakDates is EqualUnmodifiableListView)
+      return _frozenStreakDates;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'UserData(id: $id, email: $email, username: $username, role: $role, isActive: $isActive, createdAt: $createdAt, profile: $profile, streakHistory: $streakHistory)';
+    return 'UserData(id: $id, email: $email, username: $username, role: $role, isActive: $isActive, createdAt: $createdAt, profile: $profile, streakHistory: $streakHistory, monthlyActiveDates: $monthlyActiveDates, frozenStreakDates: $frozenStreakDates)';
   }
 
   @override
@@ -1149,7 +1247,11 @@ class _$UserDataImpl implements _UserData {
                 other.createdAt == createdAt) &&
             (identical(other.profile, profile) || other.profile == profile) &&
             const DeepCollectionEquality()
-                .equals(other._streakHistory, _streakHistory));
+                .equals(other._streakHistory, _streakHistory) &&
+            const DeepCollectionEquality()
+                .equals(other._monthlyActiveDates, _monthlyActiveDates) &&
+            const DeepCollectionEquality()
+                .equals(other._frozenStreakDates, _frozenStreakDates));
   }
 
   @JsonKey(ignore: true)
@@ -1163,7 +1265,9 @@ class _$UserDataImpl implements _UserData {
       isActive,
       createdAt,
       profile,
-      const DeepCollectionEquality().hash(_streakHistory));
+      const DeepCollectionEquality().hash(_streakHistory),
+      const DeepCollectionEquality().hash(_monthlyActiveDates),
+      const DeepCollectionEquality().hash(_frozenStreakDates));
 
   @JsonKey(ignore: true)
   @override
@@ -1188,7 +1292,9 @@ abstract class _UserData implements UserData {
       required final bool isActive,
       required final String createdAt,
       final UserProfile? profile,
-      final List<bool>? streakHistory}) = _$UserDataImpl;
+      final List<bool>? streakHistory,
+      final List<String>? monthlyActiveDates,
+      final List<String>? frozenStreakDates}) = _$UserDataImpl;
 
   factory _UserData.fromJson(Map<String, dynamic> json) =
       _$UserDataImpl.fromJson;
@@ -1209,6 +1315,10 @@ abstract class _UserData implements UserData {
   UserProfile? get profile;
   @override
   List<bool>? get streakHistory;
+  @override
+  List<String>? get monthlyActiveDates;
+  @override
+  List<String>? get frozenStreakDates;
   @override
   @JsonKey(ignore: true)
   _$$UserDataImplCopyWith<_$UserDataImpl> get copyWith =>

@@ -9,6 +9,8 @@ class LeaderboardEntryModel {
   final int level;
   final int solvedQuestionsCount;
   final String league;
+  final int currentStreak;
+  final String? batch;
 
   const LeaderboardEntryModel({
     required this.rank,
@@ -21,6 +23,8 @@ class LeaderboardEntryModel {
     required this.level,
     required this.solvedQuestionsCount,
     required this.league,
+    required this.currentStreak,
+    this.batch,
   });
 
   factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,8 @@ class LeaderboardEntryModel {
       level: (json['level'] as num?)?.toInt() ?? 1,
       solvedQuestionsCount: (json['solvedQuestionsCount'] as num?)?.toInt() ?? 0,
       league: json['league'] as String? ?? 'BRONZE',
+      currentStreak: (json['currentStreak'] as num?)?.toInt() ?? 0,
+      batch: json['batch'] as String?,
     );
   }
 
@@ -50,6 +56,8 @@ class LeaderboardEntryModel {
       'level': level,
       'solvedQuestionsCount': solvedQuestionsCount,
       'league': league,
+      'currentStreak': currentStreak,
+      'batch': batch,
     };
   }
 }
