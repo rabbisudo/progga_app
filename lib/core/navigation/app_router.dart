@@ -105,6 +105,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/exam-preview/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ResultScreen(
+            examId: id,
+            isPreview: true,
+          );
+        },
+      ),
+      GoRoute(
         path: '/result/:sessionId',
         builder: (context, state) {
           final sessionId = state.pathParameters['sessionId'] ?? '';

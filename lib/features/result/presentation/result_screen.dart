@@ -14,6 +14,54 @@ final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((
   return repo.fetchExamResult(sessionId);
 });
 
+// Fetch and format exam questions for previewing
+final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, examId) async {
+  final repo = ref.watch(examRepositoryProvider);
+  final exam = await repo.fetchExamDetails(examId);
+
+  final List<Map<String, dynamic>> mappedQuestions = exam.questions.map((eq) {
+    return {
+      'id': eq.id,
+      'examId': eq.examId,
+      'questionId': eq.questionId,
+      'sortOrder': eq.sortOrder,
+      'question': {
+        'id': eq.question.id,
+        'subjectId': eq.question.subjectId,
+        'chapterId': eq.question.chapterId,
+        'topicId': eq.question.topicId,
+        'questionText': eq.question.questionText,
+        'imageKey': eq.question.imageKey,
+        'latexFormula': eq.question.latexFormula,
+        'type': eq.question.type,
+        'marks': eq.question.marks,
+        'tags': eq.question.tags,
+        'options': eq.question.options.map((opt) => opt.toJson()).toList(),
+        'explanations': eq.question.explanations?.map((exp) => exp.toJson()).toList() ?? [],
+      },
+    };
+  }).toList();
+
+  return {
+    'exam': {
+      'id': exam.id,
+      'title': exam.title,
+      'description': exam.description,
+      'duration': exam.duration,
+      'totalMarks': exam.totalMarks,
+      'passMarks': exam.passMarks,
+      'questions': mappedQuestions,
+    },
+    'totalQuestions': exam.questions.length,
+    'correctCount': 0,
+    'wrongCount': 0,
+    'skippedCount': exam.questions.length,
+    'score': 0.0,
+    'timeTaken': 0,
+    'answers': [],
+  };
+});
+
 // Fetch user's actual daily explanation quota
 final explanationQuotaProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final repo = ref.watch(examRepositoryProvider);
@@ -680,12 +728,22 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
 }
 
 class ResultScreen extends ConsumerWidget {
-  final String sessionId;
-  const ResultScreen({super.key, required this.sessionId});
+  final String? sessionId;
+  final String? examId;
+  final bool isPreview;
+
+  const ResultScreen({
+    super.key,
+    this.sessionId,
+    this.examId,
+    this.isPreview = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resultAsync = ref.watch(examResultProvider(sessionId));
+    final resultAsync = isPreview
+        ? ref.watch(examDetailsProvider(examId ?? ''))
+        : ref.watch(examResultProvider(sessionId ?? ''));
 
     ref.listen<AsyncValue<Map<String, dynamic>>>(explanationQuotaProvider, (previous, next) {
       next.whenOrNull(
@@ -774,7 +832,9 @@ class ResultScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'সময়: ${_toBengaliDigit(durationMinutes)} মিনিট',
+                  isPreview
+                      ? 'প্রশ্নপত্র (${_toBengaliDigit(examQuestionsList.length)}টি প্রশ্ন)'
+                      : 'সময়: ${_toBengaliDigit(durationMinutes)} মিনিট',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
@@ -790,7 +850,8 @@ class ResultScreen extends ConsumerWidget {
             cacheExtent: 500,
             slivers: [
               // Top Stats Cards & Status Pills Header
-              SliverPadding(
+              if (!isPreview)
+                SliverPadding(
                 padding: const EdgeInsets.all(16.0),
                 sliver: SliverToBoxAdapter(
                   child: Column(
@@ -2135,6 +2196,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
     final userAns = widget.answersMap[qId];
     final selectedOptionId = userAns?['selectedOptionId'] as String?;
+    final isSkipped = userAns == null ||
+        (userAns['selectedOptionId'] == null && userAns['textAnswer'] == null);
 
     final optionsList = (qData['options'] as List<dynamic>?) ?? [];
     final List<String> localPaths = globalCqUploadedImages[qId] ?? [];
@@ -2493,12 +2556,13 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             }),
           ],
 
-          _ExplanationCard(
-            questionId: qId,
-            remainingQuota: widget.remainingQuota,
-          ),
-
-          const SizedBox(height: 12),
+          if (!isSkipped) ...[
+            _ExplanationCard(
+              questionId: qId,
+              remainingQuota: widget.remainingQuota,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // Footer Row
           Row(

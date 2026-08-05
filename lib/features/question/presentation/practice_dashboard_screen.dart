@@ -20,6 +20,8 @@ import '../../auth/presentation/auth_notifier.dart';
 import '../../academics/data/academics_repository.dart';
 import '../../ai/presentation/progga_ai_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../exam/data/exam_repository.dart';
+import '../../exam/domain/exam_model.dart';
 
 // SVGs for Premium Bottom Bar Navigation
 const String _homeIcon = '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -2446,7 +2448,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
                       return BouncingCard(
                         onTap: () {
-                          context.push('/exam/${ex['id']}');
+                          _showExamConfirmSheet(context, ex);
                         },
                         child: Card(
                           elevation: 0,
@@ -3004,6 +3006,178 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               ),
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showExamConfirmSheet(BuildContext context, Map<String, dynamic> ex) {
+    final title = ex['title']?.toString() ?? '';
+    final duration = ex['duration'] as int? ?? 1500;
+    final durationMin = (duration / 60).round();
+    final qCount = ex['qCount'] as int? ?? 25;
+    final examId = ex['id'] as String? ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 24.0,
+              right: 24.0,
+              top: 10.0,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Drag Handle
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4.5,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                // Title
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 16.5,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Noto Sans Bengali',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Overview Card
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Time
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.access_time_rounded,
+                            color: Color(0xFFC92A2A),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${_toBengaliDigits(durationMin.toString())} মিনিট',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              fontFamily: 'Noto Sans Bengali',
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Divider
+                      Container(
+                        width: 1.5,
+                        height: 24,
+                        color: Colors.grey.shade200,
+                      ),
+                      // Question Count
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.edit_note_rounded,
+                            color: Color(0xFF2B8A3E),
+                            size: 24,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_toBengaliDigits(qCount.toString())}টি প্রশ্ন',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                              fontFamily: 'Noto Sans Bengali',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Start Exam Button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/exam/$examId');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    'পরীক্ষা শুরু করো',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontFamily: 'Noto Sans Bengali',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // View Questions Button
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/exam-preview/$examId', extra: title);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF017A47),
+                    side: const BorderSide(color: Color(0xFF017A47), width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: const Color(0xFFECEFF1).withOpacity(0.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                  label: const Text(
+                    'প্রশ্ন দেখো',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Noto Sans Bengali',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
