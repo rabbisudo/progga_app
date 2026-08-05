@@ -708,11 +708,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          child: _buildResultMathWidget(expText),
-                        ),
+                        _buildResultMathWidget(expText),
                         if (expImgKey != null && expImgKey.isNotEmpty)
                           _buildQuestionImage(expImgKey),
                       ],
