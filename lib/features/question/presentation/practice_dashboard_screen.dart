@@ -849,6 +849,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             ref.refresh(userProfileProvider.future),
             ref.refresh(myLeaderboardProvider.future),
             ref.refresh(activeBannersProvider.future),
+            ref.refresh(studentCurriculumProvider.future),
+            ref.refresh(studentQbCurriculumProvider.future),
           ]);
         } catch (_) {}
       },

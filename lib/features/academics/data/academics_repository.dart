@@ -55,28 +55,34 @@ final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) asy
 });
 
 final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final profile = ref.watch(userProfileProvider).value?.profile;
-  if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+  final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
+  final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
+  final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));
+
+  if (classId == null || classId.isEmpty) {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
   return repo.fetchStudentCurriculum(
-    classId: profile.classId!,
-    groupId: profile.groupId,
-    userId: profile.userId,
+    classId: classId,
+    groupId: groupId,
+    userId: userId,
   );
 });
 
 final studentQbCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
-  final profile = ref.watch(userProfileProvider).value?.profile;
-  if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+  final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
+  final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
+  final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));
+
+  if (classId == null || classId.isEmpty) {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
   return repo.fetchStudentCurriculum(
-    classId: profile.classId!,
-    groupId: profile.groupId,
-    userId: profile.userId,
+    classId: classId,
+    groupId: groupId,
+    userId: userId,
     isQuestionBank: true,
   );
 });
