@@ -1802,6 +1802,193 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     return 'A';
   }
 
+  // --- FITB Review Helpers ---
+
+  bool _isFitbAnswerCorrect(String? uAns, String? cAns) {
+    if (uAns == null || cAns == null) return false;
+    final cleanUser = uAns.trim().toLowerCase();
+    final cleanCorrect = cAns.trim().toLowerCase();
+    final acceptedAnswers = cleanCorrect.split(RegExp(r'/|\s+or\s+'));
+    return acceptedAnswers.any((ans) => cleanUser == ans.trim());
+  }
+
+  Map<String, String> _parseCorrectAnswers(String solutionHtml) {
+    final Map<String, String> correctMap = {};
+    final pRegex = RegExp(r'\(([a-z0-9])\)\s*([^<;.,\)]+)', caseSensitive: false);
+    final matches = pRegex.allMatches(solutionHtml).toList();
+    for (int i = 0; i < matches.length; i++) {
+      final m = matches[i];
+      var label = m.group(1)!.toLowerCase();
+      if (RegExp(r'^\d+$').hasMatch(label)) {
+        label = String.fromCharCode(97 + i); // 0 -> a, 1 -> b, etc.
+      }
+      final val = m.group(2)!.trim();
+      correctMap[label] = val;
+    }
+    return correctMap;
+  }
+
+  WidgetSpan _buildFitbReviewGapSpan(String gapLabel, Map<String, String> userMap, Map<String, String> correctMap) {
+    final uAns = userMap[gapLabel];
+    final cAns = correctMap[gapLabel];
+    final isCorrect = _isFitbAnswerCorrect(uAns, cAns);
+    final isSkipped = uAns == null || uAns.trim().isEmpty;
+
+    Color bgColor;
+    Color borderColor;
+    Color textColor;
+
+    if (isCorrect) {
+      bgColor = const Color(0xFFE8F5E9);
+      borderColor = const Color(0xFF81C784);
+      textColor = const Color(0xFF017A47);
+    } else if (isSkipped) {
+      bgColor = const Color(0xFFFFFBEB);
+      borderColor = const Color(0xFFFCD34D);
+      textColor = const Color(0xFFD97706);
+    } else {
+      bgColor = const Color(0xFFFFEBEE);
+      borderColor = const Color(0xFFEF5350);
+      textColor = Colors.red.shade900;
+    }
+
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: borderColor,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '($gapLabel) ',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            Text(
+              uAns ?? '________',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isCorrect ? Colors.black87 : textColor,
+              ),
+            ),
+            // Removed inline correct answer text as requested
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFitbReviewPassage(String qId, String rawPassage, Map<String, String> userMap, Map<String, String> correctMap) {
+    final cleanPassage = rawPassage
+        .replaceAll(RegExp(r'<table[^>]*>([\s\S]*?)<\/table>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'</?span[^>]*>', caseSensitive: false), '')
+        .trim();
+    final paragraphs = cleanPassage.split(RegExp(r'</p>|<p>|<br\s*/?>'));
+
+    final List<Widget> paragraphWidgets = [];
+
+    for (var para in paragraphs) {
+      final trimmed = para.trim();
+      if (trimmed.isEmpty) continue;
+
+      final List<InlineSpan> spans = [];
+      int lastEnd = 0;
+      
+      final gapRegex = RegExp(
+        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})',
+        caseSensitive: false
+      );
+      final matches = gapRegex.allMatches(trimmed);
+
+      for (final m in matches) {
+        if (m.start > lastEnd) {
+          spans.add(TextSpan(
+            text: trimmed.substring(lastEnd, m.start).replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' ').trim(),
+            style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.6),
+          ));
+        }
+
+        final gapLabel = m.group(1)!.toLowerCase();
+        spans.add(_buildFitbReviewGapSpan(gapLabel, userMap, correctMap));
+
+        lastEnd = m.end;
+      }
+
+      if (lastEnd < trimmed.length) {
+        spans.add(TextSpan(
+          text: trimmed.substring(lastEnd).replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' ').trim(),
+          style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.6),
+        ));
+      }
+
+      if (spans.isNotEmpty) {
+        paragraphWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text.rich(
+              TextSpan(children: spans),
+              softWrap: true,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: paragraphWidgets,
+    );
+  }
+
+  Widget _buildFitbReviewCard(Map<String, dynamic> qData, Map<String, dynamic>? userAns) {
+    final qId = qData['id'] as String? ?? '';
+    final questionText = qData['questionText'] as String? ?? '';
+    var solutionHtml = qData['solution'] as String? ?? '';
+    if (solutionHtml.isEmpty && qData['explanations'] != null) {
+      final exList = qData['explanations'] as List?;
+      if (exList != null && exList.isNotEmpty) {
+        final firstEx = exList[0];
+        if (firstEx is Map) {
+          solutionHtml = firstEx['text'] as String? ?? '';
+        }
+      }
+    }
+    
+    // Parse user answers from serialized JSON
+    Map<String, String> userMap = {};
+    final textAnswer = userAns?['textAnswer'] as String?;
+    final selectedOptionId = userAns?['selectedOptionId'] as String?;
+    final rawAns = textAnswer ?? selectedOptionId;
+    if (rawAns != null && rawAns.startsWith('{')) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(rawAns);
+        userMap = decoded.map((k, v) => MapEntry(k, v.toString()));
+      } catch (_) {}
+    }
+    
+    // Parse correct answers from solution
+    final correctMap = _parseCorrectAnswers(solutionHtml);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildFitbReviewPassage(qId, questionText, userMap, correctMap),
+      ],
+    );
+  }
+
   String _getCqLabel(int index) {
     const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
     if (index >= 0 && index < labels.length) {
@@ -1946,6 +2133,13 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         (qType?.startsWith('CQ_') ?? false) ||
         qMarks > 1.1;
 
+    final isFitb = qType == 'FILL_IN_THE_GAP' ||
+        qType == 'FILL_IN_THE_GAPS' ||
+        qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+        ((qType == 'WRITTEN' || qType == 'FILL') &&
+        questionText.contains('(a)') &&
+        (questionText.contains('——') || questionText.contains('___') || questionText.contains('________')));
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -1969,17 +2163,18 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   color: Colors.black87,
                 ),
               ),
-              Expanded(
-                child: _buildResultMathWidget(
-                  questionText,
-                  textStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    height: 1.4,
+              if (!isFitb)
+                Expanded(
+                  child: _buildResultMathWidget(
+                    questionText,
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
 
@@ -2013,7 +2208,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
           const SizedBox(height: 16),
 
           // Uploaded Pages List
-          if (isWrittenOrCq && localPaths.isNotEmpty) ...[
+          if (isWrittenOrCq && !isFitb && localPaths.isNotEmpty) ...[
             const Text(
               'আপনার আপলোডকৃত উত্তরসমূহ:',
               style: TextStyle(
@@ -2078,7 +2273,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
           ],
 
           // Content body based on type
-          if (isWrittenOrCq) ...[
+          if (isFitb) ...[
+            _buildFitbReviewCard(qData, userAns),
+          ] else if (isWrittenOrCq) ...[
             // Written / CQ Content: Flat text subquestions with separate explanation button
             ...optionsList.asMap().entries.map((optEntry) {
               final optIdx = optEntry.key;
@@ -2269,11 +2466,12 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                 ),
               );
             }),
-            _ExplanationCard(
-              questionId: qId,
-              remainingQuota: widget.remainingQuota,
-            ),
           ],
+
+          _ExplanationCard(
+            questionId: qId,
+            remainingQuota: widget.remainingQuota,
+          ),
 
           const SizedBox(height: 12),
 

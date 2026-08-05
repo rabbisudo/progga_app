@@ -18,6 +18,17 @@ class ExamQuestionModel with _$ExamQuestionModel {
 }
 
 @freezed
+class ExamSourceImageModel with _$ExamSourceImageModel {
+  const factory ExamSourceImageModel({
+    required String id,
+    required String examId,
+    required String url,
+  }) = _ExamSourceImageModel;
+
+  factory ExamSourceImageModel.fromJson(Map<String, dynamic> json) => _$ExamSourceImageModelFromJson(json);
+}
+
+@freezed
 class ExamModel with _$ExamModel {
   const factory ExamModel({
     required String id,
@@ -30,6 +41,7 @@ class ExamModel with _$ExamModel {
     required double passMarks,
     required bool isPublished,
     required List<ExamQuestionModel> questions,
+    @Default([]) List<ExamSourceImageModel> sourceImages,
   }) = _ExamModel;
 
   factory ExamModel.fromJson(Map<String, dynamic> json) => _$ExamModelFromJson(json);

@@ -134,6 +134,12 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     state = state.copyWith(selectedOptions: updatedOptions);
   }
 
+  void updateFITBAnswers(String questionId, String? serializedAnswers) {
+    final updatedOptions = Map<String, String?>.from(state.selectedOptions);
+    updatedOptions[questionId] = serializedAnswers;
+    state = state.copyWith(selectedOptions: updatedOptions);
+  }
+
   void toggleMarkedForReview(String questionId) {
     final updatedReview = Map<String, bool>.from(state.markedForReview);
     final current = updatedReview[questionId] ?? false;

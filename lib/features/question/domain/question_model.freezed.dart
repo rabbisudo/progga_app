@@ -446,7 +446,7 @@ mixin _$QuestionModel {
   String? get latexFormula => throw _privateConstructorUsedError;
   String? get difficulty => throw _privateConstructorUsedError;
   String get subjectId => throw _privateConstructorUsedError;
-  String get chapterId => throw _privateConstructorUsedError;
+  String? get chapterId => throw _privateConstructorUsedError;
   String? get topicId => throw _privateConstructorUsedError;
   String? get board => throw _privateConstructorUsedError;
   String? get boardId => throw _privateConstructorUsedError;
@@ -483,7 +483,7 @@ abstract class $QuestionModelCopyWith<$Res> {
       String? latexFormula,
       String? difficulty,
       String subjectId,
-      String chapterId,
+      String? chapterId,
       String? topicId,
       String? board,
       String? boardId,
@@ -520,7 +520,7 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
     Object? latexFormula = freezed,
     Object? difficulty = freezed,
     Object? subjectId = null,
-    Object? chapterId = null,
+    Object? chapterId = freezed,
     Object? topicId = freezed,
     Object? board = freezed,
     Object? boardId = freezed,
@@ -562,10 +562,10 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
           ? _value.subjectId
           : subjectId // ignore: cast_nullable_to_non_nullable
               as String,
-      chapterId: null == chapterId
+      chapterId: freezed == chapterId
           ? _value.chapterId
           : chapterId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       topicId: freezed == topicId
           ? _value.topicId
           : topicId // ignore: cast_nullable_to_non_nullable
@@ -645,7 +645,7 @@ abstract class _$$QuestionModelImplCopyWith<$Res>
       String? latexFormula,
       String? difficulty,
       String subjectId,
-      String chapterId,
+      String? chapterId,
       String? topicId,
       String? board,
       String? boardId,
@@ -680,7 +680,7 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
     Object? latexFormula = freezed,
     Object? difficulty = freezed,
     Object? subjectId = null,
-    Object? chapterId = null,
+    Object? chapterId = freezed,
     Object? topicId = freezed,
     Object? board = freezed,
     Object? boardId = freezed,
@@ -722,10 +722,10 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
           ? _value.subjectId
           : subjectId // ignore: cast_nullable_to_non_nullable
               as String,
-      chapterId: null == chapterId
+      chapterId: freezed == chapterId
           ? _value.chapterId
           : chapterId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       topicId: freezed == topicId
           ? _value.topicId
           : topicId // ignore: cast_nullable_to_non_nullable
@@ -800,7 +800,7 @@ class _$QuestionModelImpl implements _QuestionModel {
       this.latexFormula,
       this.difficulty,
       required this.subjectId,
-      required this.chapterId,
+      this.chapterId,
       this.topicId,
       this.board,
       this.boardId,
@@ -836,7 +836,7 @@ class _$QuestionModelImpl implements _QuestionModel {
   @override
   final String subjectId;
   @override
-  final String chapterId;
+  final String? chapterId;
   @override
   final String? topicId;
   @override
@@ -982,7 +982,7 @@ abstract class _QuestionModel implements QuestionModel {
       final String? latexFormula,
       final String? difficulty,
       required final String subjectId,
-      required final String chapterId,
+      final String? chapterId,
       final String? topicId,
       final String? board,
       final String? boardId,
@@ -1015,7 +1015,7 @@ abstract class _QuestionModel implements QuestionModel {
   @override
   String get subjectId;
   @override
-  String get chapterId;
+  String? get chapterId;
   @override
   String? get topicId;
   @override

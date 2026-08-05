@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,6 +41,26 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   Timer? _timeSpentTracker;
   final Map<String, Widget> _mathWidgetCache = {};
   late Map<String, List<String>> _uploadedImages;
+  
+  // Fill In The Gaps (FITB) State
+  final Map<String, Map<String, String>> _fitbAnswers = {}; // maps questionId -> { gapLabel: selectedClue }
+  String? _activeGapQuestionId;
+  String? _activeGapLabel;
+  TextEditingController? _fitbTextController;
+
+  void _selectGap(String qId, String gapLabel) {
+    setState(() {
+      _activeGapQuestionId = qId;
+      _activeGapLabel = gapLabel;
+      final answers = _fitbAnswers[qId] ?? {};
+      final currentVal = answers[gapLabel] ?? '';
+      _fitbTextController?.dispose();
+      _fitbTextController = TextEditingController(text: currentVal);
+      _fitbTextController!.selection = TextSelection.fromPosition(
+        TextPosition(offset: _fitbTextController!.text.length),
+      );
+    });
+  }
 
   @override
   void initState() {
@@ -74,6 +95,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   void dispose() {
     _scrollController.dispose();
     _timeSpentTracker?.cancel();
+    _fitbTextController?.dispose();
     super.dispose();
   }
 
@@ -577,6 +599,438 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     );
   }
 
+  // --- FITB (Fill In The Gaps) Helper Methods ---
+  
+  List<String> _extractClues(String questionText) {
+    final List<String> clues = [];
+    final tdRegex = RegExp(r'<td[^>]*>(?:<p>)?(.*?)(?:</p>)?</td>', caseSensitive: false);
+    final matches = tdRegex.allMatches(questionText);
+    for (final m in matches) {
+      final text = m.group(1)!
+          .replaceAll(RegExp(r'<[^>]*>'), '')
+          .replaceAll('&nbsp;', ' ')
+          .trim();
+      if (text.isNotEmpty) {
+        clues.add(text);
+      }
+    }
+    return clues;
+  }
+
+  String _getPassageWithoutTable(String html) {
+    final clean = html.replaceAll(RegExp(r'<table[^>]*>([\s\S]*?)<\/table>', caseSensitive: false), '').trim();
+    return clean.replaceAll(RegExp(r'</?span[^>]*>', caseSensitive: false), '');
+  }
+
+  String _cleanText(String text) {
+    return text
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&mdash;', '—')
+        .replaceAll('&ndash;', '–')
+        .trim();
+  }
+
+  String? _getNextEmptyGap(String qId, {required String rawPassage}) {
+    final cleanPassage = _getPassageWithoutTable(rawPassage);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    final matches = gapRegex.allMatches(cleanPassage);
+    final answers = _fitbAnswers[qId] ?? {};
+    
+    for (final m in matches) {
+      final label = m.group(1)!.toLowerCase();
+      if (!answers.containsKey(label) || answers[label] == null || answers[label]!.isEmpty) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  int _getFilledCount(String qId, String rawPassage) {
+    final cleanPassage = _getPassageWithoutTable(rawPassage);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    final matches = gapRegex.allMatches(cleanPassage);
+    final answers = _fitbAnswers[qId] ?? {};
+    int count = 0;
+    for (final m in matches) {
+      final label = m.group(1)!.toLowerCase();
+      if (answers.containsKey(label) && answers[label] != null && answers[label]!.isNotEmpty) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  int _getTotalGapsCount(String rawPassage) {
+    final cleanPassage = _getPassageWithoutTable(rawPassage);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    return gapRegex.allMatches(cleanPassage).length;
+  }
+
+  WidgetSpan _buildGapSpan(String qId, String gapLabel, String rawPassage) {
+    final answers = _fitbAnswers[qId] ?? {};
+    final filledVal = answers[gapLabel];
+    final isActive = _activeGapQuestionId == qId && _activeGapLabel == gapLabel;
+
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.middle,
+      child: GestureDetector(
+        onTap: () => _selectGap(qId, gapLabel),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: filledVal != null
+                ? (isActive ? const Color(0xFFE8F5E9) : const Color(0xFFF1F8F5))
+                : (isActive ? const Color(0xFFFFF9C4) : const Color(0xFFF5F5F5)),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isActive
+                  ? (filledVal != null ? const Color(0xFF017A47) : const Color(0xFFF57F17))
+                  : (filledVal != null ? const Color(0xFF81C784) : Colors.grey.shade400),
+              width: isActive ? 2.0 : 1.2,
+            ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '($gapLabel) ',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: filledVal != null ? const Color(0xFF017A47) : Colors.grey.shade700,
+                ),
+              ),
+              Text(
+                filledVal ?? '________',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: filledVal != null ? FontWeight.bold : FontWeight.normal,
+                  color: filledVal != null ? Colors.black87 : Colors.grey.shade500,
+                ),
+              ),
+              if (filledVal != null) ...[
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _fitbAnswers[qId]!.remove(gapLabel);
+                      if (_activeGapQuestionId == qId && _activeGapLabel == gapLabel) {
+                        _fitbTextController?.clear();
+                      }
+                      final serialized = _fitbAnswers[qId]!.isEmpty ? null : jsonEncode(_fitbAnswers[qId]);
+                      ref.read(examRunnerProvider.notifier).updateFITBAnswers(qId, serialized);
+                    });
+                  },
+                  child: Icon(
+                    Icons.cancel,
+                    size: 14,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ]
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFitbPassage(String qId, String rawPassage, bool hasClues) {
+    final cleanPassage = _getPassageWithoutTable(rawPassage);
+    final paragraphs = cleanPassage.split(RegExp(r'</p>|<p>|<br\s*/?>'));
+
+    final List<Widget> paragraphWidgets = [];
+
+    for (var para in paragraphs) {
+      final trimmed = para.trim();
+      if (trimmed.isEmpty) continue;
+
+      final List<InlineSpan> spans = [];
+      int lastEnd = 0;
+      
+      final gapRegex = RegExp(
+        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})',
+        caseSensitive: false
+      );
+      final matches = gapRegex.allMatches(trimmed);
+
+      for (final m in matches) {
+        if (m.start > lastEnd) {
+          spans.add(TextSpan(
+            text: _cleanText(trimmed.substring(lastEnd, m.start)),
+            style: const TextStyle(fontSize: 15.5, color: Colors.black87, height: 1.6),
+          ));
+        }
+
+        final gapLabel = m.group(1)!.toLowerCase();
+        if (hasClues) {
+          spans.add(_buildGapSpan(qId, gapLabel, rawPassage));
+        } else {
+          spans.add(WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: InlineGapInput(
+              gapLabel: gapLabel,
+              initialValue: _fitbAnswers[qId]?[gapLabel] ?? '',
+              onChanged: (val) {
+                setState(() {
+                  _fitbAnswers.putIfAbsent(qId, () => {});
+                  if (val.trim().isEmpty) {
+                    _fitbAnswers[qId]!.remove(gapLabel);
+                  } else {
+                    _fitbAnswers[qId]![gapLabel] = val;
+                  }
+                  final serialized = _fitbAnswers[qId]!.isEmpty ? null : jsonEncode(_fitbAnswers[qId]);
+                  ref.read(examRunnerProvider.notifier).updateFITBAnswers(qId, serialized);
+                });
+              },
+            ),
+          ));
+        }
+
+        lastEnd = m.end;
+      }
+
+      if (lastEnd < trimmed.length) {
+        spans.add(TextSpan(
+          text: _cleanText(trimmed.substring(lastEnd)),
+          style: const TextStyle(fontSize: 15.5, color: Colors.black87, height: 1.6),
+        ));
+      }
+
+      if (spans.isNotEmpty) {
+        paragraphWidgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text.rich(
+              TextSpan(children: spans),
+              softWrap: true,
+            ),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: paragraphWidgets,
+    );
+  }
+
+  Widget _buildFitbClues(String qId, List<String> clues, String rawPassage) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        const Divider(height: 1),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFF017A47)),
+            const SizedBox(width: 6),
+            const Text(
+              'ক্লুসমূহ (শব্দ ভাণ্ডার):',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: clues.map((clue) {
+            final answers = _fitbAnswers[qId] ?? {};
+            final isUsed = answers.values.contains(clue);
+
+            return ChoiceChip(
+              label: Text(
+                clue,
+                style: TextStyle(
+                  color: isUsed ? Colors.grey.shade600 : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              selected: false,
+              backgroundColor: const Color(0xFF017A47),
+              disabledColor: Colors.grey.shade100,
+              elevation: isUsed ? 0 : 2,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(100),
+                side: BorderSide(
+                  color: isUsed ? Colors.grey.shade300 : const Color(0xFF017A47),
+                ),
+              ),
+              onSelected: isUsed
+                  ? null
+                  : (selected) {
+                      final activeQId = _activeGapQuestionId;
+                      final activeLabel = _activeGapLabel;
+                      
+                      setState(() {
+                        _fitbAnswers.putIfAbsent(qId, () => {});
+                        
+                        if (activeQId == qId && activeLabel != null) {
+                          _fitbAnswers[qId]![activeLabel] = clue;
+                          
+                          // Auto advance
+                          final nextLabel = _getNextEmptyGap(qId, rawPassage: rawPassage);
+                          _activeGapLabel = nextLabel;
+                          if (nextLabel == null) {
+                            _activeGapQuestionId = null;
+                          }
+                        } else {
+                          // Find first empty gap
+                          final firstEmpty = _getNextEmptyGap(qId, rawPassage: rawPassage);
+                          if (firstEmpty != null) {
+                            _activeGapQuestionId = qId;
+                            _activeGapLabel = firstEmpty;
+                            _fitbAnswers[qId]![firstEmpty] = clue;
+                            
+                            // Auto advance
+                            final nextLabel = _getNextEmptyGap(qId, rawPassage: rawPassage);
+                            _activeGapLabel = nextLabel;
+                            if (nextLabel == null) {
+                              _activeGapQuestionId = null;
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('সবগুলো শূন্যস্থান পূরণ করা হয়েছে!'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          }
+                        }
+                        
+                        final serialized = jsonEncode(_fitbAnswers[qId]);
+                        ref.read(examRunnerProvider.notifier).updateFITBAnswers(qId, serialized);
+                      });
+                    },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFitbQuestionCard(ExamRenderItem item, ExamRunnerState state) {
+    final eq = item.examQuestion!;
+    final q = eq.question;
+    
+    // Lazy sync state from runner state
+    final savedVal = state.selectedOptions[q.id];
+    if (savedVal != null && savedVal.startsWith('{') && !_fitbAnswers.containsKey(q.id)) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(savedVal);
+        _fitbAnswers[q.id] = decoded.map((k, v) => MapEntry(k, v.toString()));
+      } catch (e) {
+        debugPrint('Error decoding saved FITB answers: $e');
+      }
+    }
+    
+    List<String> clues = _extractClues(q.questionText);
+    if (clues.isEmpty && q.options.isNotEmpty) {
+      clues = q.options.map((opt) => opt.optionText.replaceAll(RegExp(r'<[^>]*>'), '').trim()).toList();
+    }
+    final totalGaps = _getTotalGapsCount(q.questionText);
+    final filledCount = _getFilledCount(q.id, q.questionText);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${item.questionLabel}. ',
+                style: const TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF017A47),
+                ),
+              ),
+              const Expanded(
+                child: Text(
+                  'শূন্যস্থান পূরণ করো (ক্লুসহ)',
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          _buildFitbPassage(q.id, q.questionText, q.type != 'FILL_IN_THE_GAPS_WITHOUT_CLUES'),
+          
+          const SizedBox(height: 12),
+          
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: filledCount == totalGaps
+                      ? const Color(0xFFE8F5E9)
+                      : const Color(0xFFECEFF1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      filledCount == totalGaps ? Icons.check_circle : Icons.info_outline,
+                      size: 16,
+                      color: filledCount == totalGaps ? const Color(0xFF017A47) : Colors.black54,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'পূরণ করা হয়েছে $filledCount/$totalGaps',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: filledCount == totalGaps ? const Color(0xFF017A47) : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          if (clues.isNotEmpty && q.type != 'FILL_IN_THE_GAPS_WITHOUT_CLUES')
+            _buildFitbClues(q.id, clues, q.questionText),
+        ],
+      ),
+    );
+  }
+
   String _getOptionLabel(int index) {
     const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
     if (index >= 0 && index < labels.length) {
@@ -1049,7 +1503,106 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         ),
         body: Column(
           children: [
-
+            if (state.exam!.sourceImages.isNotEmpty)
+              Container(
+                height: 160,
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.image_outlined, color: Color(0xFF017A47), size: 18),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'প্রশ্নপত্রের উদ্দীপক / চিত্রসমূহ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '(${state.exam!.sourceImages.length} টি চিত্র)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1, color: Colors.black12),
+                    Expanded(
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        itemCount: state.exam!.sourceImages.length,
+                        itemBuilder: (context, index) {
+                          final img = state.exam!.sourceImages[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => Dialog(
+                                    backgroundColor: Colors.black87,
+                                    insetPadding: const EdgeInsets.all(12),
+                                    child: InteractiveViewer(
+                                      maxScale: 4.0,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          img.url,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (context, err, stack) => const Center(
+                                            child: Icon(Icons.broken_image, color: Colors.white, size: 48),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  width: 120,
+                                  color: Colors.grey.shade100,
+                                  child: Image.network(
+                                    img.url,
+                                    width: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => const Center(
+                                      child: Icon(Icons.broken_image, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             // Single continuous scroll view with all questions (Virtualized for 1000+ items)
             Expanded(
@@ -1106,6 +1659,17 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
                   final eq = item.examQuestion!;
                   final q = eq.question;
+
+                  final isFitb = q.type == 'FILL_IN_THE_GAP' ||
+                      q.type == 'FILL_IN_THE_GAPS' ||
+                      q.type == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+                      ((q.type == 'WRITTEN' || q.type == 'FILL') &&
+                      q.questionText.contains('(a)') &&
+                      (q.questionText.contains('——') || q.questionText.contains('___') || q.questionText.contains('________')));
+
+                  if (isFitb) {
+                    return _buildFitbQuestionCard(item, state);
+                  }
 
                   final isWrittenOrCq = q.type == 'CQ_4' ||
                       q.type == 'CQ_3' ||
@@ -1531,4 +2095,100 @@ class ExamRenderItem {
     this.examQuestion,
     required this.questionLabel,
   });
+}
+
+class InlineGapInput extends StatefulWidget {
+  final String gapLabel;
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+
+  const InlineGapInput({
+    Key? key,
+    required this.gapLabel,
+    required this.initialValue,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  State<InlineGapInput> createState() => _InlineGapInputState();
+}
+
+class _InlineGapInputState extends State<InlineGapInput> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant InlineGapInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: _controller.text.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasText = _controller.text.isNotEmpty;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      width: hasText ? 115 : 90,
+      height: 32,
+      decoration: BoxDecoration(
+        color: hasText ? const Color(0xFFF1F8F5) : const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: hasText ? const Color(0xFF81C784) : Colors.grey.shade400,
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 6.0),
+            child: Text(
+              '(${widget.gapLabel})',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: hasText ? const Color(0xFF017A47) : Colors.grey.shade700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              decoration: const InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(4, 0, 4, 10),
+                border: InputBorder.none,
+                isDense: true,
+                hintText: '____',
+                hintStyle: TextStyle(color: Colors.grey),
+              ),
+              onChanged: widget.onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

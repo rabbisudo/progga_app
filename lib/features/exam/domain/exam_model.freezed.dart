@@ -252,6 +252,181 @@ abstract class _ExamQuestionModel implements ExamQuestionModel {
       throw _privateConstructorUsedError;
 }
 
+ExamSourceImageModel _$ExamSourceImageModelFromJson(Map<String, dynamic> json) {
+  return _ExamSourceImageModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ExamSourceImageModel {
+  String get id => throw _privateConstructorUsedError;
+  String get examId => throw _privateConstructorUsedError;
+  String get url => throw _privateConstructorUsedError;
+
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  @JsonKey(ignore: true)
+  $ExamSourceImageModelCopyWith<ExamSourceImageModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ExamSourceImageModelCopyWith<$Res> {
+  factory $ExamSourceImageModelCopyWith(ExamSourceImageModel value,
+          $Res Function(ExamSourceImageModel) then) =
+      _$ExamSourceImageModelCopyWithImpl<$Res, ExamSourceImageModel>;
+  @useResult
+  $Res call({String id, String examId, String url});
+}
+
+/// @nodoc
+class _$ExamSourceImageModelCopyWithImpl<$Res,
+        $Val extends ExamSourceImageModel>
+    implements $ExamSourceImageModelCopyWith<$Res> {
+  _$ExamSourceImageModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? examId = null,
+    Object? url = null,
+  }) {
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      examId: null == examId
+          ? _value.examId
+          : examId // ignore: cast_nullable_to_non_nullable
+              as String,
+      url: null == url
+          ? _value.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$ExamSourceImageModelImplCopyWith<$Res>
+    implements $ExamSourceImageModelCopyWith<$Res> {
+  factory _$$ExamSourceImageModelImplCopyWith(_$ExamSourceImageModelImpl value,
+          $Res Function(_$ExamSourceImageModelImpl) then) =
+      __$$ExamSourceImageModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String id, String examId, String url});
+}
+
+/// @nodoc
+class __$$ExamSourceImageModelImplCopyWithImpl<$Res>
+    extends _$ExamSourceImageModelCopyWithImpl<$Res, _$ExamSourceImageModelImpl>
+    implements _$$ExamSourceImageModelImplCopyWith<$Res> {
+  __$$ExamSourceImageModelImplCopyWithImpl(_$ExamSourceImageModelImpl _value,
+      $Res Function(_$ExamSourceImageModelImpl) _then)
+      : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? examId = null,
+    Object? url = null,
+  }) {
+    return _then(_$ExamSourceImageModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      examId: null == examId
+          ? _value.examId
+          : examId // ignore: cast_nullable_to_non_nullable
+              as String,
+      url: null == url
+          ? _value.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ExamSourceImageModelImpl implements _ExamSourceImageModel {
+  const _$ExamSourceImageModelImpl(
+      {required this.id, required this.examId, required this.url});
+
+  factory _$ExamSourceImageModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ExamSourceImageModelImplFromJson(json);
+
+  @override
+  final String id;
+  @override
+  final String examId;
+  @override
+  final String url;
+
+  @override
+  String toString() {
+    return 'ExamSourceImageModel(id: $id, examId: $examId, url: $url)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ExamSourceImageModelImpl &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.examId, examId) || other.examId == examId) &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @JsonKey(ignore: true)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, examId, url);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ExamSourceImageModelImplCopyWith<_$ExamSourceImageModelImpl>
+      get copyWith =>
+          __$$ExamSourceImageModelImplCopyWithImpl<_$ExamSourceImageModelImpl>(
+              this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ExamSourceImageModelImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _ExamSourceImageModel implements ExamSourceImageModel {
+  const factory _ExamSourceImageModel(
+      {required final String id,
+      required final String examId,
+      required final String url}) = _$ExamSourceImageModelImpl;
+
+  factory _ExamSourceImageModel.fromJson(Map<String, dynamic> json) =
+      _$ExamSourceImageModelImpl.fromJson;
+
+  @override
+  String get id;
+  @override
+  String get examId;
+  @override
+  String get url;
+  @override
+  @JsonKey(ignore: true)
+  _$$ExamSourceImageModelImplCopyWith<_$ExamSourceImageModelImpl>
+      get copyWith => throw _privateConstructorUsedError;
+}
+
 ExamModel _$ExamModelFromJson(Map<String, dynamic> json) {
   return _ExamModel.fromJson(json);
 }
@@ -268,6 +443,8 @@ mixin _$ExamModel {
   double get passMarks => throw _privateConstructorUsedError;
   bool get isPublished => throw _privateConstructorUsedError;
   List<ExamQuestionModel> get questions => throw _privateConstructorUsedError;
+  List<ExamSourceImageModel> get sourceImages =>
+      throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -290,7 +467,8 @@ abstract class $ExamModelCopyWith<$Res> {
       double negativeMarks,
       double passMarks,
       bool isPublished,
-      List<ExamQuestionModel> questions});
+      List<ExamQuestionModel> questions,
+      List<ExamSourceImageModel> sourceImages});
 }
 
 /// @nodoc
@@ -316,6 +494,7 @@ class _$ExamModelCopyWithImpl<$Res, $Val extends ExamModel>
     Object? passMarks = null,
     Object? isPublished = null,
     Object? questions = null,
+    Object? sourceImages = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -358,6 +537,10 @@ class _$ExamModelCopyWithImpl<$Res, $Val extends ExamModel>
           ? _value.questions
           : questions // ignore: cast_nullable_to_non_nullable
               as List<ExamQuestionModel>,
+      sourceImages: null == sourceImages
+          ? _value.sourceImages
+          : sourceImages // ignore: cast_nullable_to_non_nullable
+              as List<ExamSourceImageModel>,
     ) as $Val);
   }
 }
@@ -380,7 +563,8 @@ abstract class _$$ExamModelImplCopyWith<$Res>
       double negativeMarks,
       double passMarks,
       bool isPublished,
-      List<ExamQuestionModel> questions});
+      List<ExamQuestionModel> questions,
+      List<ExamSourceImageModel> sourceImages});
 }
 
 /// @nodoc
@@ -404,6 +588,7 @@ class __$$ExamModelImplCopyWithImpl<$Res>
     Object? passMarks = null,
     Object? isPublished = null,
     Object? questions = null,
+    Object? sourceImages = null,
   }) {
     return _then(_$ExamModelImpl(
       id: null == id
@@ -446,6 +631,10 @@ class __$$ExamModelImplCopyWithImpl<$Res>
           ? _value._questions
           : questions // ignore: cast_nullable_to_non_nullable
               as List<ExamQuestionModel>,
+      sourceImages: null == sourceImages
+          ? _value._sourceImages
+          : sourceImages // ignore: cast_nullable_to_non_nullable
+              as List<ExamSourceImageModel>,
     ));
   }
 }
@@ -463,8 +652,10 @@ class _$ExamModelImpl implements _ExamModel {
       required this.negativeMarks,
       required this.passMarks,
       required this.isPublished,
-      required final List<ExamQuestionModel> questions})
-      : _questions = questions;
+      required final List<ExamQuestionModel> questions,
+      final List<ExamSourceImageModel> sourceImages = const []})
+      : _questions = questions,
+        _sourceImages = sourceImages;
 
   factory _$ExamModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExamModelImplFromJson(json);
@@ -495,9 +686,18 @@ class _$ExamModelImpl implements _ExamModel {
     return EqualUnmodifiableListView(_questions);
   }
 
+  final List<ExamSourceImageModel> _sourceImages;
+  @override
+  @JsonKey()
+  List<ExamSourceImageModel> get sourceImages {
+    if (_sourceImages is EqualUnmodifiableListView) return _sourceImages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sourceImages);
+  }
+
   @override
   String toString() {
-    return 'ExamModel(id: $id, title: $title, description: $description, type: $type, duration: $duration, totalMarks: $totalMarks, negativeMarks: $negativeMarks, passMarks: $passMarks, isPublished: $isPublished, questions: $questions)';
+    return 'ExamModel(id: $id, title: $title, description: $description, type: $type, duration: $duration, totalMarks: $totalMarks, negativeMarks: $negativeMarks, passMarks: $passMarks, isPublished: $isPublished, questions: $questions, sourceImages: $sourceImages)';
   }
 
   @override
@@ -521,7 +721,9 @@ class _$ExamModelImpl implements _ExamModel {
             (identical(other.isPublished, isPublished) ||
                 other.isPublished == isPublished) &&
             const DeepCollectionEquality()
-                .equals(other._questions, _questions));
+                .equals(other._questions, _questions) &&
+            const DeepCollectionEquality()
+                .equals(other._sourceImages, _sourceImages));
   }
 
   @JsonKey(ignore: true)
@@ -537,7 +739,8 @@ class _$ExamModelImpl implements _ExamModel {
       negativeMarks,
       passMarks,
       isPublished,
-      const DeepCollectionEquality().hash(_questions));
+      const DeepCollectionEquality().hash(_questions),
+      const DeepCollectionEquality().hash(_sourceImages));
 
   @JsonKey(ignore: true)
   @override
@@ -564,7 +767,8 @@ abstract class _ExamModel implements ExamModel {
       required final double negativeMarks,
       required final double passMarks,
       required final bool isPublished,
-      required final List<ExamQuestionModel> questions}) = _$ExamModelImpl;
+      required final List<ExamQuestionModel> questions,
+      final List<ExamSourceImageModel> sourceImages}) = _$ExamModelImpl;
 
   factory _ExamModel.fromJson(Map<String, dynamic> json) =
       _$ExamModelImpl.fromJson;
@@ -589,6 +793,8 @@ abstract class _ExamModel implements ExamModel {
   bool get isPublished;
   @override
   List<ExamQuestionModel> get questions;
+  @override
+  List<ExamSourceImageModel> get sourceImages;
   @override
   @JsonKey(ignore: true)
   _$$ExamModelImplCopyWith<_$ExamModelImpl> get copyWith =>

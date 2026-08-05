@@ -50,7 +50,7 @@ _$QuestionModelImpl _$$QuestionModelImplFromJson(Map<String, dynamic> json) =>
       latexFormula: json['latexFormula'] as String?,
       difficulty: json['difficulty'] as String?,
       subjectId: json['subjectId'] as String,
-      chapterId: json['chapterId'] as String,
+      chapterId: json['chapterId'] as String?,
       topicId: json['topicId'] as String?,
       board: json['board'] as String?,
       boardId: json['boardId'] as String?,

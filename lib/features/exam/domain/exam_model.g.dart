@@ -27,6 +27,22 @@ Map<String, dynamic> _$$ExamQuestionModelImplToJson(
       'question': instance.question,
     };
 
+_$ExamSourceImageModelImpl _$$ExamSourceImageModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$ExamSourceImageModelImpl(
+      id: json['id'] as String,
+      examId: json['examId'] as String,
+      url: json['url'] as String,
+    );
+
+Map<String, dynamic> _$$ExamSourceImageModelImplToJson(
+        _$ExamSourceImageModelImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'examId': instance.examId,
+      'url': instance.url,
+    };
+
 _$ExamModelImpl _$$ExamModelImplFromJson(Map<String, dynamic> json) =>
     _$ExamModelImpl(
       id: json['id'] as String,
@@ -41,6 +57,11 @@ _$ExamModelImpl _$$ExamModelImplFromJson(Map<String, dynamic> json) =>
       questions: (json['questions'] as List<dynamic>)
           .map((e) => ExamQuestionModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      sourceImages: (json['sourceImages'] as List<dynamic>?)
+              ?.map((e) =>
+                  ExamSourceImageModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$ExamModelImplToJson(_$ExamModelImpl instance) =>
@@ -55,4 +76,5 @@ Map<String, dynamic> _$$ExamModelImplToJson(_$ExamModelImpl instance) =>
       'passMarks': instance.passMarks,
       'isPublished': instance.isPublished,
       'questions': instance.questions,
+      'sourceImages': instance.sourceImages,
     };
