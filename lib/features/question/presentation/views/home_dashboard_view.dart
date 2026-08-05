@@ -68,6 +68,9 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
 
     // Read league name dynamically
     String leagueName = 'আয়রন লীগ';
+    if (profile != null) {
+      leagueName = _getLeagueBengaliName(profile.league);
+    }
     int currentXp = profile?.xp ?? 0;
     if (leaderboardAsync.value != null && myUserId != null) {
       final myEntry = leaderboardAsync.value!.firstWhere(
@@ -80,25 +83,12 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
           xp: currentXp,
           level: profile?.level ?? 1,
           solvedQuestionsCount: 0,
-          league: 'IRON',
+          league: profile?.league ?? 'IRON',
           currentStreak: profile?.currentStreak ?? 0,
         ),
       );
       if (myEntry.xp > 0) currentXp = myEntry.xp;
-    }
-
-    if (currentXp >= 5000) {
-      leagueName = 'ইনফিনিটি লীগ';
-    } else if (currentXp >= 3000) {
-      leagueName = 'ডায়মন্ড লীগ';
-    } else if (currentXp >= 1500) {
-      leagueName = 'গোল্ড লীগ';
-    } else if (currentXp >= 800) {
-      leagueName = 'সিলভার লীগ';
-    } else if (currentXp >= 300) {
-      leagueName = 'ব্রোঞ্জ লীগ';
-    } else {
-      leagueName = 'আয়রন লীগ';
+      leagueName = _getLeagueBengaliName(myEntry.league);
     }
 
     final userName = profile?.fullName ?? 'User';
@@ -393,24 +383,6 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                     color: isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: isDark 
-                                        ? const Color(0xFF017A47).withOpacity(0.15) 
-                                        : const Color(0xFF017A47).withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    leagueName,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF017A47),
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                             Row(
@@ -436,72 +408,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                       ),
                     ),
                     
-                    // Star progress track bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'লেভেল ${profile?.level ?? 1}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white70 : Colors.black54,
-                                  ),
-                                ),
-                                Text(
-                                  '${_toBengaliDigits((100 - starPoints).toString())} XP পরবর্তী লেভেলের জন্য',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text(
-                                  '${_toBengaliDigits(starPoints.toString())} XP', 
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold, 
-                                    fontSize: 13, 
-                                    color: const Color(0xFF017A47),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: LinearProgressIndicator(
-                                      value: progressVal == 0.0 ? 0.02 : progressVal,
-                                      minHeight: 8,
-                                      backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
+
 
                     // Onboarding suggestion box when star points is 0 (or XP is low)
                     if (userScore == 0) ...[
@@ -611,8 +518,8 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                           int myIndex = allPlayers.indexWhere((p) => p.isCurrentUser);
 
                           List<LeaderboardPlayer> displayPlayers = [];
-                          if (allPlayers.length < 3) {
-                            displayPlayers = allPlayers.where((p) => p.isCurrentUser).toList();
+                          if (allPlayers.length <= 3) {
+                            displayPlayers = allPlayers;
                           } else if (myIndex == 0) {
                             displayPlayers = [allPlayers[0], allPlayers[1], allPlayers[2]];
                           } else if (myIndex == allPlayers.length - 1) {
@@ -878,5 +785,24 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       result = result.replaceAll(english[i], bengali[i]);
     }
     return result;
+  }
+
+  String _getLeagueBengaliName(String? leagueKey) {
+    if (leagueKey == null) return 'আয়রন লীগ';
+    switch (leagueKey.trim().toLowerCase()) {
+      case 'bronze':
+        return 'ব্রোঞ্জ লীগ';
+      case 'silver':
+        return 'সিলভার লীগ';
+      case 'gold':
+        return 'গোল্ড লীগ';
+      case 'diamond':
+        return 'ডায়মন্ড লীগ';
+      case 'infinity':
+        return 'ইনফিনিটি লীগ';
+      case 'iron':
+      default:
+        return 'আয়রন লীগ';
+    }
   }
 }
