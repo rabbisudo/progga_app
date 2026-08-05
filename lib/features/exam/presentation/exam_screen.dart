@@ -633,7 +633,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
   String? _getNextEmptyGap(String qId, {required String rawPassage}) {
     final cleanPassage = _getPassageWithoutTable(rawPassage);
-    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false);
     final matches = gapRegex.allMatches(cleanPassage);
     final answers = _fitbAnswers[qId] ?? {};
     
@@ -648,7 +648,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
   int _getFilledCount(String qId, String rawPassage) {
     final cleanPassage = _getPassageWithoutTable(rawPassage);
-    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false);
     final matches = gapRegex.allMatches(cleanPassage);
     final answers = _fitbAnswers[qId] ?? {};
     int count = 0;
@@ -663,7 +663,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
   int _getTotalGapsCount(String rawPassage) {
     final cleanPassage = _getPassageWithoutTable(rawPassage);
-    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})', caseSensitive: false);
+    final gapRegex = RegExp(r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false);
     return gapRegex.allMatches(cleanPassage).length;
   }
 
@@ -760,7 +760,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       int lastEnd = 0;
       
       final gapRegex = RegExp(
-        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})',
+        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)',
         caseSensitive: false
       );
       final matches = gapRegex.allMatches(trimmed);
@@ -1114,39 +1114,41 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             _buildQuestionImage(q.imageKey),
           ],
           const SizedBox(height: 16),
-          ...q.options.asMap().entries.map((entry) {
-            final optIndex = entry.key;
-            final opt = entry.value;
-            final label = _getCqLabel(optIndex);
+          if (q.type != 'WRITTEN') ...[
+            ...q.options.asMap().entries.map((entry) {
+              final optIndex = entry.key;
+              final opt = entry.value;
+              final label = _getCqLabel(optIndex);
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$label. ',
-                    style: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildMathWidget(
-                      opt.optionText,
-                      textStyle: const TextStyle(
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$label. ',
+                      style: const TextStyle(
                         fontSize: 14.5,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                         color: Colors.black87,
-                        height: 1.4,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          }),
+                    Expanded(
+                      child: _buildMathWidget(
+                        opt.optionText,
+                        textStyle: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
           const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => _pickCqAnswerImage(q.id),
@@ -1665,7 +1667,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                       q.type == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
                       ((q.type == 'WRITTEN' || q.type == 'FILL') &&
                       q.questionText.contains('(a)') &&
-                      (q.questionText.contains('——') || q.questionText.contains('___') || q.questionText.contains('________')));
+                      RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(q.questionText));
 
                   if (isFitb) {
                     return _buildFitbQuestionCard(item, state);

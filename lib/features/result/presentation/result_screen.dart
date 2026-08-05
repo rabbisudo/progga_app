@@ -1907,7 +1907,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
       int lastEnd = 0;
       
       final gapRegex = RegExp(
-        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]{2,})',
+        r'\(([a-z])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)',
         caseSensitive: false
       );
       final matches = gapRegex.allMatches(trimmed);
@@ -2138,7 +2138,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
         ((qType == 'WRITTEN' || qType == 'FILL') &&
         questionText.contains('(a)') &&
-        (questionText.contains('——') || questionText.contains('___') || questionText.contains('________')));
+        RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(questionText));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -2277,9 +2277,10 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             _buildFitbReviewCard(qData, userAns),
           ] else if (isWrittenOrCq) ...[
             // Written / CQ Content: Flat text subquestions with separate explanation button
-            ...optionsList.asMap().entries.map((optEntry) {
-              final optIdx = optEntry.key;
-              final optData = optEntry.value as Map<String, dynamic>;
+            if (qType != 'WRITTEN')
+              ...optionsList.asMap().entries.map((optEntry) {
+                final optIdx = optEntry.key;
+                final optData = optEntry.value as Map<String, dynamic>;
               final optionText = optData['optionText'] as String? ?? '';
               final label = _getCqLabel(optIdx);
               final subKey = _getSubKey(optIdx);
