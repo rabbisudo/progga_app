@@ -14,6 +14,27 @@ class ProfileScreen extends ConsumerWidget {
 
   static const Color brandTealColor = Color(0xFF086057); // Deep teal color
 
+  Widget _buildSectionCard({required List<Widget> children, required bool isDark}) {
+    final List<Widget> items = [];
+    for (int i = 0; i < children.length; i++) {
+      items.add(children[i]);
+      if (i < children.length - 1) {
+        items.add(
+          Divider(
+            height: 1,
+            indent: 56,
+            endIndent: 16,
+            color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+          ),
+        );
+      }
+    }
+
+    return Column(
+      children: items,
+    );
+  }
+
   Widget _buildFlatMenuTile({
     required ThemeData theme,
     required Color color,
@@ -21,44 +42,51 @@ class ProfileScreen extends ConsumerWidget {
     required String title,
     Widget? trailing,
     required VoidCallback onTap,
+    bool isDark = false,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10),
+          color: color.withOpacity(isDark ? 0.15 : 0.1),
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 20, color: Colors.white),
+        child: Icon(icon, size: 18, color: color),
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14.5,
+          color: isDark ? Colors.white : Colors.black87,
+          fontFamily: 'Noto Sans Bengali',
+        ),
       ),
       trailing: trailing ?? Icon(
         Icons.chevron_right_rounded,
         size: 20,
-        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.35),
+        color: isDark ? Colors.white30 : Colors.grey.shade400,
       ),
       onTap: onTap,
     );
   }
 
-  Widget _buildAcademicBadge(String label) {
+  Widget _buildAcademicBadge(String label, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: brandTealColor.withOpacity(0.06),
-        border: Border.all(color: brandTealColor.withOpacity(0.15)),
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? brandTealColor.withOpacity(0.15) : const Color(0xFFE6FCF5),
+        border: Border.all(color: isDark ? brandTealColor.withOpacity(0.3) : const Color(0xFFC3FAE8)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: brandTealColor,
+        style: TextStyle(
+          color: isDark ? const Color(0xFFF18881) : const Color(0xFF086057),
           fontWeight: FontWeight.bold,
-          fontSize: 13,
+          fontSize: 11,
+          fontFamily: 'Noto Sans Bengali',
         ),
       ),
     );
@@ -77,29 +105,20 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         title: Text(
           'প্রোফাইল ও সেটিংস',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold, 
+            fontSize: 16,
+            fontFamily: 'Noto Sans Bengali',
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         centerTitle: true,
         leading: (ModalRoute.of(context)?.canPop ?? false)
             ? CustomBackButton(
-                color: isDark ? Colors.white : Colors.black,
+                color: isDark ? Colors.white : Colors.black87,
                 onPressed: () => context.pop(),
               )
             : null,
-        actions: [
-          IconButton(
-            icon: Icon(
-              themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.light_mode_outlined,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-            onPressed: () {
-              ref.read(themeModeProvider.notifier).setThemeMode(
-                isDark ? ThemeMode.light : ThemeMode.dark,
-              );
-              ref.read(userProfileProvider.notifier).updateSettings({'darkMode': !isDark});
-            },
-          ),
-        ],
       ),
       body: profileAsync.when(
         loading: () => Center(child: CircularProgressIndicator(color: brandTealColor)),
@@ -108,28 +127,29 @@ class ProfileScreen extends ConsumerWidget {
           final profile = user.profile!;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Centered Avatar, Name & Batch Chip with Glowing Polish
-                Center(
+                // 1. Top Header Card
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                   child: Column(
                     children: [
                       Stack(
                         alignment: Alignment.center,
                         children: [
                           Container(
-                            width: 104,
-                            height: 104,
+                            width: 96,
+                            height: 96,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: brandTealColor.withOpacity(0.08),
+                              color: brandTealColor.withOpacity(0.05),
                               boxShadow: [
                                 BoxShadow(
-                                  color: brandTealColor.withOpacity(0.15),
+                                  color: brandTealColor.withOpacity(0.08),
                                   blurRadius: 16,
-                                  spreadRadius: 2,
+                                  spreadRadius: 1,
                                 ),
                               ],
                             ),
@@ -138,7 +158,7 @@ class ProfileScreen extends ConsumerWidget {
                             tag: 'user_avatar_hero',
                             child: CustomAvatar(
                               avatarUrl: profile.avatarKey,
-                              radius: 48,
+                              radius: 44,
                               backgroundColor: brandTealColor.withOpacity(0.1),
                             ),
                           ),
@@ -152,11 +172,11 @@ class ProfileScreen extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   color: brandTealColor,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: theme.colorScheme.surface, width: 2),
+                                  border: Border.all(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, width: 2),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt_rounded,
-                                  size: 14,
+                                  size: 11,
                                   color: Colors.white,
                                 ),
                               ),
@@ -164,152 +184,175 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         profile.fullName,
-                        style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18, 
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontFamily: 'Noto Sans Bengali',
+                        ),
                       ),
-                      Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        alignment: WrapAlignment.center,
-                        children: [
-                          if (profile.className != null && profile.className!.isNotEmpty)
-                            _buildAcademicBadge(profile.className!),
-                          if (profile.targetExam != null && profile.targetExam!.isNotEmpty)
-                            _buildAcademicBadge(profile.targetExam!),
-                          _buildAcademicBadge(profile.batch ?? "SSC-27"),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        user.email,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.grey[400] : Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
 
-                // 2. Flat-colored settings list
-                Column(
+                // 2. Settings Menu Card
+                _buildSectionCard(
+                  isDark: isDark,
                   children: [
-                    // row 1
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF00C569),
                       icon: Icons.person_rounded,
                       title: 'ব্যক্তিগত তথ্য',
+                      isDark: isDark,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.green.withOpacity(0.3)),
+                              color: isDark ? Colors.green.withOpacity(0.15) : const Color(0xFFE6FCF5),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green.withOpacity(0.3), width: 1),
                             ),
-                            child: Text(
+                            child: const Text(
                               '+Add Phone number',
-                              style: const TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Color(0xFF087F5B), fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.chevron_right_rounded, color: Colors.grey.withOpacity(0.6)),
+                          Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white30 : Colors.grey.shade400),
                         ],
                       ),
                       onTap: () => context.push('/personal-info'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF017A47),
                       icon: Icons.speed_rounded,
                       title: 'আমার প্রোগ্রেস',
+                      isDark: isDark,
                       onTap: () => context.push('/progress'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFFB300),
                       icon: Icons.emoji_events_rounded,
                       title: 'লিডারবোর্ড',
+                      isDark: isDark,
                       onTap: () => context.push('/leaderboard'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFE53935),
                       icon: Icons.flag_rounded,
                       title: 'আমার রিপোর্টসমূহ',
+                      isDark: isDark,
                       onTap: () => context.push('/my-reports'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 2
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF00B8),
                       icon: Icons.brush_rounded,
                       title: 'অ্যাভাটার এডিট',
+                      isDark: isDark,
                       onTap: () => context.push('/avatar-editor'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 3
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFFA500),
                       icon: Icons.workspace_premium_rounded,
                       title: 'আপগ্রেড',
+                      isDark: isDark,
                       onTap: () => context.push('/premium'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 4
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF007AFF),
                       icon: Icons.credit_card_rounded,
                       title: 'সাবস্ক্রিপশন',
+                      isDark: isDark,
                       onTap: () => context.push('/premium'),
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 5
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF8A00),
                       icon: Icons.equalizer_rounded,
                       title: 'অ্যাক্টিভিটি',
+                      isDark: isDark,
                       onTap: () {},
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 6
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF3B30),
                       icon: Icons.notifications_rounded,
                       title: 'নোটিফিকেশনস',
+                      isDark: isDark,
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.all(6),
                             decoration: const BoxDecoration(
                               color: Color(0xFFFFD1D1),
                               shape: BoxShape.circle,
                             ),
-                            child: Text(
+                            child: const Text(
                               '0',
-                              style: const TextStyle(color: Color(0xFFFF3B30), fontSize: 13, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: Color(0xFFFF3B30), fontSize: 11, fontWeight: FontWeight.bold),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.chevron_right_rounded, color: Colors.grey.withOpacity(0.6)),
+                          Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white30 : Colors.grey.shade400),
                         ],
                       ),
                       onTap: () {},
                     ),
-                    Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04)),
-                    // row 7
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFF007AFF),
+                      icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                      title: 'ডার্ক মোড',
+                      isDark: isDark,
+                      trailing: Transform.scale(
+                        scale: 0.8,
+                        child: Switch(
+                          value: isDark,
+                          activeColor: const Color(0xFF017A47),
+                          onChanged: (val) {
+                            ref.read(themeModeProvider.notifier).setThemeMode(
+                              val ? ThemeMode.dark : ThemeMode.light,
+                            );
+                            ref.read(userProfileProvider.notifier).updateSettings({'darkMode': val});
+                          },
+                        ),
+                      ),
+                      onTap: () {
+                        ref.read(themeModeProvider.notifier).setThemeMode(
+                          isDark ? ThemeMode.light : ThemeMode.dark,
+                        );
+                        ref.read(userProfileProvider.notifier).updateSettings({'darkMode': !isDark});
+                      },
+                    ),
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF3B30),
                       icon: Icons.logout_rounded,
                       title: 'লগআউট করুন',
+                      isDark: isDark,
                       onTap: () async {
                         final shouldLogout = await showDialog<bool>(
                           context: context,
@@ -321,22 +364,22 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.logout_rounded, color: Colors.redAccent),
                                 const SizedBox(width: 8),
-                                Text(
+                                const Text(
                                   'লগআউট',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Noto Sans Bengali'),
                                 ),
                               ],
                             ),
-                            content: Text(
+                            content: const Text(
                               'আপনি কি নিশ্চিত যে আপনি অ্যাকাউন্ট থেকে লগআউট করতে চান?',
-                              style: const TextStyle(),
+                              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(false),
-                                child: Text(
+                                child: const Text(
                                   'বাতিল',
-                                  style: const TextStyle(color: Colors.grey),
+                                  style: TextStyle(color: Colors.grey, fontFamily: 'Noto Sans Bengali'),
                                 ),
                               ),
                               ElevatedButton(
@@ -346,9 +389,9 @@ class ProfileScreen extends ConsumerWidget {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                 ),
                                 onPressed: () => Navigator.of(context).pop(true),
-                                child: Text(
+                                child: const Text(
                                   'লগআউট',
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Colors.white, fontFamily: 'Noto Sans Bengali'),
                                 ),
                               ),
                             ],
@@ -368,7 +411,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
               ],
             ),
           );
