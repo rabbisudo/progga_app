@@ -157,6 +157,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           setState(() {
             _selectedSeriesStack.removeLast();
             _examSearchQuery = '';
+            _activeExamTab = null;
           });
         }
       },
