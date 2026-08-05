@@ -110,12 +110,32 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('পরীক্ষা বাতিল করতে চান?', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('এখন বের হয়ে গেলে আপনার বর্তমান উত্তরগুলো সংরক্ষিত জমা হয়ে যাবে।'),
+        title: const Text(
+          'পরীক্ষা বাতিল করতে চান?',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Noto Sans Bengali',
+            fontSize: 16,
+          ),
+        ),
+        content: const Text(
+          'এখন বের হয়ে গেলে আপনার বর্তমান উত্তরগুলো সংরক্ষিত জমা হয়ে যাবে।',
+          style: TextStyle(
+            fontFamily: 'Noto Sans Bengali',
+            fontSize: 14,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('ফিরে যাও', style: TextStyle(color: Colors.grey)),
+            child: const Text(
+              'ফিরে যাও',
+              style: TextStyle(
+                color: Colors.grey,
+                fontFamily: 'Noto Sans Bengali',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -123,7 +143,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               backgroundColor: Colors.redAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('বাহির হও', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'বাহির হও',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Noto Sans Bengali',
+              ),
+            ),
           ),
         ],
       ),
@@ -141,12 +168,32 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('পরীক্ষা জমা দিতে চান?', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('আপনি $totalQ টি প্রশ্নের মধ্যে $answeredCount টির উত্তর দিয়েছেন।\nনিশ্চিতভাবে পরীক্ষা জমা দিতে চান?'),
+        title: const Text(
+          'পরীক্ষা জমা দিতে চান?',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontFamily: 'Noto Sans Bengali',
+            fontSize: 16,
+          ),
+        ),
+        content: Text(
+          'আপনি $totalQ টি প্রশ্নের মধ্যে $answeredCount টির উত্তর দিয়েছেন।\nনিশ্চিতভাবে পরীক্ষা জমা দিতে চান?',
+          style: const TextStyle(
+            fontFamily: 'Noto Sans Bengali',
+            fontSize: 14,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('বাতিল', style: TextStyle(color: Colors.grey)),
+            child: const Text(
+              'বাতিল',
+              style: TextStyle(
+                color: Colors.grey,
+                fontFamily: 'Noto Sans Bengali',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -154,7 +201,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               backgroundColor: const Color(0xFF017A47),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('জমা দাও', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'জমা দাও',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'Noto Sans Bengali',
+              ),
+            ),
           ),
         ],
       ),
@@ -394,7 +448,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         .replaceAll(RegExp(r'\\\[(.*?)\\\]', dotAll: true), r'$ $1 $');
 
     final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
-    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4);
+    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4, fontFamily: 'Noto Sans Bengali');
 
     // If text contains $ inline math delimiters (e.g. "solve $x^2 + y^2 = 1$")
     if (normalizedText.contains('\$')) {
@@ -952,12 +1006,16 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final filledCount = _getFilledCount(q.id, q.questionText);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 24),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFECEFF1),
+            width: 1.2,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -968,18 +1026,20 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               Text(
                 '${item.questionLabel}. ',
                 style: const TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF017A47),
+                  fontFamily: 'Noto Sans Bengali',
                 ),
               ),
               const Expanded(
                 child: Text(
                   'শূন্যস্থান পূরণ করো (ক্লুসহ)',
                   style: TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
                     color: Colors.black87,
+                    fontFamily: 'Noto Sans Bengali',
                   ),
                 ),
               ),
@@ -1075,12 +1135,16 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     final List<String> paths = _uploadedImages[q.id] ?? [];
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 24),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFECEFF1),
+            width: 1.2,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1091,19 +1155,21 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               Text(
                 '${item.questionLabel}. ',
                 style: const TextStyle(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
                   color: Color(0xFF017A47),
+                  fontFamily: 'Noto Sans Bengali',
                 ),
               ),
               Expanded(
                 child: _buildMathWidget(
                   q.questionText,
                   textStyle: const TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
                     color: Colors.black87,
                     height: 1.4,
+                    fontFamily: 'Noto Sans Bengali',
                   ),
                 ),
               ),
@@ -1273,9 +1339,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
     if (state.isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -1312,9 +1378,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       }
 
       return Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           elevation: 0,
           leading: CustomBackButton(
             color: Colors.black87,
@@ -1364,7 +1430,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
     if (state.exam == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF3F4F3),
+        backgroundColor: Colors.white,
         body: Center(
           child: Text('পরীক্ষার সময়সূচী লোড হচ্ছে...', style: TextStyle(color: Colors.black87)),
         ),
@@ -1442,9 +1508,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -1697,19 +1763,16 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   final selectedOptId = state.selectedOptions[q.id];
 
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    padding: const EdgeInsets.only(bottom: 24),
+                    decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFECEFF1)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.015),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Color(0xFFECEFF1),
+                          width: 1.2,
                         ),
-                      ],
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1744,19 +1807,21 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             Text(
                               '${item.questionLabel}. ',
                               style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
                                 color: Color(0xFF017A47),
+                                fontFamily: 'Noto Sans Bengali',
                               ),
                             ),
                             Expanded(
                               child: _buildMathWidget(
                                 q.questionText,
                                 textStyle: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.5,
+                                  fontWeight: FontWeight.w600,
                                   color: Colors.black87,
                                   height: 1.4,
+                                  fontFamily: 'Noto Sans Bengali',
                                 ),
                               ),
                             ),
@@ -1820,7 +1885,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                   decoration: BoxDecoration(
                                     color: isSelected 
                                         ? const Color(0xFF017A47).withOpacity(0.08) 
-                                        : const Color(0xFFF4F6F5),
+                                        : const Color(0xFFFAFAFA),
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: isSelected
                                         ? [
@@ -1857,9 +1922,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                               child: Text(
                                                 label,
                                                 style: TextStyle(
-                                                  fontSize: 13,
+                                                  fontSize: 12,
                                                   fontWeight: FontWeight.bold,
                                                   color: isSelected ? Colors.white : Colors.black54,
+                                                  fontFamily: 'Noto Sans Bengali',
                                                 ),
                                               ),
                                             ),
@@ -1869,9 +1935,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                             child: _buildMathWidget(
                                               opt.optionText,
                                               textStyle: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                                fontSize: 13.5,
+                                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                                                 color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                                fontFamily: 'Noto Sans Bengali',
                                               ),
                                               mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                             ),
@@ -2028,12 +2095,16 @@ class _SkeletonQuestionCardState extends State<_SkeletonQuestionCard>
       builder: (context, child) {
         final opacity = _animation.value;
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+          margin: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.only(bottom: 24),
+          decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
+            border: Border(
+              bottom: BorderSide(
+                color: Color(0xFFECEFF1),
+                width: 1.2,
+              ),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
