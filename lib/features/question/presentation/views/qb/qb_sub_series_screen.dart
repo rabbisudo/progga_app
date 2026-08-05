@@ -92,32 +92,43 @@ class QbSubSeriesScreen extends ConsumerWidget {
               final subName = subSeriesMap['name']?.toString() ?? '';
               final subIdStr = subSeriesMap['id']?.toString() ?? '';
 
+              // Check if this sub-series itself has sub-series (nested levels)
+              final nestedSubIds = (subSeriesMap['subSeries'] as List<dynamic>?) ?? [];
+              final validNested = nestedSubIds.map((subId) {
+                return seriesList.firstWhere(
+                  (s) => s['id']?.toString() == subId.toString(),
+                  orElse: () => null,
+                );
+              }).where((s) => s != null).toList();
+              final hasNestedSubSeries = validNested.isNotEmpty;
+
               Color cardColor = Colors.lightBlue.shade50;
               Color textColor = Colors.lightBlue.shade700;
               String icon = '📝';
               String title = subName;
 
-              if (subName.toLowerCase().contains('mcq')) {
+              final subNameLower = subName.toLowerCase();
+              if (subNameLower.contains('mcq') || subNameLower.contains('এমসিকিউ')) {
                 cardColor = const Color(0xFFE3F2FD);
                 textColor = const Color(0xFF1E88E5);
                 icon = '📝';
                 title = 'MCQ';
-              } else if (subName.toLowerCase().contains('cq')) {
+              } else if (subNameLower.contains('cq') || subNameLower.contains('সিকিউ') || subNameLower.contains('লিখিত') || subNameLower.contains('written')) {
                 cardColor = const Color(0xFFFFF8E1);
                 textColor = const Color(0xFFF57F17);
                 icon = '📖';
-                title = 'CQ';
-              } else if (subName.toLowerCase().contains('kbhandar')) {
+                title = subNameLower.contains('written') || subNameLower.contains('লিখিত') ? 'লিখিত' : 'CQ';
+              } else if (subNameLower.contains('kbhandar') || subNameLower.contains('ক ভাণ্ডার')) {
                 cardColor = const Color(0xFFE8EAF6);
                 textColor = const Color(0xFF3F51B5);
                 icon = '📚';
                 title = 'ক ভাণ্ডার';
-              } else if (subName.toLowerCase().contains('khabhandar')) {
+              } else if (subNameLower.contains('khabhandar') || subNameLower.contains('খ ভাণ্ডার')) {
                 cardColor = const Color(0xFFE8F5E9);
                 textColor = const Color(0xFF4CAF50);
                 icon = '📚';
                 title = 'খ ভাণ্ডার';
-              } else if (subName.toLowerCase().contains('short') || subName.toLowerCase().contains('সংক্ষিপ্ত')) {
+              } else if (subNameLower.contains('short') || subNameLower.contains('সংক্ষিপ্ত')) {
                 cardColor = const Color(0xFFF3E5F5);
                 textColor = const Color(0xFF9C27B0);
                 icon = '⏱️';
@@ -126,11 +137,17 @@ class QbSubSeriesScreen extends ConsumerWidget {
 
               final subLogo = subSeriesMap['logo']?.toString() ?? subSeriesMap['banner']?.toString() ?? '';
 
+              void handleNavigation() {
+                if (hasNestedSubSeries) {
+                  context.push('/qb-sub-series/$subIdStr', extra: subName);
+                } else {
+                  context.push('/qb-exams/$subIdStr', extra: subName);
+                }
+              }
+
               if (subLogo.isNotEmpty) {
                 return BouncingCard(
-                  onTap: () {
-                    context.push('/qb-exams/$subIdStr', extra: subName);
-                  },
+                  onTap: handleNavigation,
                   child: Card(
                     elevation: 0,
                     margin: EdgeInsets.zero,
@@ -198,9 +215,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
               }
 
               return BouncingCard(
-                onTap: () {
-                  context.push('/qb-exams/$subIdStr', extra: subName);
-                },
+                onTap: handleNavigation,
                 child: Card(
                   elevation: 0,
                   color: isDark ? const Color(0xFF1E1E1E) : cardColor,
