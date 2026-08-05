@@ -2,8 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/leaderboard_repository.dart';
 import '../domain/leaderboard_model.dart';
 
-final leaderboardScopeProvider = StateProvider<String>((ref) => 'global');
-
 final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, String>((ref, scope) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
   return repo.fetchLeaderboard(scope: scope);
