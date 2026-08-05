@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../widgets/bouncing_card.dart';
 import 'qb_helpers.dart';
 
 class QbRootSeriesView extends StatelessWidget {
   final List<dynamic> seriesList;
-  final List<String> seriesStack;
-  final ValueChanged<List<String>> onStackChanged;
-  final ValueChanged<String?> onActiveExamTabChanged;
-  final ValueChanged<String> onExamSearchQueryChanged;
 
   const QbRootSeriesView({
     super.key,
     required this.seriesList,
-    required this.seriesStack,
-    required this.onStackChanged,
-    required this.onActiveExamTabChanged,
-    required this.onExamSearchQueryChanged,
   });
 
   @override
@@ -78,10 +71,19 @@ class QbRootSeriesView extends StatelessWidget {
 
               return BouncingCard(
                 onTap: () {
-                  final newStack = List<String>.from(seriesStack)..add(firstSeries['id']?.toString() ?? '');
-                  onStackChanged(newStack);
-                  onActiveExamTabChanged(null);
-                  onExamSearchQueryChanged('');
+                  final subSeriesListIds = (firstSeries['subSeries'] as List<dynamic>?) ?? [];
+                  final validSubSeries = subSeriesListIds.map((subId) {
+                    return seriesList.firstWhere(
+                      (s) => s['id']?.toString() == subId.toString(),
+                      orElse: () => null,
+                    );
+                  }).where((s) => s != null).toList();
+
+                  if (validSubSeries.isNotEmpty) {
+                    context.push('/qb-sub-series/${firstSeries['id']}', extra: subjectName);
+                  } else {
+                    context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
+                  }
                 },
                 child: Card(
                   elevation: 0,

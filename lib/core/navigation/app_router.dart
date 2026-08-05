@@ -17,6 +17,8 @@ import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../../features/premium/presentation/premium_screen.dart';
 import '../../features/question/presentation/topic_selection_screen.dart';
 import '../../features/question/presentation/exam_confirm_screen.dart';
+import '../../features/question/presentation/views/qb/qb_sub_series_screen.dart';
+import '../../features/question/presentation/views/qb/qb_exams_list_screen.dart';
 import '../../features/ai/presentation/progga_ai_screen.dart';
 import '../../features/profile/presentation/exam_history_screen.dart';
 
@@ -91,6 +93,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           return ExamConfirmScreen(setupData: extra);
+        },
+      ),
+      GoRoute(
+        path: '/qb-sub-series/:seriesId',
+        builder: (context, state) {
+          final seriesId = state.pathParameters['seriesId'] ?? '';
+          final seriesName = state.extra as String?;
+          return QbSubSeriesScreen(seriesId: seriesId, seriesName: seriesName);
+        },
+      ),
+      GoRoute(
+        path: '/qb-exams/:subSeriesId',
+        builder: (context, state) {
+          final subSeriesId = state.pathParameters['subSeriesId'] ?? '';
+          final subSeriesName = state.extra as String?;
+          return QbExamsListScreen(subSeriesId: subSeriesId, subSeriesName: subSeriesName);
         },
       ),
       GoRoute(

@@ -1,66 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../academics/data/academics_repository.dart';
+import '../../../../profile/presentation/profile_notifier.dart';
 import '../../../../../core/widgets/custom_back_button.dart';
 import '../../widgets/bouncing_card.dart';
+import '../../widgets/shimmer_skeleton.dart';
 
-class QbSubSeriesView extends StatelessWidget {
-  final Map<String, dynamic> activeSeries;
-  final List<dynamic> seriesList;
-  final List<String> seriesStack;
-  final ValueChanged<List<String>> onStackChanged;
-  final ValueChanged<String?> onActiveExamTabChanged;
-  final ValueChanged<String> onExamSearchQueryChanged;
+class QbSubSeriesScreen extends ConsumerWidget {
+  final String seriesId;
+  final String? seriesName;
 
-  const QbSubSeriesView({
+  const QbSubSeriesScreen({
     super.key,
-    required this.activeSeries,
-    required this.seriesList,
-    required this.seriesStack,
-    required this.onStackChanged,
-    required this.onActiveExamTabChanged,
-    required this.onExamSearchQueryChanged,
+    required this.seriesId,
+    this.seriesName,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final subSeriesListIds = (activeSeries['subSeries'] as List<dynamic>?) ?? [];
-    final validSubSeries = subSeriesListIds.map((subId) {
-      return seriesList.firstWhere(
-        (s) => s['id']?.toString() == subId.toString(),
-        orElse: () => null,
+    final profile = ref.watch(userProfileProvider).value?.profile;
+    if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          leading: const CustomBackButton(color: Color(0xFF017A47)),
+          title: Text(seriesName ?? 'CQ/MCQ'),
+          centerTitle: true,
+        ),
+        body: const Center(
+          child: Text('প্রোফাইলে কোনো ক্লাস সিলেক্ট করা নেই।'),
+        ),
       );
-    }).where((s) => s != null).toList();
+    }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              CustomBackButton(
-                color: const Color(0xFF017A47),
-                onPressed: () {
-                  final newStack = List<String>.from(seriesStack)..removeLast();
-                  onStackChanged(newStack);
-                },
-              ),
-              Expanded(
-                child: Text(
-                  activeSeries['name']?.toString() ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
-                ),
-              ),
-            ],
+    final seriesAsync = ref.watch(qbClassSeriesProvider(profile.classId!));
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        leading: const CustomBackButton(color: Color(0xFF017A47)),
+        title: Text(
+          seriesName ?? 'CQ/MCQ',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black87,
+            fontFamily: 'Noto Sans Bengali',
           ),
         ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: GridView.count(
+        centerTitle: true,
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: seriesAsync.when(
+        data: (seriesList) {
+          final activeSeries = seriesList.firstWhere(
+            (s) => s['id']?.toString() == seriesId,
+            orElse: () => null,
+          );
+
+          if (activeSeries == null) {
+            return const Center(child: Text('সিরিজ পাওয়া যায়নি।'));
+          }
+
+          final subSeriesListIds = (activeSeries['subSeries'] as List<dynamic>?) ?? [];
+          final validSubSeries = subSeriesListIds.map((subId) {
+            return seriesList.firstWhere(
+              (s) => s['id']?.toString() == subId.toString(),
+              orElse: () => null,
+            );
+          }).where((s) => s != null).toList();
+
+          if (validSubSeries.isEmpty) {
+            return const Center(child: Text('কোনো উপ-সিরিজ পাওয়া যায়নি।'));
+          }
+
+          return GridView.count(
             padding: const EdgeInsets.all(16.0),
             crossAxisCount: 2,
             crossAxisSpacing: 16,
@@ -108,10 +129,7 @@ class QbSubSeriesView extends StatelessWidget {
               if (subLogo.isNotEmpty) {
                 return BouncingCard(
                   onTap: () {
-                    final newStack = List<String>.from(seriesStack)..add(subIdStr);
-                    onStackChanged(newStack);
-                    onActiveExamTabChanged(null);
-                    onExamSearchQueryChanged('');
+                    context.push('/qb-exams/$subIdStr', extra: subName);
                   },
                   child: Card(
                     elevation: 0,
@@ -181,9 +199,7 @@ class QbSubSeriesView extends StatelessWidget {
 
               return BouncingCard(
                 onTap: () {
-                  final newStack = List<String>.from(seriesStack)..add(subIdStr);
-                  onStackChanged(newStack);
-                  onActiveExamTabChanged(null);
+                  context.push('/qb-exams/$subIdStr', extra: subName);
                 },
                 child: Card(
                   elevation: 0,
@@ -217,9 +233,26 @@ class QbSubSeriesView extends StatelessWidget {
                 ),
               );
             }).toList(),
+          );
+        },
+        loading: () => GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) => const ShimmerSkeleton(
+            width: double.infinity,
+            height: double.infinity,
+            borderRadius: 20,
           ),
         ),
-      ],
+        error: (err, _) => Center(child: Text('ডাটা লোড করা যায়নি: $err')),
+      ),
     );
   }
 }
