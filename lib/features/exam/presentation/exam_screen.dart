@@ -1454,6 +1454,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 16,
+              letterSpacing: 0.1,
             ),
           ),
           leading: CustomBackButton(
@@ -1469,14 +1470,20 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           actions: [
             Container(
               margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: isLowTime ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
+                color: isLowTime ? const Color(0xFFFFF1F0) : const Color(0xFFEAF6EE),
                 borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  color: isLowTime 
+                      ? const Color(0xFFFFA39E) 
+                      : const Color(0xFFB7EB8F),
+                  width: 1,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isLowTime ? Colors.redAccent : const Color(0xFF017A47)).withOpacity(0.06),
-                    blurRadius: 4,
+                    color: (isLowTime ? Colors.redAccent : const Color(0xFF017A47)).withOpacity(0.05),
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -1486,8 +1493,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 children: [
                   Icon(
                     Icons.timer_outlined,
-                    size: 16,
-                    color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
+                    size: 15,
+                    color: isLowTime ? const Color(0xFFCF1322) : const Color(0xFF017A47),
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -1495,7 +1502,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: isLowTime ? Colors.red.shade700 : const Color(0xFF017A47),
+                      color: isLowTime ? const Color(0xFFCF1322) : const Color(0xFF017A47),
                     ),
                   ),
                 ],
@@ -1503,8 +1510,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             ),
           ],
         ),
-        body: Column(
+        body: Stack(
           children: [
+            Column(
+              children: [
             if (state.exam!.sourceImages.isNotEmpty)
               Container(
                 height: 160,
@@ -1610,7 +1619,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 80.0),
                 physics: const BouncingScrollPhysics(),
                 cacheExtent: 500,
                 addAutomaticKeepAlives: false,
@@ -1689,11 +1698,18 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFECEFF1)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.015),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1728,7 +1744,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             Text(
                               '${item.questionLabel}. ',
                               style: const TextStyle(
-                                fontSize: 15.5,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF017A47),
                               ),
@@ -1737,7 +1753,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                               child: _buildMathWidget(
                                 q.questionText,
                                 textStyle: const TextStyle(
-                                  fontSize: 15.5,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
                                   height: 1.4,
@@ -1785,76 +1801,93 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10.0),
-                            child: InkWell(
-                              onTap: selectedOptId != null
-                                  ? null
-                                  : () {
-                                      ref.read(examRunnerProvider.notifier).selectOption(
-                                            q.id,
-                                            opt.id,
-                                          );
-                                    },
-                              borderRadius: BorderRadius.circular(12),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? const Color(0xFFE8F5E9) : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade200,
-                                    width: 1.2,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: selectedOptId != null
+                                    ? null
+                                    : () {
+                                        ref.read(examRunnerProvider.notifier).selectOption(
+                                              q.id,
+                                              opt.id,
+                                            );
+                                      },
+                                borderRadius: BorderRadius.circular(16),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeOutCubic,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: isSelected 
+                                        ? const Color(0xFF017A47).withOpacity(0.08) 
+                                        : const Color(0xFFF4F6F5),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: const Color(0xFF017A47).withOpacity(0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            )
+                                          ]
+                                        : null,
                                   ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade100,
-                                            border: Border.all(
-                                              color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade400,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
+                                            width: 30,
+                                            height: 30,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isSelected 
+                                                  ? const Color(0xFF017A47) 
+                                                  : Colors.white,
+                                              border: Border.all(
+                                                color: isSelected 
+                                                    ? const Color(0xFF017A47) 
+                                                    : const Color(0xFFCFD8DC),
+                                                width: isSelected ? 0.0 : 1.5,
+                                              ),
                                             ),
-                                          ),
-                                          child: Center(
-                                            child: Text(
-                                              label,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: isSelected ? Colors.white : Colors.black87,
+                                            child: Center(
+                                              child: Text(
+                                                label,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isSelected ? Colors.white : Colors.black54,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildMathWidget(
-                                            opt.optionText,
-                                            textStyle: TextStyle(
-                                              fontSize: 15.5,
-                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                              color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                          const SizedBox(width: 14),
+                                          Expanded(
+                                            child: _buildMathWidget(
+                                              opt.optionText,
+                                              textStyle: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                                color: isSelected ? const Color(0xFF017A47) : Colors.black87,
+                                              ),
+                                              mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                             ),
-                                            mathColor: isSelected ? const Color(0xFF017A47) : Colors.black87,
                                           ),
-                                        ),
+                                        ],
+                                      ),
+                                      if (opt.imageKey != null && opt.imageKey!.isNotEmpty) ...[
+                                        const SizedBox(height: 6),
+                                        _buildQuestionImage(opt.imageKey),
                                       ],
-                                    ),
-                                    if (opt.imageKey != null && opt.imageKey!.isNotEmpty) ...[
-                                      const SizedBox(height: 6),
-                                      _buildQuestionImage(opt.imageKey),
                                     ],
-                                  ],
                                 ),
                               ),
                             ),
-                          );
+                          ),
+                        );
                         }),
                       ],
                     ),
@@ -1862,29 +1895,35 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 },
               ),
             ),
+              ],
+            ),
 
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade200),
-                ),
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 12,
               child: SafeArea(
                 top: false,
-                bottom: false,
-                child: SizedBox(
-                  width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF017A47).withOpacity(0.3),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: state.isSubmitting ? null : _confirmAndSubmitExam,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF017A47),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: state.isSubmitting
