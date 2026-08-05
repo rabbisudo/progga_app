@@ -3,14 +3,10 @@ import '../data/leaderboard_repository.dart';
 import '../domain/leaderboard_model.dart';
 
 final leaderboardScopeProvider = StateProvider<String>((ref) => 'global');
-final leaderboardLeagueProvider = StateProvider<String>((ref) => 'IRON');
-final leaderboardLeagueSelectedByUserProvider = StateProvider<bool>((ref) => false);
 
-typedef LeaderboardParam = ({String scope, String league});
-
-final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, LeaderboardParam>((ref, arg) async {
+final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, String>((ref, scope) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
-  return repo.fetchLeaderboard(scope: arg.scope, league: arg.league);
+  return repo.fetchLeaderboard(scope: scope);
 });
 
 final myLeaderboardProvider = FutureProvider<List<LeaderboardEntryModel>>((ref) async {

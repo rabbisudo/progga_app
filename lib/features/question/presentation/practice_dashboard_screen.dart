@@ -13,7 +13,6 @@ import '../../profile/presentation/profile_screen.dart';
 import '../../profile/domain/profile_model.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
-import '../../leaderboard/presentation/leaderboard_screen.dart';
 import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/network/api_client.dart';
 import '../../auth/presentation/auth_notifier.dart';
