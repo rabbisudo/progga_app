@@ -234,6 +234,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   centerTitle: true,
                 )),
       body: SafeArea(
+        bottom: false,
         top: _currentNavIndex == 3,
         child: IndexedStack(
           index: _currentNavIndex,
