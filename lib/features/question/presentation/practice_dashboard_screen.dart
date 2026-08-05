@@ -592,8 +592,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 ),
                 _buildGridAction(
                   iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
-                  label: 'রিপোর্ট',
-                  onTap: () => setState(() => _currentNavIndex = 3),
+                  label: 'পরীক্ষার History',
+                  onTap: () => context.push('/exam-history'),
                 ),
                 _buildGridAction(
                   iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),

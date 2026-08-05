@@ -152,6 +152,21 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<List<dynamic>> fetchExamHistory({int page = 1, int limit = 30}) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/exams/sessions/history',
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+        },
+      );
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {
