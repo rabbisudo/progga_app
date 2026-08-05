@@ -6,7 +6,6 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/auth_notifier.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/personal_info_screen.dart';
-import '../../features/profile/presentation/progress_screen.dart';
 import '../../features/profile/presentation/my_reports_screen.dart';
 import '../../features/profile/presentation/streak_screen.dart';
 import '../../features/profile/presentation/avatar_editor_screen.dart';
@@ -16,7 +15,6 @@ import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/exam/presentation/exam_screen.dart';
 import '../../features/result/presentation/result_screen.dart';
 import '../../features/leaderboard/presentation/leaderboard_screen.dart';
-import '../../features/premium/presentation/premium_screen.dart';
 import '../../features/question/presentation/topic_selection_screen.dart';
 import '../../features/question/presentation/exam_confirm_screen.dart';
 import '../../features/question/presentation/views/qb/qb_sub_series_screen.dart';
@@ -82,10 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/avatar-editor',
         builder: (context, state) => const AvatarEditorScreen(),
       ),
-      GoRoute(
-        path: '/progress',
-        builder: (context, state) => const ProgressScreen(),
-      ),
+
       GoRoute(
         path: '/my-reports',
         builder: (context, state) => const MyReportsScreen(),
@@ -162,10 +157,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/leaderboard',
         builder: (context, state) => const LeaderboardScreen(),
       ),
-      GoRoute(
-        path: '/premium',
-        builder: (context, state) => const PremiumScreen(),
-      ),
+
       GoRoute(
         path: '/progga-ai',
         builder: (context, state) => const ProggaAiScreen(),
