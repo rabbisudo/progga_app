@@ -2299,11 +2299,15 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: Row(
             children: [
               IconButton(
-                icon: Icon(Icons.arrow_back, color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)),
+                icon: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                ),
                 onPressed: () {
                   setState(() {
                     _selectedSeriesStack.removeLast();
@@ -2316,7 +2320,12 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   activeSeries['name']?.toString() ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontFamily: 'Noto Sans Bengali',
+                  ),
                 ),
               ),
             ],
@@ -2334,25 +2343,30 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     _examSearchQuery = val;
                   });
                 },
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontFamily: 'Noto Sans Bengali',
+                ),
                 decoration: InputDecoration(
-                  hintText: 'পরীক্ষা খুঁজে বের করো',
-                  hintStyle: const TextStyle(fontSize: 13, color: Colors.grey),
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  hintText: 'পরীক্ষা খুঁজে বের করো...',
+                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400, fontFamily: 'Noto Sans Bengali'),
+                  prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade500, size: 20),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47), width: 1.5),
                   ),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA),
+                  fillColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5),
                 ),
               ),
             ),
@@ -2366,36 +2380,52 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 final isSelected = _activeExamTab == key;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
-                  child: ChoiceChip(
-                    showCheckmark: false,
-                    label: Text(
-                      key,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                      ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
-                    backgroundColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(
-                        color: isSelected 
-                            ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)) 
-                            : (isDark ? Colors.white10 : Colors.black87),
-                        width: 1.2,
-                      ),
-                    ),
-                    onSelected: (val) {
-                      if (val) {
-                        setState(() {
-                          _activeExamTab = key;
-                          _examSearchQuery = '';
-                        });
-                      }
+                  child: InkWell(
+                    onTap: () {
+                      setState(() {
+                        _activeExamTab = key;
+                        _examSearchQuery = '';
+                      });
                     },
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47))
+                            : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47))
+                              : Colors.transparent,
+                          width: 1.2,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)).withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          key,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? Colors.white
+                                : (isDark ? Colors.white70 : Colors.black87),
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -2451,88 +2481,126 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         onTap: () {
                           _showExamConfirmSheet(context, ex);
                         },
-                        child: Card(
-                          elevation: 0,
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.5),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.015),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          clipBehavior: Clip.antiAlias,
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                            padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   title,
                                   style: TextStyle(
-                                    fontSize: 15,
+                                    fontSize: 14.5,
                                     fontWeight: FontWeight.bold,
+                                    height: 1.35,
                                     color: isDark ? Colors.white : const Color(0xFF212529),
+                                    fontFamily: 'Noto Sans Bengali',
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  alignment: WrapAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.timer_outlined,
-                                      size: 16,
-                                      color: Color(0xFFE03131),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      _toBengaliDigits(durationMin.toString()) + ' মিনিট',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.grey[400] : Colors.grey.shade600,
+                                    // Time Badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFF5F5),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFFFE3E3), width: 1),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.timer_outlined,
+                                            size: 13,
+                                            color: Color(0xFFE03131),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            '${_toBengaliDigits(durationMin.toString())} মিনিট',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFC92A2A),
+                                              fontFamily: 'Noto Sans Bengali',
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    // Questions Badge
                                     Container(
-                                      width: 1.2,
-                                      height: 14,
-                                      color: isDark ? Colors.white10 : Colors.grey.shade300,
-                                    ),
-                                    const SizedBox(width: 16),
-
-                                    const Icon(
-                                      Icons.edit_outlined,
-                                      size: 16,
-                                      color: Color(0xFF2B8A3E),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      _toBengaliDigits(qCount.toString()) + 'টি প্রশ্ন',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.grey[400] : Colors.grey.shade600,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE6FCF5),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFC3FAE8), width: 1),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.edit_note_outlined,
+                                            size: 14,
+                                            color: Color(0xFF099268),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${_toBengaliDigits(qCount.toString())}টি প্রশ্ন',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF087F5B),
+                                              fontFamily: 'Noto Sans Bengali',
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
+                                    // Date Badge
                                     Container(
-                                      width: 1.2,
-                                      height: 14,
-                                      color: isDark ? Colors.white10 : Colors.grey.shade300,
-                                    ),
-                                    const SizedBox(width: 16),
-
-                                    const Icon(
-                                      Icons.calendar_month_outlined,
-                                      size: 16,
-                                      color: Color(0xFF364FC7),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      dateStr,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.grey[400] : Colors.grey.shade600,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEDF2FF),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFDBE4FF), width: 1),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_month_outlined,
+                                            size: 13,
+                                            color: Color(0xFF364FC7),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            dateStr,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF2B4C7E),
+                                              fontFamily: 'Noto Sans Bengali',
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -2545,7 +2613,64 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+                loading: () => ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const ShimmerSkeleton(
+                            width: 180,
+                            height: 16,
+                            borderRadius: 4,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 error: (err, _) => Center(child: Text('পরীক্ষা লোড করতে ব্যর্থ হয়েছে: $err')),
               );
             },
