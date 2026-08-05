@@ -649,144 +649,156 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final displayName = profile?.fullName.split(' ').first ?? '';
     final String greetingText = _getTimeOfDayGreeting();
 
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: _currentNavIndex == 0
-          ? AppBar(
-              backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              surfaceTintColor: Colors.transparent,
-              leadingWidth: 100,
-              // Redesigned premium streak fire widget
-              leading: Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 12.0),
-                  child: InkWell(
-                    onTap: () => context.push('/streak'),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF017A47).withOpacity(0.15) : const Color(0xFFE0ECE6),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFFB9D8C9),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          PulseWidget(
-                            child: SvgPicture.string(
-                              _streakFireSvg,
-                              width: 20,
-                              height: 20,
-                              colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            profileAsync.maybeWhen(
-                              data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 1}'),
-                              orElse: () => '১',
-                            ),
-                            style: const TextStyle(
-                              color: Color(0xFF017A47),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              title: displayName.isNotEmpty
-                  ? Text(
-                      '$greetingText, $displayName',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-              // Right: Profile Avatar with a glowing ring outline
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      context.push('/profile');
-                    },
-                    child: Hero(
-                      tag: 'user_avatar_hero',
+    return PopScope(
+      canPop: _currentNavIndex != 1 || _selectedSeriesStack.isEmpty,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty) {
+          setState(() {
+            _selectedSeriesStack.removeLast();
+            _examSearchQuery = '';
+          });
+        }
+      },
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: _currentNavIndex == 0
+            ? AppBar(
+                backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                leadingWidth: 100,
+                // Redesigned premium streak fire widget
+                leading: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12.0),
+                    child: InkWell(
+                      onTap: () => context.push('/streak'),
+                      borderRadius: BorderRadius.circular(20),
                       child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          color: isDark ? const Color(0xFF017A47).withOpacity(0.15) : const Color(0xFFE0ECE6),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: const Color(0xFF017A47),
-                            width: 2,
+                            color: isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFFB9D8C9),
                           ),
                         ),
-                        child: CustomAvatar(
-                          avatarUrl: profileAsync.value?.profile?.avatarKey,
-                          radius: 17,
-                          backgroundColor: const Color(0xFF017A47),
-                          fallbackWidget: const Text(
-                            '👨‍🎓',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PulseWidget(
+                              child: SvgPicture.string(
+                                _streakFireSvg,
+                                width: 20,
+                                height: 20,
+                                colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              profileAsync.maybeWhen(
+                                data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 1}'),
+                                orElse: () => '১',
+                              ),
+                              style: const TextStyle(
+                                color: Color(0xFF017A47),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-            )
-          : ((_currentNavIndex == 3 || (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty))
-              ? null
-              : AppBar(
-                  backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
-                  elevation: 0,
-                  scrolledUnderElevation: 0,
-                  surfaceTintColor: Colors.transparent,
-                  title: Text(
-                    _currentNavIndex == 1 ? 'প্রশ্নব্যাংক' : 'মক পরীক্ষা',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                title: displayName.isNotEmpty
+                    ? Text(
+                        '$greetingText, $displayName',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                // Right: Profile Avatar with a glowing ring outline
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        context.push('/profile');
+                      },
+                      child: Hero(
+                        tag: 'user_avatar_hero',
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF017A47),
+                              width: 2,
+                            ),
+                          ),
+                          child: CustomAvatar(
+                            avatarUrl: profileAsync.value?.profile?.avatarKey,
+                            radius: 17,
+                            backgroundColor: const Color(0xFF017A47),
+                            fallbackWidget: const Text(
+                              '👨‍🎓',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  centerTitle: true,
-                )),
-      body: SafeArea(
-        top: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty) ||
-            _currentNavIndex == 3,
-        bottom: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty),
-        child: IndexedStack(
-          index: _currentNavIndex,
-          children: views,
+                ],
+              )
+            : ((_currentNavIndex == 3 || (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty))
+                ? null
+                : AppBar(
+                    backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    surfaceTintColor: Colors.transparent,
+                    title: Text(
+                      _currentNavIndex == 1 ? 'প্রশ্নব্যাংক' : 'মক পরীক্ষা',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    centerTitle: true,
+                  )),
+        body: SafeArea(
+          top: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty) ||
+              _currentNavIndex == 3,
+          bottom: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty),
+          child: IndexedStack(
+            index: _currentNavIndex,
+            children: views,
+          ),
         ),
+        bottomNavigationBar: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty)
+            ? null
+            : PremiumBottomNavBar(
+                selectedIndex: _currentNavIndex,
+                onDestinationSelected: (index) {
+                  setState(() {
+                    _currentNavIndex = index;
+                    if (index != 1) {
+                      _selectedSeriesStack.clear();
+                      _activeExamTab = null;
+                    }
+                  });
+                },
+              ),
       ),
-      bottomNavigationBar: (_currentNavIndex == 1 && _selectedSeriesStack.isNotEmpty)
-          ? null
-          : PremiumBottomNavBar(
-              selectedIndex: _currentNavIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  _currentNavIndex = index;
-                  if (index != 1) {
-                    _selectedSeriesStack.clear();
-                    _activeExamTab = null;
-                  }
-                });
-              },
-            ),
     );
   }
 

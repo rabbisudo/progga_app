@@ -169,475 +169,486 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         final questionCountBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
         final progressTrackBgColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE3E7E4);
 
-        return Scaffold(
-          backgroundColor: scaffoldBg,
-          appBar: AppBar(
+        return PopScope(
+          canPop: !_showMultiSubjectHeader,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (_showMultiSubjectHeader) {
+              setState(() {
+                _showMultiSubjectHeader = false;
+              });
+            }
+          },
+          child: Scaffold(
             backgroundColor: scaffoldBg,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            surfaceTintColor: Colors.transparent,
-            leading: CustomBackButton(
-              color: textColor,
-              onPressed: () {
-                if (_showMultiSubjectHeader) {
-                  setState(() {
-                    _showMultiSubjectHeader = false;
-                  });
-                } else {
-                  context.pop();
-                }
-              },
-            ),
-            title: Text(
-              'টপিক সিলেক্ট করো',
-              style: TextStyle(
+            appBar: AppBar(
+              backgroundColor: scaffoldBg,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              leading: CustomBackButton(
                 color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+                onPressed: () {
+                  if (_showMultiSubjectHeader) {
+                    setState(() {
+                      _showMultiSubjectHeader = false;
+                    });
+                  } else {
+                    context.pop();
+                  }
+                },
               ),
-            ),
-             actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: Center(
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeOutBack,
-                    builder: (context, value, child) {
-                      return Transform.scale(
-                        scale: value,
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: stepsBgColor,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
-                      ),
-                      child: const Text(
-                        '১/২ স্টেপস',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF017A47),
+              title: Text(
+                'টপিক সিলেক্ট করো',
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+               actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Center(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOutBack,
+                      builder: (context, value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: child,
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: stepsBgColor,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
+                        ),
+                        child: const Text(
+                          '১/২ স্টেপস',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF017A47),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              // Segmented progress indicator bar with smooth loading fill animation
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: progressTrackBgColor,
-                          borderRadius: BorderRadius.circular(2.5),
+              ],
+            ),
+            body: Column(
+              children: [
+                // Segmented progress indicator bar with smooth loading fill animation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: progressTrackBgColor,
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) {
+                              return FractionallySizedBox(
+                                alignment: Alignment.centerLeft,
+                                widthFactor: value,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF017A47),
+                                    borderRadius: BorderRadius.circular(2.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF017A47).withOpacity(0.35),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0.0, end: 1.0),
-                          duration: const Duration(milliseconds: 800),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, value, child) {
-                            return FractionallySizedBox(
-                              alignment: Alignment.centerLeft,
-                              widthFactor: value,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF017A47),
-                                  borderRadius: BorderRadius.circular(2.5),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF017A47).withOpacity(0.35),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 1),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: progressTrackBgColor,
+                            borderRadius: BorderRadius.circular(2.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Main Content (Single Subject Detailed View OR Multi-Subject Overview)
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_showMultiSubjectHeader) ...[
+                          // Top Multi-Subject Selector Chips Grid matching Screenshot 1
+                          _buildSubjectSelectionChips(subjects),
+
+                          const SizedBox(height: 12),
+
+                          // Collapsible "সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো" Bar
+                          Container(
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: borderColor),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () {
+                                setState(() {
+                                  _isTopicsExpanded = !_isTopicsExpanded;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                    Icon(
+                                      _isTopicsExpanded
+                                          ? Icons.keyboard_arrow_up_rounded
+                                          : Icons.keyboard_arrow_down_rounded,
+                                      color: textColor,
                                     ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: progressTrackBgColor,
-                          borderRadius: BorderRadius.circular(2.5),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // Main Content (Single Subject Detailed View OR Multi-Subject Overview)
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (_showMultiSubjectHeader) ...[
-                        // Top Multi-Subject Selector Chips Grid matching Screenshot 1
-                        _buildSubjectSelectionChips(subjects),
-
-                        const SizedBox(height: 12),
-
-                        // Collapsible "সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো" Bar
-                        Container(
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () {
-                              setState(() {
-                                _isTopicsExpanded = !_isTopicsExpanded;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'সিলেক্টেড টপিকস দেখতে এখানে ট্যাপ করো',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                  Icon(
-                                    _isTopicsExpanded
-                                        ? Icons.keyboard_arrow_up_rounded
-                                        : Icons.keyboard_arrow_down_rounded,
-                                    color: textColor,
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
-                        ),
 
-                        if (_isTopicsExpanded) ...[
-                          const SizedBox(height: 16),
-                          ...activeSubjects.map((s) => _buildMultiSubjectSummaryBlock(s)),
-                        ],
-                      ] else ...[
-                        // Direct Single Subject Detailed View matching Screenshot 2
-                        ...singleSubjectChapters.map((c) => _buildChapterBlock(c)),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-
-              // Bottom Action Banner
-              Container(
-                decoration: BoxDecoration(
-                  color: cardColor,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                  border: Border(
-                    top: BorderSide(color: borderColor),
-                  ),
-                ),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                child: SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Editable Question Count Input Row with - and + increment circle controllers
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: questionCountBgColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'প্রশ্নের সংখ্যা',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                // Decrement Button
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      if (_selectedQuestionCount > 5) {
-                                        _selectedQuestionCount -= 5;
-                                        _questionCountController.text = _selectedQuestionCount.toString();
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(Icons.remove, size: 16, color: Color(0xFF017A47)),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: 60,
-                                  height: 38,
-                                  child: TextField(
-                                    controller: _questionCountController,
-                                    keyboardType: TextInputType.number,
-                                    textAlign: TextAlign.center,
-                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                                      contentPadding: EdgeInsets.zero,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(color: borderColor),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
-                                      ),
-                                    ),
-                                    onChanged: (val) {
-                                      final num = int.tryParse(val);
-                                      if (num != null && num > 0) {
-                                        _selectedQuestionCount = num;
-                                      }
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                // Increment Button
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      if (_selectedQuestionCount < 200) {
-                                        _selectedQuestionCount += 5;
-                                        _questionCountController.text = _selectedQuestionCount.toString();
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(Icons.add, size: 16, color: Color(0xFF017A47)),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          if (_isTopicsExpanded) ...[
+                            const SizedBox(height: 16),
+                            ...activeSubjects.map((s) => _buildMultiSubjectSummaryBlock(s)),
                           ],
-                        ),
-                      ),
+                        ] else ...[
+                          // Direct Single Subject Detailed View matching Screenshot 2
+                          ...singleSubjectChapters.map((c) => _buildChapterBlock(c)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
 
-                      const SizedBox(height: 12),
-
-                      // Action Buttons Row: + আরেকটি বিষয় and এগিয়ে যাও
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _showMultiSubjectHeader = !_showMultiSubjectHeader;
-                                });
-                              },
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                side: BorderSide(color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                '+ আরেকটি বিষয়',
+                // Bottom Action Banner
+                Container(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    border: Border(
+                      top: BorderSide(color: borderColor),
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  child: SafeArea(
+                    top: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Editable Question Count Input Row with - and + increment circle controllers
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: questionCountBgColor,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'প্রশ্নের সংখ্যা',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: textColor,
                                 ),
                               ),
-                            ),
+                              Row(
+                                children: [
+                                  // Decrement Button
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_selectedQuestionCount > 5) {
+                                          _selectedQuestionCount -= 5;
+                                          _questionCountController.text = _selectedQuestionCount.toString();
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(Icons.remove, size: 16, color: Color(0xFF017A47)),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: 60,
+                                    height: 38,
+                                    child: TextField(
+                                      controller: _questionCountController,
+                                      keyboardType: TextInputType.number,
+                                      textAlign: TextAlign.center,
+                                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                        contentPadding: EdgeInsets.zero,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: BorderSide(color: borderColor),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
+                                        ),
+                                      ),
+                                      onChanged: (val) {
+                                        final num = int.tryParse(val);
+                                        if (num != null && num > 0) {
+                                          _selectedQuestionCount = num;
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Increment Button
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        if (_selectedQuestionCount < 200) {
+                                          _selectedQuestionCount += 5;
+                                          _questionCountController.text = _selectedQuestionCount.toString();
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(Icons.add, size: 16, color: Color(0xFF017A47)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
+                        ),
 
-                          const SizedBox(width: 12),
+                        const SizedBox(height: 12),
 
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                final joinedSubjectIds = _selectedSubjectIds.join(',');
-                                final joinedChapterIds = _selectedChapterIds.join(',');
-                                final joinedTopicIds = _selectedTopicIds.join(',');
+                        // Action Buttons Row: + আরেকটি বিষয় and এগিয়ে যাও
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _showMultiSubjectHeader = !_showMultiSubjectHeader;
+                                  });
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  '+ আরেকটি বিষয়',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                                final primarySubject = _selectedSubjectIds.isNotEmpty
-                                    ? _selectedSubjectIds.first
-                                    : widget.subjectId;
+                            const SizedBox(width: 12),
 
-                                final allSubjectsList = curriculumAsync.asData?.value ?? [];
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  final joinedSubjectIds = _selectedSubjectIds.join(',');
+                                  final joinedChapterIds = _selectedChapterIds.join(',');
+                                  final joinedTopicIds = _selectedTopicIds.join(',');
 
-                                // Build selected subjects info dynamically
-                                final List<Map<String, dynamic>> selectedSubjectsInfo = [];
-                                final targetSubjectIds = _selectedSubjectIds.isEmpty ? [widget.subjectId] : _selectedSubjectIds;
+                                  final primarySubject = _selectedSubjectIds.isNotEmpty
+                                      ? _selectedSubjectIds.first
+                                      : widget.subjectId;
 
-                                for (var sId in targetSubjectIds) {
-                                  String sName = (sId == widget.subjectId && widget.subjectName != null)
-                                      ? widget.subjectName!
-                                      : 'বিষয়';
-                                  final List<String> topicNames = [];
+                                  final allSubjectsList = curriculumAsync.asData?.value ?? [];
 
-                                  String solvedTextStr = '0/507 টি প্রশ্ন সলভ করা হয়েছে';
+                                  // Build selected subjects info dynamically
+                                  final List<Map<String, dynamic>> selectedSubjectsInfo = [];
+                                  final targetSubjectIds = _selectedSubjectIds.isEmpty ? [widget.subjectId] : _selectedSubjectIds;
 
-                                  for (var sItem in allSubjectsList) {
-                                    if (sItem is Map<String, dynamic> && sItem['id'] == sId) {
-                                      sName = sItem['name'] as String? ?? sName;
-                                      
-                                      int solvedCount = (sItem['solvedCount'] ?? sItem['userSolvedCount'] ?? sItem['userSolved'] ?? 0) as int;
-                                      int totalQ = (sItem['totalQuestions'] ?? sItem['questionCount'] ?? sItem['totalQuestionsCount'] ?? 0) as int;
+                                  for (var sId in targetSubjectIds) {
+                                    String sName = (sId == widget.subjectId && widget.subjectName != null)
+                                        ? widget.subjectName!
+                                        : 'বিষয়';
+                                    final List<String> topicNames = [];
 
-                                      final chapters = (sItem['chapters'] as List<dynamic>?) ?? [];
-                                      if (totalQ == 0) {
-                                        for (var ch in chapters) {
-                                          if (ch is Map<String, dynamic>) {
-                                            totalQ += (ch['totalQuestions'] ?? ch['questionCount'] ?? 0) as int;
-                                            solvedCount += (ch['solvedCount'] ?? ch['userSolvedCount'] ?? 0) as int;
+                                    String solvedTextStr = '0/507 টি প্রশ্ন সলভ করা হয়েছে';
+
+                                    for (var sItem in allSubjectsList) {
+                                      if (sItem is Map<String, dynamic> && sItem['id'] == sId) {
+                                        sName = sItem['name'] as String? ?? sName;
+                                        
+                                        int solvedCount = (sItem['solvedCount'] ?? sItem['userSolvedCount'] ?? sItem['userSolved'] ?? 0) as int;
+                                        int totalQ = (sItem['totalQuestions'] ?? sItem['questionCount'] ?? sItem['totalQuestionsCount'] ?? 0) as int;
+
+                                        final chapters = (sItem['chapters'] as List<dynamic>?) ?? [];
+                                        if (totalQ == 0) {
+                                          for (var ch in chapters) {
+                                            if (ch is Map<String, dynamic>) {
+                                              totalQ += (ch['totalQuestions'] ?? ch['questionCount'] ?? 0) as int;
+                                              solvedCount += (ch['solvedCount'] ?? ch['userSolvedCount'] ?? 0) as int;
+                                            }
                                           }
                                         }
-                                      }
 
-                                      if (totalQ == 0) totalQ = 507;
+                                        if (totalQ == 0) totalQ = 507;
 
-                                      String formatCount(int count) {
-                                        if (count >= 1000) {
-                                          double k = count / 1000;
-                                          return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 1)}K';
+                                        String formatCount(int count) {
+                                          if (count >= 1000) {
+                                            double k = count / 1000;
+                                            return '${k.toStringAsFixed(k.truncateToDouble() == k ? 0 : 1)}K';
+                                          }
+                                          return '$count';
                                         }
-                                        return '$count';
-                                      }
 
-                                      solvedTextStr = '$solvedCount/${formatCount(totalQ)} টি প্রশ্ন সলভ করা হয়েছে';
+                                        solvedTextStr = '$solvedCount/${formatCount(totalQ)} টি প্রশ্ন সলভ করা হয়েছে';
 
-                                      for (var ch in chapters) {
-                                        if (ch is Map<String, dynamic>) {
-                                          final chId = ch['id'] as String;
-                                          final chName = ch['name'] as String? ?? '';
-                                          final topics = (ch['topics'] as List<dynamic>?) ?? [];
+                                        for (var ch in chapters) {
+                                          if (ch is Map<String, dynamic>) {
+                                            final chId = ch['id'] as String;
+                                            final chName = ch['name'] as String? ?? '';
+                                            final topics = (ch['topics'] as List<dynamic>?) ?? [];
 
-                                          if (_selectedChapterIds.contains(chId)) {
-                                            topicNames.add(chName);
-                                          } else {
-                                            for (var tp in topics) {
-                                              if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
-                                                topicNames.add(tp['name'] as String? ?? chName);
+                                            if (_selectedChapterIds.contains(chId)) {
+                                              topicNames.add(chName);
+                                            } else {
+                                              for (var tp in topics) {
+                                                if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
+                                                  topicNames.add(tp['name'] as String? ?? chName);
+                                                }
                                               }
                                             }
                                           }
                                         }
+                                        break;
                                       }
-                                      break;
                                     }
+
+                                    selectedSubjectsInfo.add({
+                                      'id': sId,
+                                      'name': sName,
+                                      'solvedText': solvedTextStr,
+                                      'topics': topicNames.isEmpty ? ['সকল অধ্যায় ও টপিক'] : topicNames,
+                                    });
                                   }
 
-                                  selectedSubjectsInfo.add({
-                                    'id': sId,
-                                    'name': sName,
-                                    'solvedText': solvedTextStr,
-                                    'topics': topicNames.isEmpty ? ['সকল অধ্যায় ও টপিক'] : topicNames,
-                                  });
-                                }
-
-                                context.push(
-                                  '/exam-confirm',
-                                  extra: {
-                                    'primarySubjectId': primarySubject,
-                                    'joinedSubjectIds': joinedSubjectIds.isNotEmpty ? joinedSubjectIds : primarySubject,
-                                    'joinedChapterIds': joinedChapterIds.isNotEmpty ? joinedChapterIds : null,
-                                    'joinedTopicIds': joinedTopicIds.isNotEmpty ? joinedTopicIds : null,
-                                    'totalQuestions': _selectedQuestionCount,
-                                    'selectedSubjects': selectedSubjectsInfo,
-                                  },
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF017A47),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  context.push(
+                                    '/exam-confirm',
+                                    extra: {
+                                      'primarySubjectId': primarySubject,
+                                      'joinedSubjectIds': joinedSubjectIds.isNotEmpty ? joinedSubjectIds : primarySubject,
+                                      'joinedChapterIds': joinedChapterIds.isNotEmpty ? joinedChapterIds : null,
+                                      'joinedTopicIds': joinedTopicIds.isNotEmpty ? joinedTopicIds : null,
+                                      'totalQuestions': _selectedQuestionCount,
+                                      'selectedSubjects': selectedSubjectsInfo,
+                                    },
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF017A47),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                'এগিয়ে যাও',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                child: const Text(
+                                  'এগিয়ে যাও',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
