@@ -22,6 +22,7 @@ import '../../ai/presentation/progga_ai_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../exam/data/exam_repository.dart';
 import '../../exam/domain/exam_model.dart';
+import '../../result/presentation/result_screen.dart';
 
 // SVGs for Premium Bottom Bar Navigation
 const String _homeIcon = '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -2795,41 +2796,10 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     }).toList(),
                   ),
 
-                  if (question.explanations != null && question.explanations!.isNotEmpty) ...[
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(),
-                    ),
-                    const Text(
-                      'সমাধান ও ব্যাখ্যা:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF017A47),
-                        fontSize: 14,
-                        fontFamily: 'Noto Sans Bengali',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      question.explanations![0].text,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        height: 1.4,
-                        fontFamily: 'Noto Sans Bengali',
-                        fontSize: 13,
-                      ),
-                    ),
-                    if (question.explanations![0].imageKey != null && question.explanations![0].imageKey!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          question.explanations![0].imageKey!,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ],
-                  ],
+                  _QbExplanationCard(
+                    questionId: question.id,
+                    initialExplanations: question.explanations,
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -3757,6 +3727,267 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _QbExplanationCard extends ConsumerStatefulWidget {
+  final String questionId;
+  final List<dynamic>? initialExplanations;
+
+  const _QbExplanationCard({
+    required this.questionId,
+    this.initialExplanations,
+  });
+
+  @override
+  ConsumerState<_QbExplanationCard> createState() => _QbExplanationCardState();
+}
+
+class _QbExplanationCardState extends ConsumerState<_QbExplanationCard> {
+  bool _isExpanded = false;
+  bool _isLoading = false;
+  bool _isUnlocked = false;
+  List<dynamic> _explanations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialExplanations != null && widget.initialExplanations!.isNotEmpty) {
+      _explanations = widget.initialExplanations!;
+      _isUnlocked = true;
+    }
+  }
+
+  Future<void> _handleTap() async {
+    if (_isUnlocked) {
+      setState(() {
+        _isExpanded = !_isExpanded;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repo = ref.read(examRepositoryProvider);
+      final res = await repo.unlockExplanation(widget.questionId);
+
+      if (mounted) {
+        final newRemaining = (res['remainingDaily'] as num?)?.toInt();
+        if (newRemaining != null) {
+          ref.read(dailyQuotaProvider.notifier).setQuota(newRemaining);
+        }
+
+        setState(() {
+          _explanations = res['explanations'] as List<dynamic>? ?? [];
+          _isUnlocked = true;
+          _isExpanded = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showLimitDialog(context);
+      }
+    }
+  }
+
+  void _showLimitDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'ঠিক আছে',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _toBengaliDigit(int number) {
+    const englishToBengali = {
+      '0': '০',
+      '1': '১',
+      '2': '২',
+      '3': '৩',
+      '4': '৪',
+      '5': '৫',
+      '6': '৬',
+      '7': '৭',
+      '8': '৮',
+      '9': '৯',
+    };
+    return number.toString().split('').map((char) => englishToBengali[char] ?? char).join();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int currentQuota = 10;
+    try {
+      currentQuota = ref.watch(dailyQuotaProvider);
+    } catch (_) {}
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: _isLoading ? null : _handleTap,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ব্যাখ্যা',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                        Text(
+                          currentQuota > 0
+                              ? 'দৈনিক ব্যাখ্যা বাকি - ${_toBengaliDigit(currentQuota)}'
+                              : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.grey.shade700,
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_isLoading)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                    )
+                  else
+                    Icon(
+                      _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: const Color(0xFF017A47),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (_isExpanded && _explanations.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(color: Color(0xFFA7F3D0)),
+                  const SizedBox(height: 6),
+                  ..._explanations.map((expData) {
+                    final expMap = expData is Map<String, dynamic>
+                        ? expData
+                        : (expData as dynamic).toJson() as Map<String, dynamic>;
+                    final expText = expMap['text'] as String? ?? '';
+                    final expImgKey = expMap['imageKey'] as String?;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          expText,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black87,
+                            height: 1.45,
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                        if (expImgKey != null && expImgKey.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              expImgKey,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

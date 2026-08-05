@@ -2196,8 +2196,6 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
     final userAns = widget.answersMap[qId];
     final selectedOptionId = userAns?['selectedOptionId'] as String?;
-    final isSkipped = userAns == null ||
-        (userAns['selectedOptionId'] == null && userAns['textAnswer'] == null);
 
     final optionsList = (qData['options'] as List<dynamic>?) ?? [];
     final List<String> localPaths = globalCqUploadedImages[qId] ?? [];
@@ -2556,13 +2554,11 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             }),
           ],
 
-          if (!isSkipped) ...[
-            _ExplanationCard(
-              questionId: qId,
-              remainingQuota: widget.remainingQuota,
-            ),
-            const SizedBox(height: 12),
-          ],
+          _ExplanationCard(
+            questionId: qId,
+            remainingQuota: widget.remainingQuota,
+          ),
+          const SizedBox(height: 12),
 
           // Footer Row
           Row(
