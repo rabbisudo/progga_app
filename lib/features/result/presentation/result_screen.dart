@@ -14,6 +14,12 @@ final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((
   return repo.fetchExamResult(sessionId);
 });
 
+// Fetch user's actual daily explanation quota
+final explanationQuotaProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final repo = ref.watch(examRepositoryProvider);
+  return repo.fetchExplanationQuota();
+});
+
 // Global state provider for daily explanation quota sync
 final dailyQuotaProvider = StateNotifierProvider<DailyQuotaNotifier, int>((ref) {
   return DailyQuotaNotifier();
@@ -577,27 +583,26 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFA7F3D0)),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
           InkWell(
             onTap: _isLoading ? null : _handleTap,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFD1FAE5),
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,8 +611,9 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                           'ব্যাখ্যা',
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF017A47),
+                            fontFamily: 'Noto Sans Bengali',
                           ),
                         ),
                         Text(
@@ -615,8 +621,9 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                               ? 'দৈনিক ব্যাখ্যা বাকি - ${_toBengaliDigit(currentQuota)}'
                               : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!',
                           style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
+                            fontSize: 11.5,
+                            color: Colors.grey.shade700,
+                            fontFamily: 'Noto Sans Bengali',
                           ),
                         ),
                       ],
@@ -680,12 +687,21 @@ class ResultScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final resultAsync = ref.watch(examResultProvider(sessionId));
 
+    ref.listen<AsyncValue<Map<String, dynamic>>>(explanationQuotaProvider, (previous, next) {
+      next.whenOrNull(
+        data: (quotaData) {
+          final remainingDaily = (quotaData['remainingDaily'] as num?)?.toInt() ?? 0;
+          ref.read(dailyQuotaProvider.notifier).setQuota(remainingDaily);
+        },
+      );
+    });
+
     return resultAsync.when(
       loading: () => const _SkeletonResultScreen(),
       error: (err, stack) => Scaffold(
-        backgroundColor: const Color(0xFFF3F4F3),
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           elevation: 0,
           leading: CustomBackButton(
             color: Colors.black87,
@@ -710,12 +726,12 @@ class ResultScreen extends ConsumerWidget {
         final timeTakenSeconds = (data['timeTaken'] as num?)?.toInt() ?? 0;
         final timeTakenMinutes = (timeTakenSeconds / 60).round();
 
-        final quotaData = data['dailyExplanationQuota'] as Map<String, dynamic>?;
-        final remainingDaily = (quotaData?['remainingDaily'] as num?)?.toInt() ?? 10;
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(dailyQuotaProvider.notifier).setQuota(remainingDaily);
-        });
+        final initialQuota = ref.read(explanationQuotaProvider).value?['remainingDaily'] as int?;
+        if (initialQuota != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(dailyQuotaProvider.notifier).setQuota(initialQuota);
+          });
+        }
 
         // Points earned (XP coins calculation)
         final points = correctCount * 10;
@@ -736,9 +752,9 @@ class ResultScreen extends ConsumerWidget {
         final examQuestionsList = (examData?['questions'] as List<dynamic>?) ?? [];
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF3F4F3),
+            backgroundColor: Colors.white,
             elevation: 0,
             scrolledUnderElevation: 0,
             leading: CustomBackButton(
@@ -1084,7 +1100,7 @@ class ResultScreen extends ConsumerWidget {
                       eqItem: eqItem,
                       index: index,
                       answersMap: answersMap,
-                      remainingQuota: remainingDaily,
+                      remainingQuota: ref.watch(dailyQuotaProvider),
                     );
                   },
                 ),
@@ -1386,9 +1402,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
       builder: (context, child) {
         final opacity = _animation.value;
         return Scaffold(
-          backgroundColor: const Color(0xFFF3F4F3),
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF3F4F3),
+            backgroundColor: Colors.white,
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -2114,8 +2130,6 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     final questionText = qData['questionText'] as String? ?? '';
     final imageKey = qData['imageKey'] as String?;
     final latexFormula = qData['latexFormula'] as String?;
-    final board = qData['board'] as String?;
-    final year = qData['year'] as int?;
     final qType = qData['type'] as String?;
     final qMarks = (qData['marks'] as num?)?.toDouble() ?? 1.0;
 
@@ -2141,12 +2155,16 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(questionText));
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 24),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFECEFF1),
+            width: 1.2,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2158,9 +2176,10 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
               Text(
                 '${widget.index + 1}. ',
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF017A47),
+                  fontFamily: 'Noto Sans Bengali',
                 ),
               ),
               if (!isFitb)
@@ -2168,10 +2187,11 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   child: _buildResultMathWidget(
                     questionText,
                     textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
                       color: Colors.black87,
                       height: 1.4,
+                      fontFamily: 'Noto Sans Bengali',
                     ),
                   ),
                 ),
@@ -2396,21 +2416,21 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
               final label = _getOptionLabel(optIdx);
 
-              Color bgColor = const Color(0xFFF8F9FA);
-              Color borderColor = Colors.transparent;
-              Color labelBgColor = Colors.grey.shade200;
-              Color labelTextColor = Colors.black87;
+              Color bgColor = const Color(0xFFFAFAFA);
+              Color labelBgColor = Colors.white;
+              Color labelTextColor = Colors.black54;
+              Border? labelBorder = Border.all(color: const Color(0xFFCFD8DC), width: 1.5);
 
               if (isCorrect) {
-                bgColor = const Color(0xFFFFFBEB);
-                borderColor = const Color(0xFFF59E0B);
-                labelBgColor = const Color(0xFFF59E0B);
+                bgColor = const Color(0xFFE8F5E9);
+                labelBgColor = const Color(0xFF017A47);
                 labelTextColor = Colors.white;
+                labelBorder = null;
               } else if (isUserSelected) {
                 bgColor = const Color(0xFFFFEBEE);
-                borderColor = Colors.redAccent;
                 labelBgColor = Colors.redAccent;
                 labelTextColor = Colors.white;
+                labelBorder = null;
               }
 
               return Padding(
@@ -2419,8 +2439,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: bgColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: borderColor, width: 1.2),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2433,6 +2452,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: labelBgColor,
+                              border: labelBorder,
                             ),
                             child: Center(
                               child: Text(
@@ -2441,6 +2461,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: labelTextColor,
+                                  fontFamily: 'Noto Sans Bengali',
                                 ),
                               ),
                             ),
@@ -2450,9 +2471,12 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                             child: _buildResultMathWidget(
                               optionText,
                               textStyle: TextStyle(
-                                fontSize: 14,
-                                fontWeight: (isCorrect || isUserSelected) ? FontWeight.bold : FontWeight.w500,
-                                color: Colors.black87,
+                                fontSize: 13.5,
+                                fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
+                                color: isCorrect
+                                    ? const Color(0xFF017A47)
+                                    : (isUserSelected ? Colors.red.shade900 : Colors.black87),
+                                fontFamily: 'Noto Sans Bengali',
                               ),
                             ),
                           ),
@@ -2485,38 +2509,24 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    if (board != null || year != null)
-                      Container(
+                    ...((qData['tags'] as List<dynamic>?) ?? [])
+                        .map((t) => t.toString().trim())
+                        .where((tStr) => RegExp(r'^[A-Za-z]+\s+\d{2}$').hasMatch(tStr))
+                        .map((tStr) {
+                      return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5E7EB),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${board ?? ''} ${year != null ? _toBengaliDigit(year) : ''}'.trim(),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ...((qData['tags'] as List<dynamic>?) ?? []).map((t) {
-                      final tStr = t.toString().trim();
-                      if (tStr.isEmpty) return const SizedBox.shrink();
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDCFCE7),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFF86EFAC)),
+                          color: const Color(0xFF017A47).withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(color: const Color(0xFF017A47).withOpacity(0.15), width: 1.0),
                         ),
                         child: Text(
                           tStr,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF166534),
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Noto Sans Bengali',
                           ),
                         ),
                       );

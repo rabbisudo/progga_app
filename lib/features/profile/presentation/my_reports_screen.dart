@@ -51,7 +51,7 @@ class MyReportsScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F3),
+      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -224,9 +224,10 @@ class MyReportsScreen extends ConsumerWidget {
                         Text(
                           questionText,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                            fontFamily: 'Noto Sans Bengali',
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -238,6 +239,7 @@ class MyReportsScreen extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                               color: isDark ? Colors.white54 : Colors.black54,
+                              fontFamily: 'Noto Sans Bengali',
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -255,13 +257,13 @@ class MyReportsScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: isCorrect
                                     ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
-                                    : (isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFF9FAFB)),
-                                border: Border.all(
-                                  color: isCorrect
-                                      ? const Color(0xFF017A47)
-                                      : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200),
-                                ),
-                                borderRadius: BorderRadius.circular(8),
+                                    : (isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA)),
+                                border: isCorrect
+                                    ? Border.all(
+                                        color: const Color(0xFF017A47),
+                                      )
+                                    : null,
+                                borderRadius: BorderRadius.circular(16),
                               ),
                               child: Row(
                                 children: [
@@ -271,8 +273,11 @@ class MyReportsScreen extends ConsumerWidget {
                                     decoration: BoxDecoration(
                                       color: isCorrect
                                           ? const Color(0xFF017A47)
-                                          : (isDark ? Colors.white10 : Colors.grey.shade200),
+                                          : (isDark ? Colors.white10 : Colors.white),
                                       shape: BoxShape.circle,
+                                      border: isCorrect
+                                          ? null
+                                          : Border.all(color: const Color(0xFFCFD8DC), width: 1.5),
                                     ),
                                     alignment: Alignment.center,
                                     child: isCorrect
@@ -283,6 +288,7 @@ class MyReportsScreen extends ConsumerWidget {
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                               color: isDark ? Colors.white70 : Colors.black54,
+                                              fontFamily: 'Noto Sans Bengali',
                                             ),
                                           ),
                                   ),
@@ -291,11 +297,12 @@ class MyReportsScreen extends ConsumerWidget {
                                     child: Text(
                                       optionText,
                                       style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: isCorrect ? FontWeight.bold : FontWeight.normal,
+                                        fontSize: 13.5,
+                                        fontWeight: isCorrect ? FontWeight.w600 : FontWeight.w400,
                                         color: isCorrect
                                             ? (isDark ? Colors.white : const Color(0xFF017A47))
                                             : (isDark ? Colors.white70 : Colors.black87),
+                                        fontFamily: 'Noto Sans Bengali',
                                       ),
                                     ),
                                   ),
@@ -469,6 +476,7 @@ class _ReportedExplanationWidgetState extends State<ReportedExplanationWidget> {
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                              fontFamily: 'Noto Sans Bengali',
                             ),
                           ),
                           if (expImageKey != null && expImageKey.trim().isNotEmpty) ...[

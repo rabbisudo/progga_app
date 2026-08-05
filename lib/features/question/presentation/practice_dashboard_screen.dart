@@ -2704,10 +2704,11 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   Text(
                     question.questionText,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w600,
                       color: Colors.black87,
                       height: 1.4,
+                      fontFamily: 'Noto Sans Bengali',
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -2726,36 +2727,63 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
 
                   const Text(
                     'বিকল্পসমূহ:',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 13),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                      fontSize: 13,
+                      fontFamily: 'Noto Sans Bengali',
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: question.options.map((opt) {
+                    children: question.options.asMap().entries.map((entry) {
+                      final idx = entry.key;
+                      final opt = entry.value;
+                      final prefixes = ['ক', 'খ', 'গ', 'ঘ'];
+                      final prefix = idx < prefixes.length ? prefixes[idx] : '${idx + 1}';
+
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: opt.isCorrect ? const Color(0xFFE8F5E9) : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: opt.isCorrect ? const Color(0xFF017A47) : Colors.grey.shade300,
-                          ),
+                          color: opt.isCorrect ? const Color(0xFFE8F5E9) : const Color(0xFFFAFAFA),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              opt.isCorrect ? Icons.check_circle : Icons.circle_outlined,
-                              color: opt.isCorrect ? const Color(0xFF017A47) : Colors.grey,
-                              size: 20,
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: opt.isCorrect ? const Color(0xFF017A47) : Colors.white,
+                                shape: BoxShape.circle,
+                                border: opt.isCorrect
+                                    ? null
+                                    : Border.all(color: const Color(0xFFCFD8DC), width: 1.5),
+                              ),
+                              alignment: Alignment.center,
+                              child: opt.isCorrect
+                                  ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                  : Text(
+                                      prefix,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black54,
+                                        fontFamily: 'Noto Sans Bengali',
+                                      ),
+                                    ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 opt.optionText,
                                 style: TextStyle(
-                                  fontWeight: opt.isCorrect ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 13.5,
+                                  fontWeight: opt.isCorrect ? FontWeight.w600 : FontWeight.w400,
                                   color: opt.isCorrect ? const Color(0xFF017A47) : Colors.black87,
+                                  fontFamily: 'Noto Sans Bengali',
                                 ),
                               ),
                             ),
@@ -2776,12 +2804,18 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF017A47),
                         fontSize: 14,
+                        fontFamily: 'Noto Sans Bengali',
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       question.explanations![0].text,
-                      style: const TextStyle(color: Colors.black87, height: 1.4),
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        height: 1.4,
+                        fontFamily: 'Noto Sans Bengali',
+                        fontSize: 13,
+                      ),
                     ),
                     if (question.explanations![0].imageKey != null && question.explanations![0].imageKey!.isNotEmpty) ...[
                       const SizedBox(height: 12),

@@ -167,6 +167,15 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<Map<String, dynamic>> fetchExplanationQuota() async {
+    try {
+      final response = await _apiClient.dio.get('/questions/explanation-quota');
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {
