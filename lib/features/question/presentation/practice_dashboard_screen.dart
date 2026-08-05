@@ -782,6 +782,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final myUserId = profileAsync.value?.id;
     final bannersAsync = ref.watch(activeBannersProvider);
     final isDark = theme.brightness == Brightness.dark;
+    final curriculumAsync = ref.watch(studentCurriculumProvider);
 
     // Read league name dynamically
     String leagueName = 'আয়রন লীগ';
@@ -897,6 +898,179 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               ),
             ),
 
+            // My Subjects (আমার বিষয়সমূহ) Header & Horizontal List
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'আমার বিষয়সমূহ',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _currentNavIndex = 2; // Swapping to Mock Exam tab
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Text(
+                          'সবগুলো',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 10,
+                          color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 105,
+              child: curriculumAsync.when(
+                data: (subjects) {
+                  if (subjects.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'কোনো বিষয় পাওয়া যায়নি',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: subjects.length,
+                    itemBuilder: (context, index) {
+                      final subject = subjects[index] as Map<String, dynamic>;
+                      final subjectName = subject['name'] ?? 'বিষয়';
+                      final rawIcon = subject['icon'] as String?;
+                      final rawImageUrl = subject['imageUrl'] as String?;
+
+                      final iconImageUrl = (rawIcon != null && (rawIcon.startsWith('http://') || rawIcon.startsWith('https://')))
+                          ? rawIcon
+                          : ((rawImageUrl != null && rawImageUrl.isNotEmpty && (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')))
+                              ? rawImageUrl
+                              : null);
+                      final emojiIcon = (rawIcon != null && !rawIcon.startsWith('http')) ? rawIcon : '📚';
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: BouncingCard(
+                          onTap: () {
+                            context.push(
+                              '/topic-selection/${subject['id']}',
+                              extra: subjectName,
+                            );
+                          },
+                          child: Container(
+                            width: 135,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+                                width: 1.2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.015),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: isDark 
+                                        ? const Color(0xFFF18881).withOpacity(0.12) 
+                                        : const Color(0xFF017A47).withOpacity(0.06),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: iconImageUrl != null
+                                        ? Image.network(
+                                            iconImageUrl,
+                                            width: 18,
+                                            height: 18,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) => Text(
+                                              emojiIcon,
+                                              style: const TextStyle(fontSize: 16),
+                                            ),
+                                          )
+                                        : Text(
+                                            emojiIcon,
+                                            style: const TextStyle(fontSize: 16),
+                                          ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  subjectName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 4,
+                  itemBuilder: (context, index) => Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: ShimmerSkeleton(
+                      width: 135,
+                      height: 105,
+                      borderRadius: 20,
+                    ),
+                  ),
+                ),
+                error: (err, _) => Center(
+                  child: Text(
+                    'লোড ব্যর্থ হয়েছে',
+                    style: TextStyle(fontSize: 11, color: Colors.red[300]),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
             // 3. Premium Redesigned Leaderboard Card
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -985,7 +1159,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA),
                           borderRadius: BorderRadius.circular(20),
@@ -993,33 +1167,98 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                             color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
                           ),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              '${_toBengaliDigits(starPoints.toString())} XP', 
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold, 
-                                fontSize: 13, 
-                                color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: LinearProgressIndicator(
-                                  value: progressVal,
-                                  minHeight: 6,
-                                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'লেভেল ${profile?.level ?? 1}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white70 : Colors.black54,
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  '${_toBengaliDigits((100 - starPoints).toString())} XP পরবর্তী লেভেলের জন্য',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text(
+                                  '${_toBengaliDigits(starPoints.toString())} XP', 
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 13, 
+                                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: LinearProgressIndicator(
+                                      value: progressVal == 0.0 ? 0.02 : progressVal,
+                                      minHeight: 8,
+                                      backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 14),
+
+                    // Onboarding suggestion box when star points is 0 (or XP is low)
+                    if (userScore == 0) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark 
+                              ? const Color(0xFFFFB300).withOpacity(0.08) 
+                              : const Color(0xFFFFB300).withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark 
+                                ? const Color(0xFFFFB300).withOpacity(0.2) 
+                                : const Color(0xFFFFB300).withOpacity(0.25),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Text('🚀', style: TextStyle(fontSize: 18)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'কুইজ বা মক পরীক্ষায় অংশ নিয়ে XP অর্জন করুন এবং লিডারবোর্ডে এগিয়ে যান!',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.amber[200] : const Color(0xFFE65100),
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                     
                     // Shimmer loading inside leaderboard cards
                     if (leaderboardAsync is AsyncLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty)) ...[
@@ -1245,92 +1484,107 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       );
     }
 
-    return InkWell(
-      onTap: () => context.push('/leaderboard'),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      child: Container(
         decoration: BoxDecoration(
-          color: isCurrentUser 
-              ? (isDark ? const Color(0xFFF18881).withOpacity(0.15) : const Color(0xFF017A47).withOpacity(0.08)) 
-              : Colors.transparent,
-          border: isCurrentUser
-              ? Border(
-                  left: BorderSide(
-                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47), 
-                    width: 4,
-                  ),
-                )
+          color: isCurrentUser
+              ? (isDark ? const Color(0xFFF18881).withOpacity(0.12) : const Color(0xFF017A47).withOpacity(0.06))
+              : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isCurrentUser
+                ? (isDark ? const Color(0xFFF18881).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.2))
+                : (isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFECEFF1)),
+            width: 1.5,
+          ),
+          boxShadow: isCurrentUser
+              ? [
+                  BoxShadow(
+                    color: isDark 
+                        ? const Color(0xFFF18881).withOpacity(0.04) 
+                        : const Color(0xFF017A47).withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  )
+                ]
               : null,
         ),
-        child: Row(
-          children: [
-            rankWidget,
-            const SizedBox(width: 10),
-            isUrl
-                ? Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: isCurrentUser
-                          ? Border.all(
-                              color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
-                              width: 2,
-                            )
-                          : null,
-                    ),
-                    child: CustomAvatar(
-                      avatarUrl: avatarText,
-                      radius: 18,
-                      backgroundColor: avatarBg,
-                    ),
-                  )
-                : Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: isCurrentUser
-                          ? Border.all(
-                              color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
-                              width: 2,
-                            )
-                          : null,
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: avatarBg,
-                      child: Text(
-                        isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+        child: InkWell(
+          onTap: () => context.push('/leaderboard'),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                rankWidget,
+                const SizedBox(width: 10),
+                isUrl
+                    ? Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: isCurrentUser
+                              ? Border.all(
+                                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  width: 2,
+                                )
+                              : null,
+                        ),
+                        child: CustomAvatar(
+                          avatarUrl: avatarText,
+                          radius: 18,
+                          backgroundColor: avatarBg,
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: isCurrentUser
+                              ? Border.all(
+                                  color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                                  width: 2,
+                                )
+                              : null,
+                        ),
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: avatarBg,
+                          child: Text(
+                            isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
+                      fontSize: 14,
+                      color: isCurrentUser 
+                          ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)) 
+                          : (isDark ? Colors.white : Colors.black87),
                     ),
                   ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
-                  fontSize: 14,
-                  color: isCurrentUser 
-                      ? (isDark ? const Color(0xFFF18881) : const Color(0xFF017A47)) 
-                      : (isDark ? Colors.white : Colors.black87),
                 ),
-              ),
+                Text(
+                  '${_toBengaliDigits(score.toString())} XP',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '${_toBengaliDigits(score.toString())} XP',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: isDark ? const Color(0xFFF18881) : const Color(0xFF017A47),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1504,7 +1758,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
         crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 3.2,
+        childAspectRatio: 3.0,
       ),
       itemCount: 8,
       itemBuilder: (context, index) => const ShimmerSkeleton(
@@ -2627,7 +2881,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 3.2,
+            childAspectRatio: 3.0,
           ),
           itemCount: subjects.length,
           itemBuilder: (context, index) {
@@ -2656,28 +2910,39 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
+                  side: BorderSide(
+                    color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+                    width: 1.2,
+                  ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 28,
-                        height: 28,
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isDark 
+                              ? const Color(0xFFF18881).withOpacity(0.12) 
+                              : const Color(0xFF017A47).withOpacity(0.06),
+                          shape: BoxShape.circle,
+                        ),
                         child: Center(
                           child: iconImageUrl != null
                               ? Image.network(
                                   iconImageUrl,
+                                  width: 18,
+                                  height: 18,
                                   fit: BoxFit.contain,
                                   errorBuilder: (context, error, stackTrace) => Text(
                                     emojiIcon,
-                                    style: const TextStyle(fontSize: 18),
+                                    style: const TextStyle(fontSize: 15),
                                   ),
                                 )
                               : Text(
                                   emojiIcon,
-                                  style: const TextStyle(fontSize: 18),
+                                  style: const TextStyle(fontSize: 15),
                                 ),
                         ),
                       ),
@@ -2688,11 +2953,16 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
                       ),
                     ],
                   ),

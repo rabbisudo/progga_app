@@ -73,78 +73,155 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
 
   void _showEditSubjectQuestionCountModal(String id, String name, int currentCount) {
     final controller = TextEditingController(text: '$currentCount');
+    int localCount = currentCount;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$name - প্রশ্ন সংখ্যা নির্ধারণ করুন',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              const SizedBox(height: 16),
-              Row(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        labelText: 'কাস্টম প্রশ্ন সংখ্যা (টি)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '$name - প্রশ্ন সংখ্যা',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Decrement
+                      GestureDetector(
+                        onTap: () {
+                          if (localCount > 5) {
+                            setModalState(() {
+                              localCount -= 5;
+                              controller.text = '$localCount';
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4F1),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFECEFF1)),
+                          ),
+                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      SizedBox(
+                        width: 90,
+                        height: 50,
+                        child: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: const Color(0xFFF5F7F6),
+                            contentPadding: EdgeInsets.zero,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.8),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            final num = int.tryParse(val);
+                            if (num != null && num > 0) {
+                              setModalState(() {
+                                localCount = num;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      // Increment
+                      GestureDetector(
+                        onTap: () {
+                          if (localCount < 200) {
+                            setModalState(() {
+                              localCount += 5;
+                              controller.text = '$localCount';
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4F1),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFECEFF1)),
+                          ),
+                          child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _subjectQuestionCounts[id] = localCount;
+                          _totalTimeMinutes = _calculatedTotalQuestions;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF017A47),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text(
+                        'নিশ্চিত করো',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      final val = int.tryParse(controller.text);
-                      if (val != null && val > 0) {
-                        setState(() {
-                          _subjectQuestionCounts[id] = val;
-                          _totalTimeMinutes = _calculatedTotalQuestions;
-                        });
-                      }
-                      Navigator.pop(ctx);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF017A47),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('নিশ্চিত করো', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
                 ],
               ),
-            ],
-          ),
+            );
+          }
         );
       },
     );
@@ -152,73 +229,150 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
 
   void _showEditTotalTimeModal() {
     final controller = TextEditingController(text: '$_totalTimeMinutes');
+    int localTime = _totalTimeMinutes;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'মোট পরীক্ষা সময় নির্ধারণ করুন',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
-              const SizedBox(height: 16),
-              Row(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        labelText: 'কাস্টম সময় (মিনিট)',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'মোট সময় (মিনিট)',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.black54),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Decrement
+                      GestureDetector(
+                        onTap: () {
+                          if (localTime > 5) {
+                            setModalState(() {
+                              localTime -= 5;
+                              controller.text = '$localTime';
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4F1),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFECEFF1)),
+                          ),
+                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      SizedBox(
+                        width: 90,
+                        height: 50,
+                        child: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: const Color(0xFFF5F7F6),
+                            contentPadding: EdgeInsets.zero,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.8),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            final num = int.tryParse(val);
+                            if (num != null && num > 0) {
+                              setModalState(() {
+                                localTime = num;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      // Increment
+                      GestureDetector(
+                        onTap: () {
+                          if (localTime < 300) {
+                            setModalState(() {
+                              localTime += 5;
+                              controller.text = '$localTime';
+                            });
+                          }
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4F1),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFECEFF1)),
+                          ),
+                          child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _totalTimeMinutes = localTime;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF017A47),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: const Text(
+                        'নিশ্চিত করো',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      final val = int.tryParse(controller.text);
-                      if (val != null && val > 0) {
-                        setState(() {
-                          _totalTimeMinutes = val;
-                        });
-                      }
-                      Navigator.pop(ctx);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF017A47),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('নিশ্চিত করো', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
                 ],
               ),
-            ],
-          ),
+            );
+          }
         );
       },
     );
@@ -351,30 +505,41 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
           ),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(
-              child: Text(
-                '২/২ স্টেপস',
-                style: TextStyle(
-                  color: Color(0xFF017A47),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutBack,
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: child,
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD4E8DC),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
+              ),
+              child: const Center(
+                child: Text(
+                  '২/২ স্টেপস',
+                  style: TextStyle(
+                    color: Color(0xFF017A47),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Step Progress bar (2 segments)
+      body: Column(
+        children: [
+            // Step Progress bar (2 segments) with smooth fill animations
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
               child: Row(
@@ -384,32 +549,49 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       height: 5,
                       decoration: BoxDecoration(
                         color: const Color(0xFF017A47),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF017A47).withOpacity(0.2),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          )
+                        ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Stack(
-                      children: [
-                        Container(
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFA5D6A7),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                        FractionallySizedBox(
-                          widthFactor: 0.5,
-                          child: Container(
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF017A47),
-                              borderRadius: BorderRadius.circular(4),
+                    child: Container(
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3E7E4),
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(begin: 0.0, end: 0.5),
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, value, child) {
+                          return FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: value,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF017A47),
+                                borderRadius: BorderRadius.circular(2.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF017A47).withOpacity(0.35),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -422,7 +604,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Selected Subjects Section ("সিলেক্টেড বিষয় (২)")
+                    // 1. Selected Subjects Section ("সিলেক্টেড বিষয়")
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -445,57 +627,83 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (selectedSubjects.length == 1) ...[
-                      Builder(
-                        builder: (context) {
-                          final sub = selectedSubjects.first;
-                          final id = sub['id'] as String? ?? '';
-                          final name = sub['name'] as String? ?? 'বিষয়';
-                          final count = _subjectQuestionCounts[id] ?? 25;
+                    Column(
+                      children: List.generate(selectedSubjects.length, (index) {
+                        final sub = selectedSubjects[index];
+                        final id = sub['id'] as String? ?? '';
+                        final name = sub['name'] as String? ?? 'বিষয়';
+                        final count = _subjectQuestionCounts[id] ?? 25;
 
-                          return GestureDetector(
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: GestureDetector(
                             onTap: () => _showEditSubjectQuestionCountModal(id, name, count),
                             child: Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFECEFF1)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.015),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    name,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF017A47),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFEFEFEF),
+                                      color: const Color(0xFF017A47).withOpacity(0.06),
                                       borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
                                     ),
                                     child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        const Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF017A47)),
+                                        const SizedBox(width: 4),
                                         Text(
                                           '$count',
                                           style: const TextStyle(
-                                            fontSize: 14,
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
+                                            color: Color(0xFF017A47),
                                           ),
                                         ),
-                                        const SizedBox(width: 4),
+                                        const SizedBox(width: 2),
                                         const Text(
                                           'টি',
                                           style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black54,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF017A47),
                                           ),
                                         ),
                                       ],
@@ -504,81 +712,10 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      ),
-                    ] else ...[
-                      SizedBox(
-                        height: 95,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: selectedSubjects.length,
-                          separatorBuilder: (context, index) => const SizedBox(width: 12),
-                          itemBuilder: (context, index) {
-                            final sub = selectedSubjects[index];
-                            final id = sub['id'] as String? ?? '';
-                            final name = sub['name'] as String? ?? 'বিষয়';
-                            final count = _subjectQuestionCounts[id] ?? 25;
-
-                            return GestureDetector(
-                              onTap: () => _showEditSubjectQuestionCountModal(id, name, count),
-                              child: Container(
-                                width: 160,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      name,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFEFEFEF),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '$count',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          const Text(
-                                            'টি',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.black54,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                          ),
+                        );
+                      }),
+                    ),
 
                     const SizedBox(height: 24),
 
@@ -592,61 +729,105 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      height: 38,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: typesToDisplay.map<Widget>((type) {
-                          final isSelected = _selectedQuestionType == type;
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final totalWidth = constraints.maxWidth;
+                        final totalItems = typesToDisplay.length;
+                        if (totalItems == 0) return const SizedBox.shrink();
 
-                          String displayName = type;
-                          if (type == 'MCQ') displayName = 'MCQ (বহুনির্বাচনী)';
-                          if (type == 'CQ') displayName = 'CQ (সৃজনশীল)';
-                          if (type == 'WRITTEN') displayName = 'WRITTEN (লিখিত)';
-                          if (type == 'FILL') displayName = 'FILL (শূন্যস্থান)';
+                        final itemWidth = totalWidth / totalItems;
+                        final selectedIndex = typesToDisplay.indexOf(_selectedQuestionType);
 
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: ChoiceChip(
-                              showCheckmark: false,
-                              label: Text(
-                                displayName,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected ? Colors.white : Colors.black87,
+                        return Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F4F1),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFECEFF1)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              // Sliding Green Indicator Pill
+                              AnimatedPositioned(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeOutCubic,
+                                left: selectedIndex * itemWidth + 2.0,
+                                top: 2.0,
+                                width: itemWidth - 4.0,
+                                height: 38,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF017A47),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF017A47).withOpacity(0.35),
+                                        blurRadius: 10,
+                                        spreadRadius: 1,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              selected: isSelected,
-                              selectedColor: const Color(0xFF017A47),
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(
-                                  color: isSelected ? const Color(0xFF017A47) : Colors.grey.shade300,
-                                  width: 1.2,
-                                ),
+
+                              // Text Items Layer
+                              Row(
+                                children: List.generate(totalItems, (index) {
+                                  final type = typesToDisplay[index];
+                                  final isSelected = _selectedQuestionType == type;
+
+                                  return Expanded(
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedQuestionType = type;
+                                        });
+                                      },
+                                      child: Center(
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: isSelected ? Colors.white : Colors.black54,
+                                          ),
+                                          child: Text(type),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
                               ),
-                              onSelected: (val) {
-                                if (val) {
-                                  setState(() {
-                                    _selectedQuestionType = type;
-                                  });
-                                }
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 24),
 
-                    // 3. Selected Topics Accordion
+                    // 3. Selected Topics Accordion (with smooth AnimatedSize and AnimatedRotation)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFECEFF1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.01),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -670,100 +851,111 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                       color: Colors.black87,
                                     ),
                                   ),
-                                  Icon(
-                                    _isTopicsExpanded
-                                        ? Icons.keyboard_arrow_up
-                                        : Icons.keyboard_arrow_down,
-                                    color: Colors.black54,
+                                  AnimatedRotation(
+                                    turns: _isTopicsExpanded ? 0.5 : 0.0,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: const Icon(
+                                      Icons.keyboard_arrow_up_rounded,
+                                      color: Colors.black54,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          if (_isTopicsExpanded) ...[
-                            const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: selectedSubjects.map((sub) {
-                                  final name = sub['name'] as String? ?? 'বিষয়';
-                                  final id = sub['id'] as String? ?? '';
-                                  final count = _subjectQuestionCounts[id] ?? 25;
-                                  final topicsList = (sub['topics'] as List<dynamic>?)?.cast<String>() ?? [];
-                                  final solvedText = sub['solvedText'] as String? ?? '0/500 টি প্রশ্ন সলভ করা হয়েছে';
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            child: _isTopicsExpanded
+                                ? Column(
+                                    children: [
+                                      const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: selectedSubjects.map((sub) {
+                                            final name = sub['name'] as String? ?? 'বিষয়';
+                                            final id = sub['id'] as String? ?? '';
+                                            final count = _subjectQuestionCounts[id] ?? 25;
+                                            final topicsList = (sub['topics'] as List<dynamic>?)?.cast<String>() ?? [];
+                                            final solvedText = sub['solvedText'] as String? ?? '0/500 টি প্রশ্ন সলভ করা হয়েছে';
 
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.circle,
-                                                  size: 8,
-                                                  color: Color(0xFF017A47),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  name,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFF017A47),
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 16.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          const Icon(
+                                                            Icons.circle,
+                                                            size: 8,
+                                                            color: Color(0xFF017A47),
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          Text(
+                                                            name,
+                                                            style: const TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.bold,
+                                                              color: Color(0xFF017A47),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Text(
+                                                        '$countটি প্রশ্ন',
+                                                        style: const TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Color(0xFF017A47),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            Text(
-                                              '$countটি প্রশ্ন',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF017A47),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 16.0),
-                                          child: Text(
-                                            solvedText,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.black45,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: 16.0),
-                                          child: Column(
-                                            children: topicsList.map((t) => Padding(
-                                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                                  child: Text(
-                                                    t,
-                                                    style: const TextStyle(
-                                                      fontSize: 12,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: Colors.black87,
+                                                  const SizedBox(height: 4),
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(left: 16.0),
+                                                    child: Text(
+                                                      solvedText,
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors.black45,
+                                                      ),
                                                     ),
                                                   ),
-                                                )).toList(),
-                                          ),
+                                                  const SizedBox(height: 8),
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(left: 16.0),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: topicsList.map((t) => Padding(
+                                                            padding: const EdgeInsets.only(bottom: 4.0),
+                                                            child: Text(
+                                                              t,
+                                                              style: const TextStyle(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                color: Colors.black87,
+                                                              ),
+                                                            ),
+                                                          )).toList(),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }).toList(),
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
+                                      ),
+                                    ],
+                                  )
+                                : const SizedBox(width: double.infinity, height: 0),
+                          ),
                         ],
                       ),
                     ),
@@ -774,23 +966,29 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
               ),
             ),
 
-            // Bottom Section: Total Time & Start Exam Button
+            // Bottom Section: Total Time & Start Exam Button with rounded top corners matching TopicSelectionScreen
             Container(
               padding: const EdgeInsets.all(16.0),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade200),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black.withOpacity(0.04),
                     blurRadius: 10,
-                    offset: Offset(0, -2),
+                    offset: const Offset(0, -3),
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
                     children: [
                       const Text(
                         'মোট সময়',
@@ -807,8 +1005,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEBEBEB),
+                              color: const Color(0xFFF0F4F1),
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFECEFF1)),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -818,15 +1017,22 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: Color(0xFF017A47),
                                   ),
                                 ),
-                                const Text(
-                                  'মিনিট',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.black54,
-                                  ),
+                                const Row(
+                                  children: [
+                                    Text(
+                                      'মিনিট',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF017A47),
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF017A47)),
+                                  ],
                                 ),
                               ],
                             ),
@@ -843,32 +1049,32 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           ? null
                           : () {
                               final joinedSubjectIds = widget.setupData['joinedSubjectIds'] ?? primarySubjectId;
-                        final joinedChapterIds = widget.setupData['joinedChapterIds'];
-                        final joinedTopicIds = widget.setupData['joinedTopicIds'];
+                              final joinedChapterIds = widget.setupData['joinedChapterIds'];
+                              final joinedTopicIds = widget.setupData['joinedTopicIds'];
 
-                        ref.read(practiceProvider.notifier).updateFilters(
-                          subjectId: joinedSubjectIds,
-                          chapterId: joinedChapterIds,
-                          topicId: joinedTopicIds,
-                        );
+                              ref.read(practiceProvider.notifier).updateFilters(
+                                    subjectId: joinedSubjectIds,
+                                    chapterId: joinedChapterIds,
+                                    topicId: joinedTopicIds,
+                                  );
 
-                        final Uri examUri = Uri(
-                          path: '/exam/$primarySubjectId',
-                          queryParameters: {
-                            'limit': '$_calculatedTotalQuestions',
-                            'time': '$_totalTimeMinutes',
-                            'questionType': _selectedQuestionType,
-                            if (joinedSubjectIds != null && joinedSubjectIds.toString().isNotEmpty)
-                              'subjectId': joinedSubjectIds.toString(),
-                            if (joinedChapterIds != null && joinedChapterIds.toString().isNotEmpty)
-                              'chapterId': joinedChapterIds.toString(),
-                            if (joinedTopicIds != null && joinedTopicIds.toString().isNotEmpty)
-                              'topicId': joinedTopicIds.toString(),
-                          },
-                        );
+                              final Uri examUri = Uri(
+                                path: '/exam/$primarySubjectId',
+                                queryParameters: {
+                                  'limit': '$_calculatedTotalQuestions',
+                                  'time': '$_totalTimeMinutes',
+                                  'questionType': _selectedQuestionType,
+                                  if (joinedSubjectIds != null && joinedSubjectIds.toString().isNotEmpty)
+                                    'subjectId': joinedSubjectIds.toString(),
+                                  if (joinedChapterIds != null && joinedChapterIds.toString().isNotEmpty)
+                                    'chapterId': joinedChapterIds.toString(),
+                                  if (joinedTopicIds != null && joinedTopicIds.toString().isNotEmpty)
+                                    'topicId': joinedTopicIds.toString(),
+                                },
+                              );
 
-                        context.push(examUri.toString());
-                      },
+                              context.push(examUri.toString());
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF017A47),
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -887,12 +1093,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                       ),
                     ),
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
         ),
-      ),
     );
   }
 }
