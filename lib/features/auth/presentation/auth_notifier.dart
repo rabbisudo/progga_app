@@ -10,6 +10,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final ApiClient _apiClient;
 
   AuthNotifier(this._storage, this._apiClient) : super(const AuthState.initial()) {
+    _apiClient.onUnauthenticated = forceLogout;
     checkActiveSession();
   }
 
@@ -92,6 +93,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
     } catch (_) {}
 
+    await _storage.clearTokens();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
+    state = const AuthState.initial();
+  }
+
+  /**
+   * Purges cached session data and resets state to initial without hitting logout endpoint.
+   */
+  Future<void> forceLogout() async {
     await _storage.clearTokens();
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();

@@ -1,4 +1,4 @@
-import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_interceptor.dart';
@@ -39,6 +39,7 @@ class NetworkException implements Exception {
 
 class ApiClient {
   final Dio dio;
+  void Function()? onUnauthenticated;
 
   ApiClient(this.dio);
   
@@ -53,7 +54,10 @@ class ApiClient {
       },
     );
     dio.interceptors.add(DeviceInfoInterceptor());
-    dio.interceptors.add(AuthInterceptor(storageService));
+    dio.interceptors.add(AuthInterceptor(
+      storageService,
+      onUnauthenticated: () => onUnauthenticated?.call(),
+    ));
   }
 
   /**

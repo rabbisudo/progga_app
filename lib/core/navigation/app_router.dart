@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/secure_storage_service.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/auth_notifier.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/personal_info_screen.dart';
 import '../../features/profile/presentation/progress_screen.dart';
@@ -22,11 +24,23 @@ import '../../features/question/presentation/views/qb/qb_exams_list_screen.dart'
 import '../../features/ai/presentation/progga_ai_screen.dart';
 import '../../features/profile/presentation/exam_history_screen.dart';
 
+class RouterTransitionNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterTransitionNotifier(this._ref) {
+    _ref.listen(authProvider, (previous, next) {
+      notifyListeners();
+    });
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
+  final notifier = RouterTransitionNotifier(ref);
 
   return GoRouter(
     initialLocation: '/login',
+    refreshListenable: notifier,
     redirect: (context, state) async {
       final token = await secureStorage.getAccessToken();
       final isLoggingIn = state.matchedLocation == '/login';
