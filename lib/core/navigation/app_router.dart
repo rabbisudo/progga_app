@@ -20,6 +20,7 @@ import '../../features/question/presentation/topic_selection_screen.dart';
 import '../../features/question/presentation/exam_confirm_screen.dart';
 import '../../features/question/presentation/views/qb/qb_sub_series_screen.dart';
 import '../../features/question/presentation/views/qb/qb_exams_list_screen.dart';
+import '../../features/question/presentation/views/qb/qb_section_series_screen.dart';
 import '../../features/ai/presentation/progga_ai_screen.dart';
 import '../../features/profile/presentation/exam_history_screen.dart';
 
@@ -111,6 +112,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           final seriesId = state.pathParameters['seriesId'] ?? '';
           final seriesName = state.extra as String?;
           return QbSubSeriesScreen(seriesId: seriesId, seriesName: seriesName);
+        },
+      ),
+      GoRoute(
+        path: '/qb-section/:sectionId',
+        builder: (context, state) {
+          final sectionId = state.pathParameters['sectionId'] ?? '';
+          final sectionName = state.extra as String?;
+          return QbSectionSeriesScreen(sectionId: sectionId, sectionName: sectionName);
         },
       ),
       GoRoute(

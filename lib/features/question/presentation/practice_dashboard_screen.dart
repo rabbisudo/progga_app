@@ -216,7 +216,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 ),
               ],
             )
-          : (_currentNavIndex == 3
+          : (_currentNavIndex == 3 || _currentNavIndex == 1
               ? null
               : AppBar(
                   backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
@@ -224,7 +224,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                   scrolledUnderElevation: 0,
                   surfaceTintColor: Colors.transparent,
                   title: Text(
-                    _currentNavIndex == 1 ? 'প্রশ্নব্যাংক' : 'মক পরীক্ষা',
+                    'মক পরীক্ষা',
                     style: TextStyle(
                       color: isDark ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.bold,
@@ -235,7 +235,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                 )),
       body: SafeArea(
         bottom: false,
-        top: _currentNavIndex == 3,
+        top: _currentNavIndex == 3 || _currentNavIndex == 1,
         child: IndexedStack(
           index: _currentNavIndex,
           children: views,

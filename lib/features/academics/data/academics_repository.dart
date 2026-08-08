@@ -120,9 +120,29 @@ extension AcademicsRepositoryQBExtensions on AcademicsRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<List<dynamic>> fetchQuestionBankSections({
+    required String classId,
+    String? groupId,
+    String? batchId,
+  }) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/academics/qb-sections',
+        queryParameters: {
+          'classId': classId,
+          if (groupId != null && groupId.isNotEmpty) 'groupId': groupId,
+          if (batchId != null && batchId.isNotEmpty) 'batchId': batchId,
+        },
+      );
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
-// Providers for Series and Exams
+// Providers for Series, Sections and Exams
 final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, subjectId) async {
   final profile = ref.watch(userProfileProvider).value?.profile;
   if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
@@ -148,5 +168,17 @@ final qbClassSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, S
   return repo.fetchQuestionBankSeries(
     classId: classId,
     subjectId: '',
+  );
+});
+
+final qbClassSectionsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  final groupId = profile?.groupId;
+  final batchId = profile?.batchId;
+  final repo = ref.watch(academicsRepositoryProvider);
+  return repo.fetchQuestionBankSections(
+    classId: classId,
+    groupId: groupId,
+    batchId: batchId,
   );
 });

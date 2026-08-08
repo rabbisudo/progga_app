@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../academics/data/academics_repository.dart';
 import '../../../profile/presentation/profile_notifier.dart';
 import '../widgets/shimmer_skeleton.dart';
-import 'qb/qb_root_series_view.dart';
+import '../widgets/bouncing_card.dart';
 
 class QuestionBankView extends ConsumerWidget {
   const QuestionBankView({super.key});
@@ -26,43 +27,285 @@ class QuestionBankView extends ConsumerWidget {
     }
 
     final classId = profile.classId!;
-    final seriesAsync = ref.watch(qbClassSeriesProvider(classId));
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return seriesAsync.when(
-      data: (seriesList) {
-        if (seriesList.isEmpty) {
+    return _buildDynamicTabbedSections(context, ref, classId, isDark, theme);
+  }
+
+  Widget _buildDynamicTabbedSections(
+    BuildContext context,
+    WidgetRef ref,
+    String classId,
+    bool isDark,
+    ThemeData theme,
+  ) {
+    final sectionsAsync = ref.watch(qbClassSectionsProvider(classId));
+
+    return sectionsAsync.when(
+      data: (sectionsList) {
+        if (sectionsList.isEmpty) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(24.0),
               child: Text(
-                'এই ক্লাসের জন্য কোনো প্রশ্নব্যাংক সিরিজ পাওয়া যায়নি।',
+                'কোনো বিষয় ভিত্তিক বিভাগ পাওয়া যায়নি।',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
               ),
             ),
           );
         }
 
-        return QbRootSeriesView(seriesList: seriesList);
+        return DefaultTabController(
+          length: sectionsList.length,
+          child: Column(
+            children: [
+              // Premium Dynamic Subject TabBar (Balanced size)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 10, bottom: 6),
+                color: theme.scaffoldBackgroundColor,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: TabBar(
+                    isScrollable: sectionsList.length > 3,
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: const Color(0xFF017A47),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF017A47).withOpacity(0.2),
+                          blurRadius: 5,
+                          offset: const Offset(0, 1.5),
+                        ),
+                      ],
+                    ),
+                    labelColor: Colors.white,
+                    unselectedLabelColor: isDark ? Colors.white38 : Colors.black54,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      fontFamily: 'Noto Sans Bengali',
+                    ),
+                    tabs: sectionsList.map((sec) {
+                      final name = (sec as Map<String, dynamic>)['name']?.toString() ?? '';
+                      return Tab(
+                        height: 38,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(name, textAlign: TextAlign.center),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              // TabBarView displaying corresponding series
+              Expanded(
+                child: TabBarView(
+                  children: sectionsList.map((sec) {
+                    final sectionMap = sec as Map<String, dynamic>;
+                    final seriesList = (sectionMap['series'] as List<dynamic>?) ?? [];
+                    return _buildSeriesGrid(context, seriesList, isDark);
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        );
       },
       loading: () => _buildSubjectGridSkeleton(),
-      error: (err, _) => Center(
+      error: (err, _) => _buildErrorWidget('ডাটা লোড করা যায়নি: $err'),
+    );
+  }
+
+  Widget _buildSeriesGrid(BuildContext context, List<dynamic> seriesList, bool isDark) {
+    if (seriesList.isEmpty) {
+      return const Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.all(24.0),
           child: Text(
-            'ডাটা লোড করা যায়নি: $err',
+            'কোনো সিরিজ পাওয়া যায়নি।',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 14, color: Colors.red),
+            style: TextStyle(fontSize: 14, color: Colors.black54, fontFamily: 'Noto Sans Bengali'),
           ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 100.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: seriesList.length,
+      itemBuilder: (context, index) {
+        final seriesMap = seriesList[index] as Map<String, dynamic>;
+        final name = seriesMap['name']?.toString() ?? '';
+        final idStr = seriesMap['id']?.toString() ?? '';
+        final logo = seriesMap['logo']?.toString() ?? seriesMap['banner']?.toString() ?? '';
+        final subSeriesCount = (seriesMap['subSeries'] as List<dynamic>?)?.length ?? 0;
+
+        void handleNavigation() {
+          if (subSeriesCount > 0) {
+            context.push('/qb-sub-series/$idStr', extra: name);
+          } else {
+            context.push('/qb-exams/$idStr', extra: name);
+          }
+        }
+
+        if (logo.isNotEmpty) {
+          return BouncingCard(
+            onTap: handleNavigation,
+            child: Card(
+              elevation: 0,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    logo,
+                    fit: BoxFit.cover,
+                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded) return child;
+                      return AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        child: child,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: Colors.grey.shade50,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF017A47),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, _, __) => Container(
+                      color: Colors.teal.shade50,
+                      child: Center(
+                        child: Text(
+                          name,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Removed bottom dark gradient and title overlay to let the full banner show cleanly
+                ],
+              ),
+            ),
+          );
+        }
+
+        return BouncingCard(
+          onTap: handleNavigation,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.teal.shade50,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF017A47),
+                  fontFamily: 'Noto Sans Bengali',
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+
+  Widget _buildErrorWidget(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, color: Colors.red),
         ),
       ),
     );
   }
 
+  LinearGradient _getGradientForSection(String name) {
+    final nameLower = name.toLowerCase();
+    if (nameLower.contains('physics') || nameLower.contains('পদার্থ')) {
+      return const LinearGradient(
+        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (nameLower.contains('chemistry') || nameLower.contains('রসায়ন')) {
+      return const LinearGradient(
+        colors: [Color(0xFF1D976C), Color(0xFF93F9B9)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (nameLower.contains('math') || nameLower.contains('গণিত')) {
+      return const LinearGradient(
+        colors: [Color(0xFF3A6073), Color(0xFF3A6073)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (nameLower.contains('biology') || nameLower.contains('জীব')) {
+      return const LinearGradient(
+        colors: [Color(0xFF134E5E), Color(0xFF71B280)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+    return const LinearGradient(
+      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+  }
+
   Widget _buildSubjectGridSkeleton() {
     return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
