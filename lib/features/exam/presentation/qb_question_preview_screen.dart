@@ -6,6 +6,8 @@ import 'package:flutter_math_fork/flutter_math.dart';
 import '../../../core/widgets/custom_back_button.dart';
 import '../../result/presentation/result_screen.dart';
 import '../../question/presentation/widgets/shimmer_skeleton.dart';
+import '../data/exam_repository.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// A premium, distraction-free reading screen for Question Bank exam previewing.
 /// It renders the entire question paper with correct answers and explanations directly visible.
@@ -24,6 +26,8 @@ class QbQuestionPreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScreen> {
+  bool _showSolutions = false;
+
   // Convert standard digits to Bengali digits
   String _toBengaliDigit(dynamic number) {
     if (number == null) return '০';
@@ -414,6 +418,17 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(explanationQuotaProvider.future).then((quotaMap) {
+        final remaining = (quotaMap['remainingDaily'] as num?)?.toInt() ?? 10;
+        ref.read(dailyQuotaProvider.notifier).setQuota(remaining);
+      }).catchError((_) {});
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -562,17 +577,18 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       final optionText = optData['optionText'] as String? ?? '';
                       final optImageKey = optData['imageKey'] as String?;
                       final isCorrect = optData['isCorrect'] as bool? ?? false;
+                      final showGreen = _showSolutions && isCorrect;
 
                       final label = _getOptionLabel(optIdx);
 
                       // Design styles for option cards
-                      final bgColor = isCorrect
+                      final bgColor = showGreen
                           ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
                           : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
 
-                      final labelBgColor = isCorrect ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
-                      final labelTextColor = isCorrect ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
-                      final labelBorder = isCorrect ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
+                      final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+                      final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
+                      final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -581,7 +597,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                           decoration: BoxDecoration(
                             color: bgColor,
                             borderRadius: BorderRadius.circular(12),
-                            border: isCorrect
+                            border: showGreen
                                 ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
                                 : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
                           ),
@@ -616,15 +632,15 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                       optionText,
                                       textStyle: TextStyle(
                                         fontSize: 13.5,
-                                        fontWeight: isCorrect ? FontWeight.bold : FontWeight.w500,
-                                        color: isCorrect
+                                        fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
+                                        color: showGreen
                                             ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
                                             : (isDark ? Colors.white70 : Colors.black87),
                                         fontFamily: 'Noto Sans Bengali',
                                       ),
                                     ),
                                   ),
-                                  if (isCorrect)
+                                  if (showGreen)
                                     const Icon(
                                       Icons.check_circle_rounded,
                                       color: Color(0xFF017A47),
@@ -642,60 +658,15 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       );
                     }),
 
-                    // Direct Explanation View Card
-                    if (explanationsList.isNotEmpty) ...[
+                    // Premium Explanation Accordion using user daily limit quota
+                    if (_showSolutions) ...[
                       const SizedBox(height: 12),
-                      ...explanationsList.map((exp) {
-                        final expText = exp['text'] as String? ?? '';
-                        final expImgKey = exp['imageKey'] as String?;
-
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1B3B2B).withOpacity(0.3) : const Color(0xFFF4F9F6),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark ? const Color(0xFF0D5E35).withOpacity(0.5) : const Color(0xFFD4E8DC),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 14),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'ব্যাখ্যা:',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
-                                      fontFamily: 'Noto Sans Bengali',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              _buildMathWidget(
-                                expText,
-                                textStyle: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                  height: 1.5,
-                                  fontFamily: 'Noto Sans Bengali',
-                                ),
-                              ),
-                              if (expImgKey != null && expImgKey.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                _buildQuestionImage(expImgKey),
-                              ],
-                            ],
-                          ),
-                        );
-                      }),
+                      _ExplanationCard(
+                        questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',
+                        remainingQuota: ref.watch(dailyQuotaProvider),
+                        buildMath: _buildMathWidget,
+                        buildImage: _buildQuestionImage,
+                      ),
                     ],
                   ],
                 ),
@@ -703,6 +674,268 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _showSolutions = !_showSolutions;
+          });
+        },
+        backgroundColor: const Color(0xFF017A47),
+        elevation: 5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: SvgPicture.string(
+          _showSolutions
+              ? '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><path fill="currentColor" d="M9.75 12a2.25 2.25 0 1 1 4.5 0a2.25 2.25 0 0 1-4.5 0" /><path fill="currentColor" fill-rule="evenodd" d="M2 12c0 1.64.425 2.191 1.275 3.296C4.972 17.5 7.818 20 12 20s7.028-2.5 8.725-4.704C21.575 14.192 22 13.639 22 12c0-1.64-.425-2.191-1.275-3.296C19.028 6.5 16.182 4 12 4S4.972 6.5 3.275 8.704C2.425 9.81 2 10.361 2 12m10-3.75a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 0 0 0-7.5" clip-rule="evenodd" /></svg>'''
+              : '''<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none" /><g fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" d="M9 4.46A9.8 9.8 0 0 1 12 4c4.182 0 7.028 2.5 8.725 4.704C21.575 9.81 22 10.361 22 12c0 1.64-.425 2.191-1.275 3.296C19.028 17.5 16.182 20 12 20s-7.028-2.5-8.725-4.704C2.425 14.192 2 13.639 2 12c0-1.64.425-2.191 1.275-3.296A14.5 14.5 0 0 1 5 6.821" /><path d="M15 12a3 3 0 1 1-6 0a3 3 0 0 1 6 0Z" /></g></svg>''',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExplanationCard extends ConsumerStatefulWidget {
+  final String questionId;
+  final int remainingQuota;
+  final Widget Function(String, {TextStyle? textStyle, Color? mathColor, double fontSize}) buildMath;
+  final Widget Function(String?) buildImage;
+
+  const _ExplanationCard({
+    required this.questionId,
+    required this.remainingQuota,
+    required this.buildMath,
+    required this.buildImage,
+  });
+
+  @override
+  ConsumerState<_ExplanationCard> createState() => _ExplanationCardState();
+}
+
+class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
+  bool _isExpanded = false;
+  bool _isLoading = false;
+  bool _isUnlocked = false;
+  List<dynamic> _explanations = [];
+
+  Future<void> _handleTap() async {
+    if (_isUnlocked) {
+      setState(() {
+        _isExpanded = !_isExpanded;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repo = ref.read(examRepositoryProvider);
+      final res = await repo.unlockExplanation(widget.questionId);
+
+      if (mounted) {
+        final newRemaining = (res['remainingDaily'] as num?)?.toInt();
+        if (newRemaining != null) {
+          ref.read(dailyQuotaProvider.notifier).setQuota(newRemaining);
+        }
+
+        setState(() {
+          _explanations = res['explanations'] as List<dynamic>? ?? [];
+          _isUnlocked = true;
+          _isExpanded = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showLimitDialog(context);
+      }
+    }
+  }
+
+  void _showLimitDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3E2D00) : const Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey.shade600, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'ঠিক আছে',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Convert numbers to Bengali digits
+  String _toBengaliDigitLocal(dynamic number) {
+    if (number == null) return '০';
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bengali = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String str = '$number';
+    for (int i = 0; i < english.length; i++) {
+      str = str.replaceAll(english[i], bengali[i]);
+    }
+    return str;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentQuota = ref.watch(dailyQuotaProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: _isLoading ? null : _handleTap,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ব্যাখ্যা',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                        Text(
+                          currentQuota > 0
+                              ? 'দৈনিক ব্যাখ্যা বাকি - ${_toBengaliDigitLocal(currentQuota)}'
+                              : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark ? Colors.white70 : Colors.grey.shade700,
+                            fontFamily: 'Noto Sans Bengali',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_isLoading)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                    )
+                  else
+                    Icon(
+                      _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: const Color(0xFF017A47),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (_isExpanded && _explanations.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                  const SizedBox(height: 6),
+                  ..._explanations.map((expData) {
+                    final expMap = expData as Map<String, dynamic>;
+                    final expText = expMap['text'] as String? ?? '';
+                    final expImgKey = expMap['imageKey'] as String?;
+
+                     return Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         widget.buildMath(
+                           expText,
+                           textStyle: TextStyle(
+                             fontSize: 13.5,
+                             color: isDark ? Colors.white70 : Colors.black87,
+                             fontWeight: FontWeight.w500,
+                           ),
+                         ),
+                         if (expImgKey != null && expImgKey.isNotEmpty)
+                           widget.buildImage(expImgKey),
+                       ],
+                     );
+                  }),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
