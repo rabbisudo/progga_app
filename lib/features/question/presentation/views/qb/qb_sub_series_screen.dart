@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../academics/data/academics_repository.dart';
 import '../../../../profile/presentation/profile_notifier.dart';
@@ -158,35 +159,23 @@ class QbSubSeriesScreen extends ConsumerWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.network(
-                          subLogo,
+                        CachedNetworkImage(
+                          imageUrl: subLogo,
                           fit: BoxFit.cover,
-                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                            if (wasSynchronouslyLoaded) return child;
-                            return AnimatedOpacity(
-                              opacity: frame == null ? 0 : 1,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                              child: child,
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: Colors.grey.shade50,
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Color(0xFF017A47),
-                                  ),
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade50,
+                            child: const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF017A47),
                                 ),
                               ),
-                            );
-                          },
-                          errorBuilder: (context, _, __) => Container(
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
                             color: cardColor,
                             child: Center(
                               child: Column(

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../academics/data/academics_repository.dart';
 import '../../../profile/presentation/profile_notifier.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/bouncing_card.dart';
 
@@ -45,15 +47,9 @@ class QuestionBankView extends ConsumerWidget {
     return sectionsAsync.when(
       data: (sectionsList) {
         if (sectionsList.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Text(
-                'কোনো বিষয় ভিত্তিক বিভাগ পাওয়া যায়নি।',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
-              ),
-            ),
+          return const EmptyStateWidget(
+            title: 'কোনো প্রশ্নব্যাংক পাওয়া যায়নি',
+            subtitle: 'আপনার সিলেক্ট করা ক্লাসের জন্য কোনো প্রশ্নব্যাংক পাওয়া যায়নি। অনুগ্রহ করে অন্য কোনো ক্লাস সিলেক্ট করে দেখুন।',
           );
         }
 
@@ -129,15 +125,10 @@ class QuestionBankView extends ConsumerWidget {
 
   Widget _buildSeriesGrid(BuildContext context, List<dynamic> seriesList, bool isDark) {
     if (seriesList.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Text(
-            'কোনো সিরিজ পাওয়া যায়নি।',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Colors.black54, fontFamily: 'Noto Sans Bengali'),
-          ),
-        ),
+      return const EmptyStateWidget(
+        title: 'কোনো সিরিজ পাওয়া যায়নি',
+        subtitle: 'এই বিভাগের অধীনে কোনো প্রশ্নব্যাংক সিরিজ সচল নেই।',
+        icon: Icons.layers_clear_rounded,
       );
     }
 
@@ -178,35 +169,23 @@ class QuestionBankView extends ConsumerWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    logo,
+                  CachedNetworkImage(
+                    imageUrl: logo,
                     fit: BoxFit.cover,
-                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                      if (wasSynchronouslyLoaded) return child;
-                      return AnimatedOpacity(
-                        opacity: frame == null ? 0 : 1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                        child: child,
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey.shade50,
-                        child: const Center(
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFF017A47),
-                            ),
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey.shade50,
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF017A47),
                           ),
                         ),
-                      );
-                    },
-                    errorBuilder: (context, _, __) => Container(
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
                       color: Colors.teal.shade50,
                       child: Center(
                         child: Text(

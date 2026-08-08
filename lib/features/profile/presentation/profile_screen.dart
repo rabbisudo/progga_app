@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_notifier.dart';
 import '../../auth/presentation/auth_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
@@ -9,6 +10,63 @@ import '../../question/presentation/practice_notifier.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/widgets/custom_back_button.dart';
+
+const String _logoutSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+		<path stroke-linejoin="round" d="M10 12h10m0 0l-3-3m3 3l-3 3" />
+		<path d="M4 12a8 8 0 0 1 8-8m0 16a7.99 7.99 0 0 1-6.245-3" />
+	</g>
+</svg>''';
+
+const String _sunSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M12 2v1m0 18v1m10-10h-1M3 12H2m17.07-7.07l-.392.393M5.322 18.678l-.393.393m14.141-.001l-.392-.393M5.322 5.322l-.393-.393M6.341 10A6 6 0 1 0 10 6.341" />
+</svg>''';
+
+const String _moonSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="currentColor" d="m21.067 11.857l-.642-.388zm-8.924-8.924l-.388-.642zm-4.767 17.08a.75.75 0 1 0-.752 1.298zm-4.687-2.638a.75.75 0 1 0 1.298-.75zM21.25 12A9.25 9.25 0 0 1 12 21.25v1.5c5.937 0 10.75-4.813 10.75-10.75zm-18.5 0A9.25 9.25 0 0 1 12 2.75v-1.5C6.063 1.25 1.25 6.063 1.25 12zm12.75 2.25A5.75 5.75 0 0 1 9.75 8.5h-1.5a7.25 7.25 0 0 0 7.25 7.25zm4.925-2.781A5.75 5.75 0 0 1 15.5 14.25v1.5a7.25 7.25 0 0 0 6.21-3.505zM9.75 8.5a5.75 5.75 0 0 1 2.781-4.925l-.776-1.284A7.25 7.25 0 0 0 8.25 8.5zM12 2.75a.38.38 0 0 1-.268-.118a.3.3 0 0 1-.082-.155c-.004-.031-.002-.121.105-.186l.776 1.284c.503-.304.665-.861.606-1.299c-.062-.455-.42-1.026-1.137-1.026zm9.71 9.495c-.066.107-.156.109-.187.105a.3.3 0 0 1-.155-.082a.38.38 0 0 1-.118-.268h1.5c0-.717-.571-1.075-1.026-1.137c-.438-.059-.995.103-1.299.606zM12 21.25a9.2 9.2 0 0 1-4.624-1.237l-.752 1.298A10.7 10.7 0 0 0 12 22.75zm-8.013-4.625A9.2 9.2 0 0 1 2.75 12h-1.5a10.7 10.7 0 0 0 1.439 5.375z" />
+</svg>''';
+
+const String _avatarEditSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="m14.36 4.079l.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561L12 6.439m7.921 3.2l-5.26 5.262L11.56 18l-.16.161c-.578.577-.867.866-1.185 1.114a6.6 6.6 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0l-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876l-1.876-1.876m0 0l1.094-3.281c.258-.775.387-1.162.56-1.526q.309-.647.749-1.211c.248-.318.537-.607 1.114-1.184L8.5 9.939" />
+</svg>''';
+
+const String _privacySvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-width="1.5">
+		<circle cx="12" cy="16" r="2" />
+		<path stroke-linecap="round" d="M6 10V8q0-.511.083-1M18 10V8A6 6 0 0 0 7.5 4.031M11 22H8c-2.828 0-4.243 0-5.121-.879C2 20.243 2 18.828 2 16s0-4.243.879-5.121C3.757 10 5.172 10 8 10h8c2.828 0 4.243 0 5.121.879C22 11.757 22 13.172 22 16s0 4.243-.879 5.121C20.243 22 18.828 22 16 22h-1" />
+	</g>
+</svg>''';
+
+const String _termsSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="m14.163 18.488l-.721.72a6.117 6.117 0 0 1-8.65-8.65l.72-.72m4.325 4.325l4.326-4.326M9.837 5.512l.721-.72a6.117 6.117 0 0 1 8.65 0m-.72 9.37l.72-.72A6.1 6.1 0 0 0 20.998 9" />
+</svg>''';
+
+const String _personSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-width="1.5">
+		<circle cx="12" cy="6" r="4" />
+		<path stroke-linecap="round" d="M19.998 18q.002-.246.002-.5c0-2.485-3.582-4.5-8-4.5s-8 2.015-8 4.5S4 22 12 22c2.231 0 3.84-.157 5-.437" />
+	</g>
+</svg>''';
+
+const String _reportSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M5 22v-8m0 0l2.47-.494a8.7 8.7 0 0 1 4.925.452a8.68 8.68 0 0 0 5.327.361l.214-.053A1.404 1.404 0 0 0 19 12.904V5.537a1.2 1.2 0 0 0-1.49-1.164a8 8 0 0 1-4.911-.334l-.204-.081a8.7 8.7 0 0 0-4.924-.452L5 4m0 10v-3m0-7V2m0 2v3" />
+</svg>''';
+
+const String _cameraSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-width="1.5">
+		<circle cx="12" cy="13" r="3" />
+		<path stroke-linecap="round" d="M3 13c0-2.809 0-4.213.674-5.222a4 4 0 0 1 1.104-1.104C5.787 6 7.19 6 10 6h4c2.809 0 4.213 0 5.222.674a4 4 0 0 1 1.104 1.104C21 8.787 21 10.19 21 13s0 4.213-.674 5.222a4 4 0 0 1-1.104 1.104C18.213 20 16.81 20 14 20h-4c-2.809 0-4.213 0-5.222-.674a4 4 0 0 1-1.104-1.104c-.232-.347-.384-.74-.484-1.222M18 10h-.5m-3-6.5h-5" />
+	</g>
+</svg>''';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -39,7 +97,8 @@ class ProfileScreen extends ConsumerWidget {
   Widget _buildFlatMenuTile({
     required ThemeData theme,
     required Color color,
-    required IconData icon,
+    IconData? icon,
+    Widget? customIcon,
     required String title,
     Widget? trailing,
     required VoidCallback onTap,
@@ -53,7 +112,7 @@ class ProfileScreen extends ConsumerWidget {
           color: color.withOpacity(isDark ? 0.15 : 0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 18, color: color),
+        child: customIcon ?? Icon(icon, size: 18, color: color),
       ),
       title: Text(
         title,
@@ -174,10 +233,11 @@ class ProfileScreen extends ConsumerWidget {
                                   shape: BoxShape.circle,
                                   border: Border.all(color: isDark ? const Color(0xFF1E1E1E) : Colors.white, width: 2),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt_rounded,
-                                  size: 11,
-                                  color: Colors.white,
+                                child: SvgPicture.string(
+                                  _cameraSvg,
+                                  width: 11,
+                                  height: 11,
+                                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                                 ),
                               ),
                             ),
@@ -215,7 +275,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF00C569),
-                      icon: Icons.person_rounded,
+                      customIcon: SvgPicture.string(
+                        _personSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFF00C569), BlendMode.srcIn),
+                      ),
                       title: 'ব্যক্তিগত তথ্য',
                       isDark: isDark,
 
@@ -223,16 +288,13 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     _buildFlatMenuTile(
                       theme: theme,
-                      color: const Color(0xFFFFB300),
-                      icon: Icons.emoji_events_rounded,
-                      title: 'লিডারবোর্ড',
-                      isDark: isDark,
-                      onTap: () => context.push('/leaderboard'),
-                    ),
-                    _buildFlatMenuTile(
-                      theme: theme,
                       color: const Color(0xFFE53935),
-                      icon: Icons.flag_rounded,
+                      customIcon: SvgPicture.string(
+                        _reportSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFFE53935), BlendMode.srcIn),
+                      ),
                       title: 'আমার রিপোর্টসমূহ',
                       isDark: isDark,
                       onTap: () => context.push('/my-reports'),
@@ -240,7 +302,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF00B8),
-                      icon: Icons.brush_rounded,
+                      customIcon: SvgPicture.string(
+                        _avatarEditSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFFFF00B8), BlendMode.srcIn),
+                      ),
                       title: 'অ্যাভাটার এডিট',
                       isDark: isDark,
                       onTap: () => context.push('/avatar-editor'),
@@ -249,7 +316,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF007AFF),
-                      icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                      customIcon: SvgPicture.string(
+                        isDark ? _moonSvg : _sunSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFF007AFF), BlendMode.srcIn),
+                      ),
                       title: 'ডার্ক মোড',
                       isDark: isDark,
                       trailing: Transform.scale(
@@ -275,7 +347,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF009688),
-                      icon: Icons.privacy_tip_rounded,
+                      customIcon: SvgPicture.string(
+                        _privacySvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFF009688), BlendMode.srcIn),
+                      ),
                       title: 'প্রাইভেসি পলিসি',
                       isDark: isDark,
                       onTap: () async {
@@ -290,8 +367,13 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF607D8B),
-                      icon: Icons.description_rounded,
-                      title: 'শর্তাবলী ও নিয়মাবলী',
+                      customIcon: SvgPicture.string(
+                        _termsSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFF607D8B), BlendMode.srcIn),
+                      ),
+                      title: 'শর্তাবলী ও নিয়মাবলী',
                       isDark: isDark,
                       onTap: () async {
                         final url = Uri.parse('https://chorcha.net/terms-and-conditions');
@@ -305,7 +387,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFFFF3B30),
-                      icon: Icons.logout_rounded,
+                      customIcon: SvgPicture.string(
+                        _logoutSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFFFF3B30), BlendMode.srcIn),
+                      ),
                       title: 'লগআউট করুন',
                       isDark: isDark,
                       onTap: () async {

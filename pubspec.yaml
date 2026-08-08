@@ -45,6 +45,9 @@ dependencies:
   # SVG Rendering
   flutter_svg: ^2.0.9
 
+  # Image Caching
+  cached_network_image: ^3.3.1
+
   # FCM (Firebase Notifications)
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.10
