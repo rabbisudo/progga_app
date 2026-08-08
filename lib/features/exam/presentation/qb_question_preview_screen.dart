@@ -507,10 +507,6 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
               final latexFormula = qData['latexFormula'] as String?;
               final optionsList = (qData['options'] as List<dynamic>?) ?? [];
               final explanationsList = (qData['explanations'] as List<dynamic>?) ?? [];
-              final clues = optionsList.map((opt) {
-                final text = (opt as Map<String, dynamic>?)?['optionText'] as String? ?? '';
-                return _stripHtml(text);
-              }).where((c) => c.isNotEmpty).toList();
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 24),
@@ -576,65 +572,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       ),
                     ],
 
-                    final typeUpper = qData['type']?.toString().toUpperCase();
-                    final isMcq = typeUpper == null || typeUpper == 'MCQ';
-
-                    // If FITB type and has clues, render a beautiful Clues Box
-                    if (clues.isNotEmpty && typeUpper != 'FILL_IN_THE_GAPS_WITHOUT_CLUES') ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1B2B3A) : const Color(0xFFEBF3FC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isDark ? const Color(0xFF0F4D82) : const Color(0xFFC0DBF7), width: 1.2),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFF017A47)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'ক্লুসমূহ (শব্দ ভাণ্ডার):',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white70 : Colors.black87,
-                                    fontFamily: 'Noto Sans Bengali',
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: clues.map((clue) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF017A47),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    clue as String,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12.5,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    if (isMcq) ...[
+                    if (qData['type']?.toString().toUpperCase() != 'WRITTEN') ...[
                       const SizedBox(height: 16),
 
                       // Options List
