@@ -13,6 +13,7 @@ import '../../features/question/presentation/practice_dashboard_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
 
 import '../../features/exam/presentation/exam_screen.dart';
+import '../../features/exam/presentation/qb_question_preview_screen.dart';
 import '../../features/result/presentation/result_screen.dart';
 import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../../features/question/presentation/topic_selection_screen.dart';
@@ -140,9 +141,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/exam-preview/:id',
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
-          return ResultScreen(
+          final title = state.extra as String?;
+          return QbQuestionPreviewScreen(
             examId: id,
-            isPreview: true,
+            title: title,
           );
         },
       ),

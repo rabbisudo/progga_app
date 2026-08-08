@@ -29,8 +29,12 @@ class QbRootSeriesView extends StatelessWidget {
     final Map<String, List<Map<String, dynamic>>> groupedBySubject = {};
     for (final s in rootSeriesList) {
       if (s is Map<String, dynamic>) {
-        final subId = s['subjectId']?.toString() ?? 'other';
-        groupedBySubject.putIfAbsent(subId, () => []).add(s);
+        final rawSubId = s['subjectId']?.toString();
+        // If subjectId is set → group by subject; otherwise each series gets its own card
+        final groupKey = (rawSubId != null && rawSubId.isNotEmpty)
+            ? rawSubId
+            : 'series_${s['id']}'; // unique key per series
+        groupedBySubject.putIfAbsent(groupKey, () => []).add(s);
       }
     }
 
@@ -40,7 +44,11 @@ class QbRootSeriesView extends StatelessWidget {
         final subB = groupedBySubject[b]!.first['subject'] as Map<String, dynamic>?;
         final orderA = subA?['sortOrder'] as int? ?? 100;
         final orderB = subB?['sortOrder'] as int? ?? 100;
-        return orderA.compareTo(orderB);
+        if (orderA != orderB) return orderA.compareTo(orderB);
+        // Fallback: sort by series name
+        final nameA = groupedBySubject[a]!.first['name']?.toString() ?? '';
+        final nameB = groupedBySubject[b]!.first['name']?.toString() ?? '';
+        return nameA.compareTo(nameB);
       });
 
     return SingleChildScrollView(
