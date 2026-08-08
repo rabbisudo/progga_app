@@ -384,7 +384,11 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     Color? mathColor,
     double fontSize = 14,
   }) {
-    final text = _fixBrokenLatex(_stripHtml(rawText));
+    final imgConverted = rawText.replaceAllMapped(
+      RegExp(r'''<img[^>]+src=["']([^"']+)["'][^>]*>''', caseSensitive: false),
+      (match) => '[IMAGE: ${match.group(1)}]',
+    );
+    final text = _fixBrokenLatex(_stripHtml(imgConverted));
 
     // Check if text contains embedded [IMAGE: url] tags
     final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);

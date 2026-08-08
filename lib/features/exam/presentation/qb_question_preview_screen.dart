@@ -171,7 +171,11 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     double fontSize = 14,
   }) {
     if (rawText.isEmpty) return const SizedBox.shrink();
-    final text = _fixBrokenLatex(_stripHtml(rawText));
+    final imgConverted = rawText.replaceAllMapped(
+      RegExp(r'''<img[^>]+src=["']([^"']+)["'][^>]*>''', caseSensitive: false),
+      (match) => '[IMAGE: ${match.group(1)}]',
+    );
+    final text = _fixBrokenLatex(_stripHtml(imgConverted));
 
     // Handle embedded image tags
     final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
@@ -503,6 +507,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
               final latexFormula = qData['latexFormula'] as String?;
               final optionsList = (qData['options'] as List<dynamic>?) ?? [];
               final explanationsList = (qData['explanations'] as List<dynamic>?) ?? [];
+              final clues = optionsList.map((opt) {
+                final text = (opt as Map<String, dynamic>?)?['optionText'] as String? ?? '';
+                return _stripHtml(text);
+              }).where((c) => c.isNotEmpty).toList();
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 24),
@@ -568,95 +576,155 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       ),
                     ],
 
-                    const SizedBox(height: 16),
+                    final typeUpper = qData['type']?.toString().toUpperCase();
+                    final isMcq = typeUpper == null || typeUpper == 'MCQ';
 
-                    // Options List
-                    ...optionsList.asMap().entries.map((optEntry) {
-                      final optIdx = optEntry.key;
-                      final optData = optEntry.value as Map<String, dynamic>;
-                      final optionText = optData['optionText'] as String? ?? '';
-                      final optImageKey = optData['imageKey'] as String?;
-                      final isCorrect = optData['isCorrect'] as bool? ?? false;
-                      final showGreen = _showSolutions && isCorrect;
-
-                      final label = _getOptionLabel(optIdx);
-
-                      // Design styles for option cards
-                      final bgColor = showGreen
-                          ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
-                          : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
-
-                      final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
-                      final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
-                      final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: showGreen
-                                ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
-                                : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 26,
-                                    height: 26,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: labelBgColor,
-                                      border: labelBorder,
+                    // If FITB type and has clues, render a beautiful Clues Box
+                    if (clues.isNotEmpty && typeUpper != 'FILL_IN_THE_GAPS_WITHOUT_CLUES') ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1B2B3A) : const Color(0xFFEBF3FC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isDark ? const Color(0xFF0F4D82) : const Color(0xFFC0DBF7), width: 1.2),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.lightbulb_outline, size: 16, color: Color(0xFF017A47)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'ক্লুসমূহ (শব্দ ভাণ্ডার):',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    fontFamily: 'Noto Sans Bengali',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: clues.map((clue) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF017A47),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    clue as String,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.5,
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        label,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                          color: labelTextColor,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    if (isMcq) ...[
+                      const SizedBox(height: 16),
+
+                      // Options List
+                      ...optionsList.asMap().entries.map((optEntry) {
+                        final optIdx = optEntry.key;
+                        final optData = optEntry.value as Map<String, dynamic>;
+                        final optionText = optData['optionText'] as String? ?? '';
+                        final optImageKey = optData['imageKey'] as String?;
+                        final isCorrect = optData['isCorrect'] as bool? ?? false;
+                        final showGreen = _showSolutions && isCorrect;
+
+                        final label = _getOptionLabel(optIdx);
+
+                        // Design styles for option cards
+                        final bgColor = showGreen
+                            ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+                            : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
+
+                        final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+                        final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
+                        final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: showGreen
+                                  ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
+                                  : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 26,
+                                      height: 26,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: labelBgColor,
+                                        border: labelBorder,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          label,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: labelTextColor,
+                                            fontFamily: 'Noto Sans Bengali',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildMathWidget(
+                                        optionText,
+                                        textStyle: TextStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
+                                          color: showGreen
+                                              ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                              : (isDark ? Colors.white70 : Colors.black87),
                                           fontFamily: 'Noto Sans Bengali',
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildMathWidget(
-                                      optionText,
-                                      textStyle: TextStyle(
-                                        fontSize: 13.5,
-                                        fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
-                                        color: showGreen
-                                            ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
-                                            : (isDark ? Colors.white70 : Colors.black87),
-                                        fontFamily: 'Noto Sans Bengali',
+                                    if (showGreen)
+                                      const Icon(
+                                        Icons.check_circle_rounded,
+                                        color: Color(0xFF017A47),
+                                        size: 18,
                                       ),
-                                    ),
-                                  ),
-                                  if (showGreen)
-                                    const Icon(
-                                      Icons.check_circle_rounded,
-                                      color: Color(0xFF017A47),
-                                      size: 18,
-                                    ),
+                                  ],
+                                ),
+                                if (optImageKey != null && optImageKey.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  _buildQuestionImage(optImageKey),
                                 ],
-                              ),
-                              if (optImageKey != null && optImageKey.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                _buildQuestionImage(optImageKey),
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ],
 
                     // Premium Explanation Accordion using user daily limit quota
                     if (_showSolutions) ...[

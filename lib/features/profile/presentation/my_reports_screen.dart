@@ -802,7 +802,11 @@ Widget _buildResultMathWidget(
 }) {
   if (rawText.isEmpty) return const SizedBox.shrink();
 
-  final text = _fixBrokenLatex(_stripHtml(rawText));
+  final imgConverted = rawText.replaceAllMapped(
+    RegExp(r'''<img[^>]+src=["']([^"']+)["'][^>]*>''', caseSensitive: false),
+    (match) => '[IMAGE: ${match.group(1)}]',
+  );
+  final text = _fixBrokenLatex(_stripHtml(imgConverted));
 
   final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
   if (imageRegex.hasMatch(text)) {
