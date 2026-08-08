@@ -233,6 +233,19 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     final examsAsync = ref.watch(qbExamsProvider(idsToLoad.join(',')));
                     return examsAsync.when(
                       data: (examsList) {
+                        if (examsList.length == 1) {
+                          final ex = examsList.first as Map<String, dynamic>;
+                          final examId = ex['id']?.toString() ?? '';
+                          final title = ex['title']?.toString() ?? '';
+                          final cleanTitle = _getCleanTitle(title);
+                          if (examId.isNotEmpty) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              context.pushReplacement('/exam-preview/$examId', extra: cleanTitle);
+                            });
+                          }
+                          return _buildSkeleton(context, isDark);
+                        }
+
                         var filteredList = examsList;
                         if (hasMultipleLevels && _searchQuery.isNotEmpty) {
                           filteredList = examsList.where((ex) {
@@ -249,7 +262,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                           itemCount: filteredList.length,
                           itemBuilder: (context, idx) {
                             final ex = filteredList[idx] as Map<String, dynamic>;
-                            final title = ex['title']?.toString() ?? '';
+                            final title = _getCleanTitle(ex['title']?.toString() ?? '');
                             final duration = ex['duration'] as int? ?? 1500;
                             final durationMin = (duration / 60).round();
                             final qCount = ex['qCount'] as int? ?? 25;
@@ -393,64 +406,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                           },
                         );
                       },
-                      loading: () => ListView.builder(
-                        padding: const EdgeInsets.all(16.0),
-                        itemCount: 4,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 14),
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const ShimmerSkeleton(
-                                  width: 180,
-                                  height: 16,
-                                  borderRadius: 4,
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                      loading: () => _buildSkeleton(context, isDark),
                       error: (err, _) => Center(child: Text('পরীক্ষা লোড করতে ব্যর্থ হয়েছে: $err')),
                     );
                   },
@@ -465,8 +421,76 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
     );
   }
 
+  Widget _buildSkeleton(BuildContext context, bool isDark) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const ShimmerSkeleton(
+                width: 180,
+                height: 16,
+                borderRadius: 4,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _getCleanTitle(String title) {
+    if (title.trim().isEmpty || title.toLowerCase().contains('undefined')) {
+      return widget.subSeriesName ?? 'কোয়েশ্চেন ব্যাংক প্র্যাকটিস';
+    }
+    return title;
+  }
+
   void _showExamConfirmSheet(BuildContext context, Map<String, dynamic> ex) {
-    final title = ex['title']?.toString() ?? '';
+    final title = _getCleanTitle(ex['title']?.toString() ?? '');
     final duration = ex['duration'] as int? ?? 1500;
     final durationMin = (duration / 60).round();
     final qCount = ex['qCount'] as int? ?? 25;

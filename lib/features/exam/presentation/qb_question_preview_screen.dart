@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../../core/widgets/custom_back_button.dart';
 import '../../result/presentation/result_screen.dart';
+import '../../question/presentation/widgets/shimmer_skeleton.dart';
 
 /// A premium, distraction-free reading screen for Question Bank exam previewing.
 /// It renders the entire question paper with correct answers and explanations directly visible.
@@ -343,6 +344,75 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     );
   }
 
+  Widget _buildSkeleton(bool isDark) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16.0),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+                width: 1.2,
+              ),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_toBengaliDigit(index + 1)}. ',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF017A47),
+                      fontFamily: 'Noto Sans Bengali',
+                    ),
+                  ),
+                  const Expanded(
+                    child: ShimmerSkeleton(
+                      width: double.infinity,
+                      height: 16,
+                      borderRadius: 4,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...List.generate(4, (optIdx) => Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, left: 16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 18,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? Colors.white12 : Colors.grey.shade200,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const ShimmerSkeleton(
+                      width: 120,
+                      height: 12,
+                      borderRadius: 3,
+                    ),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -375,9 +445,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
         ),
       ),
       body: examAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF017A47)),
-        ),
+        loading: () => _buildSkeleton(isDark),
         error: (err, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
