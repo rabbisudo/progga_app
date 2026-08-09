@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -79,7 +80,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (response.statusCode == 200) {
         final data = response.data;
         final accessToken = data['tokens']['accessToken'] as String;
-        final refreshToken = data['tokens']['refreshToken'] as String;
         final user = data['user'] as Map<String, dynamic>;
 
         // Write tokens to secure vaults
@@ -90,13 +90,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
           accessToken: accessToken,
         );
       } else {
-        state = const AuthState.error(message: 'Google login failed');
+        state = const AuthState.error(message: 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
     } on DioException catch (dioErr) {
       final networkErr = _apiClient.handleError(dioErr);
       state = AuthState.error(message: networkErr.message);
     } catch (e) {
-      state = AuthState.error(message: e.toString());
+      debugPrint('Login exception: $e');
+      state = const AuthState.error(message: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   }
 

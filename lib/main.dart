@@ -22,6 +22,10 @@ void main() async {
   // Initialize Firebase, Hive, and check the active session in parallel
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
+  
+  // Initialize Hive first to ensure the settings box is available for cached reads
+  final hiveInitFuture = hiveService.init();
+
   await Future.wait([
     Future(() async {
       try {
@@ -30,32 +34,45 @@ void main() async {
         debugPrint('Firebase init error: $e');
       }
     }),
-    hiveService.init(),
+    hiveInitFuture,
     Future(() async {
       try {
         final token = await secureStorage.getAccessToken();
         if (token != null) {
           initialLocation = '/home';
-          initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
+          
+          // Wait for Hive box to finish opening
+          await hiveInitFuture;
 
-          try {
-            // Fetch user profile JSON from backend API under the splash screen
-            final dio = Dio(BaseOptions(
-              baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://192.168.31.101:3000/api/v1'),
-              connectTimeout: const Duration(seconds: 4),
-              receiveTimeout: const Duration(seconds: 4),
-              headers: {
-                'Authorization': 'Bearer $token',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-            ));
-            final response = await dio.get('/users/me');
-            if (response.statusCode == 200) {
-              initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
+          // Check if user profile is already cached locally (instant read, <1ms)
+          final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
+          if (cachedProfile != null && cachedProfile is Map) {
+            initialAuthState = AuthState.authenticated(
+              user: recursivelyCastMap(cachedProfile),
+              accessToken: token,
+            );
+          } else {
+            // First time run after login (cache empty), fallback to fast background API fetch
+            initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
+            try {
+              final dio = Dio(BaseOptions(
+                baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://192.168.31.101:3000/api/v1'),
+                connectTimeout: const Duration(seconds: 4),
+                receiveTimeout: const Duration(seconds: 4),
+                headers: {
+                  'Authorization': 'Bearer $token',
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+              ));
+              final response = await dio.get('/users/me');
+              if (response.statusCode == 200) {
+                initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
+                hiveService.getSettingsBox().put('cached_user_profile', response.data);
+              }
+            } catch (e) {
+              debugPrint('API fetch profile error: $e');
             }
-          } catch (e) {
-            debugPrint('API fetch profile error, using fallback: $e');
           }
         }
       } catch (e) {
@@ -77,4 +94,23 @@ void main() async {
 
   // Allow first frame to draw the resolved starting screen background cleanly
   WidgetsBinding.instance.allowFirstFrame();
+}
+
+Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {
+  return source.map((key, value) {
+    if (value is Map) {
+      return MapEntry(key.toString(), recursivelyCastMap(value));
+    } else if (value is List) {
+      return MapEntry(
+        key.toString(),
+        value.map((item) {
+          if (item is Map) {
+            return recursivelyCastMap(item);
+          }
+          return item;
+        }).toList(),
+      );
+    }
+    return MapEntry(key.toString(), value);
+  });
 }
