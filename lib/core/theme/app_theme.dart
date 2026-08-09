@@ -18,12 +18,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: 'Inter',
-      fontFamilyFallback: const [
-        'Noto Sans Bengali',
-        'Noto Sans Bengali Fallback',
-        'Inter Fallback',
-      ],
+      fontFamily: 'Li Ador Noirrit',
+      fontFamilyFallback: const [],
       primaryColor: primaryColor,
       scaffoldBackgroundColor: lightBackground,
       cardColor: lightCard,
@@ -63,12 +59,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      fontFamily: 'Inter',
-      fontFamilyFallback: const [
-        'Noto Sans Bengali',
-        'Noto Sans Bengali Fallback',
-        'Inter Fallback',
-      ],
+      fontFamily: 'Li Ador Noirrit',
+      fontFamilyFallback: const [],
       primaryColor: primaryColor,
       scaffoldBackgroundColor: const Color(0xFF121212),
       cardColor: darkCard,
@@ -108,12 +100,8 @@ class AppTheme {
       final size = style.fontSize ?? defaultSize;
       return style.copyWith(
         fontSize: size * scaleFactor,
-        fontFamily: 'Inter',
-        fontFamilyFallback: const [
-          'Noto Sans Bengali',
-          'Noto Sans Bengali Fallback',
-          'Inter Fallback',
-        ],
+        fontFamily: 'Li Ador Noirrit',
+        fontFamilyFallback: const [],
       );
     }
 
