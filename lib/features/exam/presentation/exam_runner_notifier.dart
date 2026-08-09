@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/exam_model.dart';
 import '../domain/user_exam_model.dart';
 import '../data/exam_repository.dart';
+import '../../../core/storage/hive_service.dart';
 
 part 'exam_runner_notifier.freezed.dart';
 
@@ -26,10 +27,11 @@ class ExamRunnerState with _$ExamRunnerState {
 
 class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
   final ExamRepository _repository;
+  final HiveService _hiveService;
   Timer? _timer;
   Timer? _autoSaveTimer;
 
-  ExamRunnerNotifier(this._repository)
+  ExamRunnerNotifier(this._repository, this._hiveService)
       : super(const ExamRunnerState(
           timeLeft: 0,
           selectedOptions: {},
@@ -39,6 +41,18 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
           isSaving: false,
           isSubmitting: false,
         ));
+
+  void _persistLocalProgress() {
+    if (state.sessionId == null) return;
+    try {
+      final Map<String, dynamic> data = {
+        'selectedOptions': state.selectedOptions,
+        'markedForReview': state.markedForReview,
+        'timeSpent': state.timeSpent,
+      };
+      _hiveService.getPracticeBox().put(state.sessionId!, data);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -101,13 +115,35 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
         attempt = await _repository.startExam(examId);
       }
 
+      // Restore offline cached progress if available
+      final cachedProgress = _hiveService.getPracticeBox().get(attempt.id);
+      Map<String, String?> restoredOptions = {};
+      Map<String, bool> restoredReview = {};
+      Map<String, int> restoredTime = {};
+      if (cachedProgress != null && cachedProgress is Map) {
+        try {
+          final rawOptions = cachedProgress['selectedOptions'];
+          if (rawOptions is Map) {
+            restoredOptions = Map<String, String?>.from(rawOptions);
+          }
+          final rawReview = cachedProgress['markedForReview'];
+          if (rawReview is Map) {
+            restoredReview = Map<String, bool>.from(rawReview);
+          }
+          final rawTime = cachedProgress['timeSpent'];
+          if (rawTime is Map) {
+            restoredTime = Map<String, int>.from(rawTime);
+          }
+        } catch (_) {}
+      }
+
       state = ExamRunnerState(
         exam: exam,
         sessionId: attempt.id,
         timeLeft: exam.duration,
-        selectedOptions: {},
-        markedForReview: {},
-        timeSpent: {},
+        selectedOptions: restoredOptions,
+        markedForReview: restoredReview,
+        timeSpent: restoredTime,
         isLoading: false,
         isSaving: false,
         isSubmitting: false,
@@ -146,12 +182,14 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     final updatedOptions = Map<String, String?>.from(state.selectedOptions);
     updatedOptions[questionId] = optionId;
     state = state.copyWith(selectedOptions: updatedOptions);
+    _persistLocalProgress();
   }
 
   void updateFITBAnswers(String questionId, String? serializedAnswers) {
     final updatedOptions = Map<String, String?>.from(state.selectedOptions);
     updatedOptions[questionId] = serializedAnswers;
     state = state.copyWith(selectedOptions: updatedOptions);
+    _persistLocalProgress();
   }
 
   void toggleMarkedForReview(String questionId) {
@@ -159,6 +197,7 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     final current = updatedReview[questionId] ?? false;
     updatedReview[questionId] = !current;
     state = state.copyWith(markedForReview: updatedReview);
+    _persistLocalProgress();
   }
 
   void incrementTimeSpent(String questionId) {
@@ -166,6 +205,7 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     final current = updatedTime[questionId] ?? 0;
     updatedTime[questionId] = current + 1;
     state = state.copyWith(timeSpent: updatedTime);
+    _persistLocalProgress();
   }
 
   /**
@@ -200,6 +240,9 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
       await _repository.saveProgress(state.sessionId!, answersPayload);
 
       final result = await _repository.submitExam(state.sessionId!);
+      try {
+        _hiveService.getPracticeBox().delete(state.sessionId!);
+      } catch (_) {}
       state = state.copyWith(isSubmitting: false, result: result);
       return result;
     } catch (e) {
@@ -232,5 +275,6 @@ extension ListPush on List {
 
 final examRunnerProvider = StateNotifierProvider<ExamRunnerNotifier, ExamRunnerState>((ref) {
   final repo = ref.watch(examRepositoryProvider);
-  return ExamRunnerNotifier(repo);
+  final hive = ref.watch(hiveServiceProvider);
+  return ExamRunnerNotifier(repo, hive);
 });

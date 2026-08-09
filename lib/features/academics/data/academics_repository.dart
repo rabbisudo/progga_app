@@ -54,7 +54,7 @@ final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) asy
   return repo.fetchActiveClasses();
 });
 
-final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
   final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
   final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));
@@ -70,7 +70,7 @@ final studentCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref
   );
 });
 
-final studentQbCurriculumProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
   final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
   final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));

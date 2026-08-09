@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../domain/exam_model.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +42,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
   Timer? _timeSpentTracker;
   final Map<String, Widget> _mathWidgetCache = {};
   late Map<String, List<String>> _uploadedImages;
+  ExamModel? _lastExam;
+  List<ExamRenderItem>? _cachedRenderItems;
   
   // Fill In The Gaps (FITB) State
   final Map<String, Map<String, String>> _fitbAnswers = {}; // maps questionId -> { gapLabel: selectedClue }
@@ -60,6 +63,60 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         TextPosition(offset: _fitbTextController!.text.length),
       );
     });
+  }
+
+  List<ExamRenderItem> _computeRenderItems(List<ExamQuestionModel> questions) {
+    final List<ExamRenderItem> items = [];
+    int currentNumber = 1;
+    int subNumber = 1;
+    String? currentPassageNumber;
+    String? lastPassage;
+    final passageRegex = RegExp(r'^\[PASSAGE:\s*(.*?)\]\s*(.*)$', dotAll: true);
+
+    for (int i = 0; i < questions.length; i++) {
+      final eq = questions[i];
+      final q = eq.question;
+      final match = passageRegex.firstMatch(q.questionText);
+
+      if (match != null) {
+        final passageText = match.group(1)!.trim();
+        final cleanQText = match.group(2)!.trim();
+        final cleanEq = eq.copyWith(question: q.copyWith(questionText: cleanQText));
+
+        if (passageText == lastPassage) {
+          items.add(ExamRenderItem(
+            examQuestion: cleanEq,
+            questionLabel: '$currentPassageNumber.$subNumber',
+          ));
+          subNumber++;
+        } else {
+          lastPassage = passageText;
+          currentPassageNumber = '$currentNumber';
+          subNumber = 1;
+
+          items.add(ExamRenderItem(
+            passage: passageText,
+            passageNumber: currentPassageNumber,
+            questionLabel: '',
+          ));
+
+          items.add(ExamRenderItem(
+            examQuestion: cleanEq,
+            questionLabel: '$currentPassageNumber.$subNumber',
+          ));
+          subNumber++;
+          currentNumber++;
+        }
+      } else {
+        lastPassage = null;
+        items.add(ExamRenderItem(
+          examQuestion: eq,
+          questionLabel: '$currentNumber',
+        ));
+        currentNumber++;
+      }
+    }
+    return items;
   }
 
   @override
@@ -702,57 +759,43 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          imageUrl,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
           fit: BoxFit.contain,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (wasSynchronouslyLoaded) return child;
-            return AnimatedOpacity(
-              opacity: frame == null ? 0.0 : 1.0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-              child: child,
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Container(
-              height: 120,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
+          placeholder: (context, url) => Container(
+            height: 120,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                color: Color(0xFF017A47),
               ),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: const Color(0xFF017A47).withOpacity(0.7),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'ছবি লোড করা যায়নি',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    'ছবি লোড করা যায়নি',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            );
-          },
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1579,62 +1622,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         ),
       );
     }
-
-    final questions = state.exam!.questions;
-    final totalQuestions = questions.length;
-
-    // Group questions by passage
-    final List<ExamRenderItem> renderItems = [];
-    String? lastPassage;
-    int currentNumber = 1;
-    int subNumber = 1;
-    String? currentPassageNumber;
-
-    final passageRegex = RegExp(r'^\[PASSAGE:\s*(.*?)\]\s*(.*)$', dotAll: true);
-
-    for (int i = 0; i < questions.length; i++) {
-      final eq = questions[i];
-      final q = eq.question;
-      final match = passageRegex.firstMatch(q.questionText);
-
-      if (match != null) {
-        final passageText = match.group(1)!.trim();
-        final cleanQText = match.group(2)!.trim();
-        final cleanEq = eq.copyWith(question: q.copyWith(questionText: cleanQText));
-
-        if (passageText == lastPassage) {
-          renderItems.add(ExamRenderItem(
-            examQuestion: cleanEq,
-            questionLabel: '$currentPassageNumber.$subNumber',
-          ));
-          subNumber++;
-        } else {
-          lastPassage = passageText;
-          currentPassageNumber = '$currentNumber';
-          subNumber = 1;
-
-          renderItems.add(ExamRenderItem(
-            passage: passageText,
-            passageNumber: currentPassageNumber,
-            questionLabel: '',
-          ));
-
-          renderItems.add(ExamRenderItem(
-            examQuestion: cleanEq,
-            questionLabel: '$currentPassageNumber.$subNumber',
-          ));
-          subNumber++;
-          currentNumber++;
-        }
-      } else {
-        lastPassage = null;
-        renderItems.add(ExamRenderItem(
-          examQuestion: eq,
-          questionLabel: '$currentNumber',
-        ));
-        currentNumber++;
-      }
+    if (state.exam != null && state.exam != _lastExam) {
+      _lastExam = state.exam;
+      _cachedRenderItems = _computeRenderItems(state.exam!.questions);
     }
+    final renderItems = _cachedRenderItems ?? [];
+    final totalQuestions = state.exam?.questions.length ?? 0;
 
     final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length +
         _uploadedImages.values.where((list) => list.isNotEmpty).length;
