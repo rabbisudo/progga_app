@@ -9,6 +9,7 @@ import '../../features/profile/presentation/personal_info_screen.dart';
 import '../../features/profile/presentation/my_reports_screen.dart';
 import '../../features/profile/presentation/streak_screen.dart';
 import '../../features/profile/presentation/avatar_editor_screen.dart';
+import '../../features/profile/presentation/notifications_screen.dart';
 import '../../features/question/presentation/practice_dashboard_screen.dart';
 import '../../features/auth/presentation/onboarding_screen.dart';
 
@@ -176,6 +177,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/exam-history',
         builder: (context, state) => const ExamHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

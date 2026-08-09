@@ -301,6 +301,14 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     _buildFlatMenuTile(
                       theme: theme,
+                      color: const Color(0xFFFF9F0A),
+                      icon: Icons.history_rounded,
+                      title: 'পরীক্ষার ইতিহাস',
+                      isDark: isDark,
+                      onTap: () => context.push('/exam-history'),
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
                       color: const Color(0xFFFF00B8),
                       customIcon: SvgPicture.string(
                         _avatarEditSvg,
@@ -343,6 +351,14 @@ class ProfileScreen extends ConsumerWidget {
                         );
                         ref.read(userProfileProvider.notifier).updateSettings({'darkMode': !isDark});
                       },
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFF5856D6),
+                      icon: Icons.notifications_active_rounded,
+                      title: 'নোটিফিকেশন',
+                      isDark: isDark,
+                      onTap: () => context.push('/notifications'),
                     ),
                     _buildFlatMenuTile(
                       theme: theme,

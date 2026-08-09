@@ -392,7 +392,10 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('অ্যাভাটার সফলভাবে সংরক্ষণ করা হয়েছে!'),
+            content: Text(
+              'অ্যাভাটার সফলভাবে সংরক্ষণ করা হয়েছে!',
+              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
+            ),
             backgroundColor: Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
           ),
@@ -402,7 +405,10 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('অ্যাভাটার সংরক্ষণ করা যায়নি: $e'),
+            content: Text(
+              'অ্যাভাটার সংরক্ষণ করা যায়নি: $e',
+              style: const TextStyle(fontFamily: 'Noto Sans Bengali'),
+            ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -421,13 +427,20 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: Text(
           'অ্যাভাটার এডিট করো',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontFamily: 'Noto Sans Bengali',
+            color: isDark ? Colors.white : Colors.black87,
+          ),
         ),
         centerTitle: true,
         leading: CustomBackButton(
-          color: isDark ? Colors.white : Colors.black,
+          color: isDark ? Colors.white : Colors.black87,
           onPressed: () => context.pop(),
         ),
       ),
@@ -456,6 +469,32 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // Glowing radial backdrop for 3D depth and pop
+                Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        brandTealColor.withValues(alpha: isDark ? 0.25 : 0.15),
+                        brandTealColor.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+                // Premium outer ring ornament
+                Container(
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: brandTealColor.withValues(alpha: 0.12),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
                 Hero(
                   tag: 'user_avatar_hero',
                   child: CustomAvatar(
@@ -498,8 +537,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
               indicatorWeight: 3.0,
               labelColor: brandTealColor,
               unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Noto Sans Bengali'),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14, fontFamily: 'Noto Sans Bengali'),
               dividerColor: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: [
@@ -597,6 +636,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       fontSize: 16,
+                      fontFamily: 'Noto Sans Bengali',
                     ),
                   ),
           ),
@@ -640,6 +680,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: isDark ? Colors.white : brandTealColor,
+          fontFamily: 'Noto Sans Bengali',
         ),
       ),
     );
@@ -652,6 +693,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         fontSize: 14,
         fontWeight: FontWeight.bold,
         color: Colors.grey,
+        fontFamily: 'Noto Sans Bengali',
       ),
     );
   }
@@ -696,8 +738,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -739,8 +781,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -782,8 +824,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -824,8 +866,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -865,8 +907,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -910,8 +952,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -951,8 +993,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             ),
             const SizedBox(height: 6),
             Text(
-              option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+              option['name'] ?? option['id']!,
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1022,42 +1064,45 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: isSelected
-              ? brandTealColor.withValues(alpha: 0.08)
-              : (isDark ? Colors.white.withValues(alpha: 0.03) : const Color(0xFFF8F9FA)),
+              ? (isDark ? brandTealColor.withValues(alpha: 0.15) : brandTealColor.withValues(alpha: 0.08))
+              : (isDark ? const Color(0xFF1E262B) : Colors.white),
           border: Border.all(
             color: isSelected
                 ? brandTealColor
                 : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
             width: isSelected ? 2.0 : 1.0,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: brandTealColor.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                ],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: CheckerboardPainter(
-                  checkColor: isDark 
-                      ? Colors.white.withValues(alpha: 0.04) 
-                      : Colors.black.withValues(alpha: 0.03),
-                ),
-              ),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Center(
+            child: CustomAvatar(
+              avatarUrl: previewUrl,
+              radius: 36,
+              backgroundColor: Colors.transparent,
             ),
-            Padding(
-              padding: const EdgeInsets.all(6),
-              child: Center(
-                child: CustomAvatar(
-                  avatarUrl: previewUrl,
-                  radius: 32,
-                  backgroundColor: Colors.transparent,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -1070,6 +1115,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         fontWeight: FontWeight.bold,
         fontSize: 14,
         color: Colors.grey,
+        fontFamily: 'Noto Sans Bengali',
       ),
     );
   }

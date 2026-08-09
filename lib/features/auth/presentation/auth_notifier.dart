@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/api_client.dart';
 import '../domain/auth_state.dart';
@@ -50,11 +52,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final deviceUuid = await _storage.getOrGenerateDeviceUuid();
       
+      String? fcmToken;
+      try {
+        fcmToken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        // Fallback if token retrieval fails (e.g. during developer local simulators)
+        fcmToken = null;
+      }
+
+      final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+      
       final response = await _apiClient.dio.post('/auth/google', data: {
         'idToken': idToken,
         'deviceUuid': deviceUuid,
-        'deviceOs': 'android', // Maps dynamically in app runtimes
-        'deviceToken': 'fcm-dummy-token-placeholder',
+        'deviceOs': deviceOs,
+        'deviceToken': fcmToken,
       });
 
       if (response.statusCode == 200) {

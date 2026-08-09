@@ -432,6 +432,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                               fontSize: 54,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF017A47),
+                              fontFamily: 'Noto Sans Bengali',
                             ),
                           ),
                           const Text(
@@ -621,6 +622,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
+                    fontFamily: 'Noto Sans Bengali',
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -771,7 +773,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                 cellContent = Center(
                   child: Text(
                     _toBengaliDigits(dayNumber.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white, fontFamily: 'Noto Sans Bengali'),
                   ),
                 );
               } else {
@@ -785,7 +787,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                 cellContent = Center(
                   child: Text(
                     _toBengaliDigits(dayNumber.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF017A47)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF017A47), fontFamily: 'Noto Sans Bengali'),
                   ),
                 );
               }
@@ -817,7 +819,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               cellContent = Center(
                 child: Text(
                   _toBengaliDigits(dayNumber.toString()),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor, fontFamily: 'Noto Sans Bengali'),
                 ),
               );
             } else {
@@ -828,7 +830,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               cellContent = Center(
                 child: Text(
                   _toBengaliDigits(dayNumber.toString()),
-                  style: TextStyle(fontSize: 15, color: textColor),
+                  style: TextStyle(fontSize: 15, color: textColor, fontFamily: 'Noto Sans Bengali'),
                 ),
               );
             }
@@ -1177,6 +1179,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
                         color: widget.isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                        fontFamily: 'Noto Sans Bengali',
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1212,7 +1215,7 @@ Widget _buildRankOverlayBadge(int rank, bool isDark) {
       child: const Center(
         child: Text(
           '১',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Noto Sans Bengali'),
         ),
       ),
     );
@@ -1228,7 +1231,7 @@ Widget _buildRankOverlayBadge(int rank, bool isDark) {
       child: const Center(
         child: Text(
           '২',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Noto Sans Bengali'),
         ),
       ),
     );

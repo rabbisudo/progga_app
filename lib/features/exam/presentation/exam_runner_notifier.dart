@@ -47,6 +47,20 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     super.dispose();
   }
 
+  void resetState() {
+    _timer?.cancel();
+    _autoSaveTimer?.cancel();
+    state = const ExamRunnerState(
+      timeLeft: 0,
+      selectedOptions: {},
+      markedForReview: {},
+      timeSpent: {},
+      isLoading: false,
+      isSaving: false,
+      isSubmitting: false,
+    );
+  }
+
   /**
    * Initializes exam templates and allocates attempt session IDs.
    */

@@ -254,14 +254,28 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                           }).toList();
                         }
 
-                        if (filteredList.isEmpty) {
+                        final sortedList = List<Map<String, dynamic>>.from(
+                          filteredList.map((e) => Map<String, dynamic>.from(e as Map)),
+                        );
+                        sortedList.sort((a, b) {
+                          final yearA = _getExamYear(a);
+                          final yearB = _getExamYear(b);
+                          if (yearA != yearB) {
+                            return yearB.compareTo(yearA); // Descending
+                          }
+                          final titleA = a['title']?.toString() ?? '';
+                          final titleB = b['title']?.toString() ?? '';
+                          return titleA.compareTo(titleB);
+                        });
+
+                        if (sortedList.isEmpty) {
                           return const Center(child: Text('কোনো পরীক্ষা পাওয়া যায়নি।'));
                         }
                         return ListView.builder(
                           padding: const EdgeInsets.all(16.0),
-                          itemCount: filteredList.length,
+                          itemCount: sortedList.length,
                           itemBuilder: (context, idx) {
-                            final ex = filteredList[idx] as Map<String, dynamic>;
+                            final ex = sortedList[idx];
                             final title = _getCleanTitle(ex['title']?.toString() ?? '');
                             final duration = ex['duration'] as int? ?? 1500;
                             final durationMin = (duration / 60).round();
@@ -655,5 +669,66 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
         );
       },
     );
+  }
+
+  int _extractYearFromTitle(String title) {
+    // 1. Check for range of Bengali years (e.g. '২৪-২৫')
+    final RegExp bnRangeRegExp = RegExp(r'([০-৯]{2})-[০-৯]{2}');
+    final bnRangeMatch = bnRangeRegExp.firstMatch(title);
+    if (bnRangeMatch != null) {
+      final bnYearStr = bnRangeMatch.group(1)!;
+      final englishDigits = bnYearStr.split('').map((char) {
+        const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return bnDigits.indexOf(char).toString();
+      }).join();
+      final shortYear = int.tryParse(englishDigits) ?? 0;
+      if (shortYear > 0) return 2000 + shortYear;
+    }
+
+    // 2. Check for range of English years (e.g. '24-25')
+    final RegExp enRangeRegExp = RegExp(r'\b(\d{2})-(\d{2})\b');
+    final enRangeMatch = enRangeRegExp.firstMatch(title);
+    if (enRangeMatch != null) {
+      final shortYear = int.tryParse(enRangeMatch.group(1)!) ?? 0;
+      if (shortYear > 0) return 2000 + shortYear;
+    }
+
+    // 3. Check for 4-digit Bengali years (e.g. '২০২৬')
+    final RegExp bnYearRegExp = RegExp(r'[০-৯]{4}');
+    final bnMatch = bnYearRegExp.firstMatch(title);
+    if (bnMatch != null) {
+      final bnYearStr = bnMatch.group(0)!;
+      final englishDigits = bnYearStr.split('').map((char) {
+        const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+        return bnDigits.indexOf(char).toString();
+      }).join();
+      return int.tryParse(englishDigits) ?? 0;
+    }
+
+    // 4. Check for 4-digit English years (e.g. '2026')
+    final RegExp enYearRegExp = RegExp(r'\b(20\d{2})\b');
+    final enMatch = enYearRegExp.firstMatch(title);
+    if (enMatch != null) {
+      return int.tryParse(enMatch.group(0)!) ?? 0;
+    }
+
+    return 0;
+  }
+
+  int _getExamYear(Map<String, dynamic> ex) {
+    final title = ex['title']?.toString() ?? '';
+    final yearFromTitle = _extractYearFromTitle(title);
+    if (yearFromTitle > 0) {
+      return yearFromTitle;
+    }
+    
+    final createdAtVal = ex['createdAt'];
+    if (createdAtVal != null) {
+      try {
+        return DateTime.parse(createdAtVal.toString()).year;
+      } catch (_) {}
+    }
+    
+    return 0;
   }
 }

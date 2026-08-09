@@ -99,6 +99,99 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     super.dispose();
   }
 
+  void _showDailyLimitBottomSheet(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9F0A).withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock_clock_rounded,
+                  color: Color(0xFFFF9F0A),
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'দৈনিক পরীক্ষার লিমিট শেষ! ⚠️',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Noto Sans Bengali',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'আপনি আজকে ১০টি পরীক্ষার লিমিট অতিক্রম করেছেন। নতুন পরীক্ষা শুরু করতে আগামীকাল আবার চেষ্টা করুন অথবা পূর্বের পরীক্ষাগুলোর ব্যাখ্যা দেখুন।',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white60 : Colors.black54,
+                  height: 1.4,
+                  fontFamily: 'Noto Sans Bengali',
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF086057),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'ঠিক আছে',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Noto Sans Bengali',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   String _formatTime(int seconds) {
     final mins = seconds ~/ 60;
     final secs = seconds % 60;
@@ -1403,6 +1496,18 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     }
 
     if (state.errorMessage != null) {
+      if (state.errorMessage!.contains('DAILY_LIMIT_EXCEEDED')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(examRunnerProvider.notifier).resetState();
+          context.pop();
+          _showDailyLimitBottomSheet(context, isDark);
+        });
+        return Scaffold(
+          backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
+          body: const SizedBox.shrink(),
+        );
+      }
+
       String userFriendlyError = state.errorMessage!;
       bool isNoQuestions = userFriendlyError.contains('404') || 
                           userFriendlyError.contains('not found') || 

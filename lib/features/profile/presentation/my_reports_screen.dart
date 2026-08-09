@@ -1063,7 +1063,7 @@ Widget _buildQuestionImage(String? imageKey) {
                 const SizedBox(width: 8),
                 Text(
                   'ছবি লোড করা যায়নি',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'Noto Sans Bengali'),
                 ),
               ],
             ),
