@@ -338,12 +338,14 @@ class MyReportsScreen extends ConsumerWidget {
                           }),
                           const SizedBox(height: 12),
                         ],
-                        // Explanations Card (supports initial explanations + dynamic AI explanation)
-                        ReportedExplanationCard(
-                          questionId: qId,
-                          initialExplanations: explanations,
-                        ),
-                        const SizedBox(height: 12),
+                        if (report['hasExplanation'] == true || 
+                            explanations.isNotEmpty) ...[
+                          ReportedExplanationCard(
+                            questionId: qId,
+                            initialExplanations: explanations,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
                         Divider(
                           color: isDark ? Colors.white12 : Colors.grey.shade100,
                           height: 1,

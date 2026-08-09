@@ -45,6 +45,9 @@ dependencies:
   # SVG Rendering
   flutter_svg: ^2.0.9
 
+  # Video Playing
+  video_player: ^2.8.2
+
   # Image Caching
   cached_network_image: ^3.3.1
 

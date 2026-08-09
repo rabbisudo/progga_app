@@ -7,6 +7,7 @@ import '../../academics/data/academics_repository.dart';
 import '../../../core/widgets/custom_back_button.dart';
 import '../../academics/domain/academics_model.dart';
 import 'auth_notifier.dart';
+import 'package:video_player/video_player.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   AcademicClassModel? _selectedClassModel;
   SubjectGroupModel? _selectedGroupModel;
   AcademicBatchModel? _selectedBatchModel;
-  String _selectedGender = 'ছেলে'; // 'ছেলে' (MALE) or 'মেয়ে' (FEMALE)
+  String _selectedGender = 'ছাত্র'; // 'ছাত্র' (MALE) or 'ছাত্রী' (FEMALE)
   DateTime? _selectedBirthday;
   
   final TextEditingController _nameController = TextEditingController();
@@ -33,11 +34,156 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _isSubmitting = false;
   bool _isTalking = true;
   Timer? _talkingTimer;
+  VideoPlayerController? _sleepingController;
+  bool _isSleepingInitialized = false;
+  VideoPlayerController? _happyController;
+  bool _isHappyInitialized = false;
+  VideoPlayerController? _celebratingController;
+  bool _isCelebratingInitialized = false;
+  VideoPlayerController? _yawningController;
+  bool _isYawningInitialized = false;
+  VideoPlayerController? _scaredController;
+  bool _isScaredInitialized = false;
+  VideoPlayerController? _partyController;
+  bool _isPartyInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _startTalkingTimer();
+    _initSleepingController();
+    _initHappyController();
+    _initCelebratingController();
+    _initYawningController();
+    _initScaredController();
+    _initPartyController();
+  }
+
+  void _initSleepingController() {
+    _sleepingController = VideoPlayerController.asset('assets/images/panda_sleeping.mp4');
+    _sleepingController?.initialize().then((_) {
+      _sleepingController?.setLooping(true);
+      _sleepingController?.setVolume(0.0);
+      _sleepingController?.play();
+      _sleepingController?.addListener(() {
+        if (_sleepingController != null &&
+            _sleepingController!.value.isInitialized &&
+            _sleepingController!.value.position >= _sleepingController!.value.duration) {
+          _sleepingController?.seekTo(Duration.zero);
+          _sleepingController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isSleepingInitialized = true;
+        });
+      }
+    });
+  }
+
+  void _initHappyController() {
+    _happyController = VideoPlayerController.asset('assets/images/panda_happy.mp4');
+    _happyController?.initialize().then((_) {
+      _happyController?.setLooping(true);
+      _happyController?.setVolume(0.0);
+      _happyController?.addListener(() {
+        if (_happyController != null &&
+            _happyController!.value.isInitialized &&
+            _happyController!.value.position >= _happyController!.value.duration) {
+          _happyController?.seekTo(Duration.zero);
+          _happyController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isHappyInitialized = true;
+        });
+      }
+    });
+  }
+
+  void _initCelebratingController() {
+    _celebratingController = VideoPlayerController.asset('assets/images/panda_celebrating.mp4');
+    _celebratingController?.initialize().then((_) {
+      _celebratingController?.setLooping(true);
+      _celebratingController?.setVolume(0.0);
+      _celebratingController?.addListener(() {
+        if (_celebratingController != null &&
+            _celebratingController!.value.isInitialized &&
+            _celebratingController!.value.position >= _celebratingController!.value.duration) {
+          _celebratingController?.seekTo(Duration.zero);
+          _celebratingController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isCelebratingInitialized = true;
+        });
+      }
+    });
+  }
+
+  void _initYawningController() {
+    _yawningController = VideoPlayerController.asset('assets/images/panda_yawning.mp4');
+    _yawningController?.initialize().then((_) {
+      _yawningController?.setLooping(true);
+      _yawningController?.setVolume(0.0);
+      _yawningController?.addListener(() {
+        if (_yawningController != null &&
+            _yawningController!.value.isInitialized &&
+            _yawningController!.value.position >= _yawningController!.value.duration) {
+          _yawningController?.seekTo(Duration.zero);
+          _yawningController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isYawningInitialized = true;
+        });
+      }
+    });
+  }
+
+  void _initScaredController() {
+    _scaredController = VideoPlayerController.asset('assets/images/panda_scared.mp4');
+    _scaredController?.initialize().then((_) {
+      _scaredController?.setLooping(true);
+      _scaredController?.setVolume(0.0);
+      _scaredController?.addListener(() {
+        if (_scaredController != null &&
+            _scaredController!.value.isInitialized &&
+            _scaredController!.value.position >= _scaredController!.value.duration) {
+          _scaredController?.seekTo(Duration.zero);
+          _scaredController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isScaredInitialized = true;
+        });
+      }
+    });
+  }
+
+  void _initPartyController() {
+    _partyController = VideoPlayerController.asset('assets/images/panda_party.mp4');
+    _partyController?.initialize().then((_) {
+      _partyController?.setLooping(true);
+      _partyController?.setVolume(0.0);
+      _partyController?.addListener(() {
+        if (_partyController != null &&
+            _partyController!.value.isInitialized &&
+            _partyController!.value.position >= _partyController!.value.duration) {
+          _partyController?.seekTo(Duration.zero);
+          _partyController?.play();
+        }
+      });
+      if (mounted) {
+        setState(() {
+          _isPartyInitialized = true;
+        });
+      }
+    });
   }
 
   void _startTalkingTimer() {
@@ -60,6 +206,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _nameController.dispose();
     _addressController.dispose();
     _institutionController.dispose();
+    _sleepingController?.dispose();
+    _happyController?.dispose();
+    _celebratingController?.dispose();
+    _yawningController?.dispose();
+    _scaredController?.dispose();
+    _partyController?.dispose();
     super.dispose();
   }
 
@@ -69,7 +221,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isTalking = false;
       _step++;
     });
-    if (_step == 6) {
+    if (_step == 5) {
       _startTalkingTimer();
     }
   }
@@ -81,9 +233,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _isTalking = false;
         _step--;
       });
-      if (_step == 0 || _step == 6) {
-        _startTalkingTimer();
-      }
     }
   }
 
@@ -97,10 +246,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       await ref.read(userProfileProvider.notifier).updateProfileDetails({
         'fullName': _nameController.text.trim(),
-        'gender': _selectedGender == 'মেয়ে' ? 'FEMALE' : 'MALE',
+        'gender': _selectedGender == 'ছাত্রী' ? 'FEMALE' : 'MALE',
         'birthday': _selectedBirthday?.toUtc().toIso8601String(),
         'address': _addressController.text.trim(),
-        'institution': _institutionController.text.trim(),
+        'institution': '',
         'className': _selectedClassModel?.name ?? _selectedClass,
         'classId': _selectedClassModel?.id,
         'groupId': _selectedGroupModel?.id,
@@ -128,12 +277,59 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Preheat activeClassesProvider to load classes in the background and avoid loading screens
+    ref.watch(activeClassesProvider);
+
+    // Reactively manage active step video players
+    if (_step == 0) {
+      if (_sleepingController != null && !_sleepingController!.value.isPlaying) {
+        _sleepingController?.play();
+      }
+    } else {
+      _sleepingController?.pause();
+    }
+    if (_step == 1) {
+      if (_happyController != null && !_happyController!.value.isPlaying) {
+        _happyController?.play();
+      }
+    } else {
+      _happyController?.pause();
+    }
+    if (_step == 2) {
+      if (_celebratingController != null && !_celebratingController!.value.isPlaying) {
+        _celebratingController?.play();
+      }
+    } else {
+      _celebratingController?.pause();
+    }
+    if (_step == 3) {
+      if (_yawningController != null && !_yawningController!.value.isPlaying) {
+        _yawningController?.play();
+      }
+    } else {
+      _yawningController?.pause();
+    }
+    if (_step == 4) {
+      if (_scaredController != null && !_scaredController!.value.isPlaying) {
+        _scaredController?.play();
+      }
+    } else {
+      _scaredController?.pause();
+    }
+    if (_step == 5) {
+      if (_partyController != null && !_partyController!.value.isPlaying) {
+        _partyController?.play();
+      }
+    } else {
+      _partyController?.pause();
+    }
+
     String speechText = '';
     String mascotState = 'wave';
 
     switch (_step) {
       case 0:
-        speechText = 'HI, I am Cheero';
+        speechText = 'Hi, I am Pandu..';
         mascotState = 'wave';
         break;
       case 1:
@@ -141,29 +337,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         mascotState = 'write';
         break;
       case 2:
-        speechText = 'তোমার শিক্ষা প্রতিষ্ঠানের নাম কি?';
-        mascotState = 'read';
-        break;
-      case 3:
         speechText = 'তুমি কোন শ্রেণীতে পড়ো?';
         mascotState = 'read';
         break;
-      case 4:
+      case 3:
         speechText = 'তোমার বিভাগ কোনটি?';
         mascotState = 'write';
         break;
-      case 5:
+      case 4:
         speechText = 'তোমার পরীক্ষার ব্যাচ কোনটি?';
         mascotState = 'think';
         break;
-      case 6:
-        speechText = 'স্বাগতম ${_nameController.text.trim()}!\nProgga-এর সাথে তোমার চর্চা শুরু হোক!';
+      case 5:
+        speechText = 'স্বাগতম ${_nameController.text.trim()}!\nProgga-এর সাথে তোমার যাত্রা শুরু হোক!';
         mascotState = 'welcome';
         break;
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -187,25 +380,36 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const Spacer(flex: 1),
+            const SizedBox(height: 140),
             // 1. Speech Bubble
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40.0),
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.black45, width: 1.2),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFF1E88E5).withOpacity(0.15),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1E88E5).withOpacity(0.06),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
                     child: TypewriterText(
                       text: speechText,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Color(0xFF1A237E), // deep indigo
+                        letterSpacing: 0.1,
                       ),
                     ),
                   ),
@@ -217,11 +421,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Container(
                         width: 12,
                         height: 12,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border(
-                            bottom: BorderSide(color: Colors.black45, width: 1.2),
-                            right: BorderSide(color: Colors.black45, width: 1.2),
+                            bottom: BorderSide(
+                              color: const Color(0xFF1E88E5).withOpacity(0.15),
+                              width: 1.5,
+                            ),
+                            right: BorderSide(
+                              color: const Color(0xFF1E88E5).withOpacity(0.15),
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -231,8 +441,159 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            // 2. Animated Cheero Mascot
-            CheeroMascot(state: mascotState, isTalking: _isTalking),
+            // 2. Animated Mascot / Panda Videos
+            if (_step == 0)
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: _isSleepingInitialized && _sleepingController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _sleepingController!.value.size.width,
+                              height: _sleepingController!.value.size.height,
+                              child: VideoPlayer(_sleepingController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else if (_step == 1)
+              Center(
+                child: SizedBox(
+                  height: 260,
+                  width: 260,
+                  child: _isHappyInitialized && _happyController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _happyController!.value.size.width,
+                              height: _happyController!.value.size.height,
+                              child: VideoPlayer(_happyController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else if (_step == 2)
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: _isCelebratingInitialized && _celebratingController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _celebratingController!.value.size.width,
+                              height: _celebratingController!.value.size.height,
+                              child: VideoPlayer(_celebratingController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else if (_step == 3)
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: _isYawningInitialized && _yawningController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _yawningController!.value.size.width,
+                              height: _yawningController!.value.size.height,
+                              child: VideoPlayer(_yawningController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else if (_step == 4)
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: _isScaredInitialized && _scaredController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _scaredController!.value.size.width,
+                              height: _scaredController!.value.size.height,
+                              child: VideoPlayer(_scaredController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else if (_step == 5)
+              Center(
+                child: SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: _isPartyInitialized && _partyController != null
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _partyController!.value.size.width,
+                              height: _partyController!.value.size.height,
+                              child: VideoPlayer(_partyController!),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              )
+            else
+              CheeroMascot(state: mascotState, isTalking: _isTalking),
             const Spacer(flex: 1),
             // 3. Dynamic options based on Step
             Padding(
@@ -242,6 +603,93 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showInputBottomSheet({
+    required String title,
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required VoidCallback onSave,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A237E),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                cursorColor: const Color(0xFF017A47),
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: const TextStyle(color: Colors.black54),
+                  floatingLabelStyle: const TextStyle(color: Color(0xFF017A47), fontWeight: FontWeight.bold),
+                  hintText: hint,
+                  filled: true,
+                  fillColor: const Color(0xFFECEFF1),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear, size: 18),
+                    onPressed: () => controller.clear(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    onSave();
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'সংরক্ষণ করুন',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -272,17 +720,71 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return SingleChildScrollView(
         child: Column(
           children: [
-            TextField(
-              controller: _nameController,
-              onChanged: (val) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: 'পূর্ণ নাম',
-                hintText: 'যেমন - তানভীর আহমেদ',
-                filled: true,
-                fillColor: const Color(0xFFECEFF1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            // Full Name selector
+            InkWell(
+              onTap: () {
+                _showInputBottomSheet(
+                  title: 'আপনার পূর্ণ নাম লিখুন',
+                  label: 'পূর্ণ নাম',
+                  hint: 'যেমন - তানভীর আহমেদ',
+                  controller: _nameController,
+                  onSave: () => setState(() {}),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person, color: Color(0xFF017A47), size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'পূর্ণ নাম',
+                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _nameController.text.isNotEmpty
+                                ? _nameController.text
+                                : 'যেমন - তানভীর আহমেদ',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: _nameController.text.isNotEmpty
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: _nameController.text.isNotEmpty
+                                  ? Colors.black87
+                                  : Colors.black38,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
+                  ],
                 ),
               ),
             ),
@@ -297,27 +799,78 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         initialDate: _selectedBirthday ?? DateTime(2006, 1, 1),
                         firstDate: DateTime(1970),
                         lastDate: DateTime.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Color(0xFF017A47),
+                                onPrimary: Colors.white,
+                                onSurface: Colors.black87,
+                              ),
+                              textButtonTheme: TextButtonThemeData(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF017A47),
+                                ),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
                       if (picked != null) {
                         setState(() => _selectedBirthday = picked);
                       }
                     },
+                    borderRadius: BorderRadius.circular(16),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECEFF1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.cake, color: Color(0xFF017A47), size: 20),
-                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF017A47).withOpacity(0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.cake, color: Color(0xFF017A47), size: 20),
+                          ),
+                          const SizedBox(width: 10),
                           Expanded(
-                            child: Text(
-                              _selectedBirthday != null
-                                  ? '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'
-                                  : 'জন্মতারিখ',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'জন্মতারিখ',
+                                  style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _selectedBirthday != null
+                                      ? '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'
+                                      : 'সিলেক্ট করো',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: _selectedBirthday != null
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: _selectedBirthday != null
+                                        ? Colors.black87
+                                        : Colors.black38,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -327,63 +880,143 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(width: 10),
                 // Gender Selector
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECEFF1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: ['ছেলে', 'মেয়ে'].map((g) {
-                      final isSelected = _selectedGender == g;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedGender = g),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF017A47) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            g,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black87,
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: ['ছাত্র', 'ছাত্রী'].map((g) {
+                        final isSelected = _selectedGender == g;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedGender = g),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF017A47) : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  g,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _addressController,
-              decoration: InputDecoration(
-                labelText: 'বর্তমান ঠিকানা',
-                hintText: 'যেমন - ঢাকা, বাংলাদেশ',
-                filled: true,
-                fillColor: const Color(0xFFECEFF1),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            // Address selector
+            InkWell(
+              onTap: () {
+                _showInputBottomSheet(
+                  title: 'আপনার বর্তমান ঠিকানা লিখুন',
+                  label: 'বর্তমান ঠিকানা',
+                  hint: 'যেমন - ঢাকা, বাংলাদেশ',
+                  controller: _addressController,
+                  onSave: () => setState(() {}),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.location_on, color: Color(0xFF017A47), size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'বর্তমান ঠিকানা',
+                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _addressController.text.isNotEmpty
+                                ? _addressController.text
+                                : 'যেমন - ঢাকা, বাংলাদেশ',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: _addressController.text.isNotEmpty
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: _addressController.text.isNotEmpty
+                                  ? Colors.black87
+                                  : Colors.black38,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
+                  ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 50,
+              height: 52,
               child: ElevatedButton(
                 onPressed: _nameController.text.trim().isNotEmpty ? _nextStep : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF017A47),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  disabledBackgroundColor: const Color(0xFFE0E0E0),
+                  elevation: _nameController.text.trim().isNotEmpty ? 4 : 0,
+                  shadowColor: const Color(0xFF017A47).withOpacity(0.4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text('পরবর্তী', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text(
+                  'পরবর্তী',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _nameController.text.trim().isNotEmpty ? Colors.white : Colors.black38,
+                  ),
+                ),
               ),
             ),
           ],
@@ -392,48 +1025,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (_step == 2) {
-      // Step 2: Educational Institution
-      return Column(
-        children: [
-          TextField(
-            controller: _institutionController,
-            onChanged: (val) => setState(() {}),
-            decoration: InputDecoration(
-              labelText: 'শিক্ষা প্রতিষ্ঠানের নাম',
-              hintText: 'যেমন - ঢাকা কলেজ / মতিঝিল আইডিয়াল',
-              filled: true,
-              fillColor: const Color(0xFFECEFF1),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: _nextStep,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF017A47),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: const Text(
-                'পরবর্তী',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    if (_step == 3) {
-      // Step 3: Class Selection (Fetched dynamically from API)
+      // Step 2: Class Selection (Fetched dynamically from API)
       final activeClassesAsync = ref.watch(activeClassesProvider);
 
       return activeClassesAsync.when(
@@ -485,39 +1077,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       _selectedBatch = null;
 
                       if (cls.hasGroup && cls.groups.isNotEmpty) {
-                        _step = 4; // Jump to group selection
+                        _step = 3; // Jump to group selection
                       } else if (cls.hasBatch && cls.batches.isNotEmpty) {
-                        _step = 5; // Jump to batch selection
+                        _step = 4; // Jump to batch selection
                       } else {
-                        _step = 6; // Jump straight to summary
+                        _step = 5; // Jump straight to summary
                       }
                     });
                   },
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFCFD8DC), width: 1.2),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE8F5E9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.school, color: Color(0xFF017A47), size: 22),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            cls.name,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                          ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF017A47).withOpacity(0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        cls.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF263238),
+                          letterSpacing: 0.2,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -528,8 +1120,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    if (_step == 4) {
-      // Step 4: Group Selection (Dynamic from selected Class)
+    if (_step == 3) {
+      // Step 3: Group Selection (Dynamic from selected Class)
       final groups = _selectedClassModel?.groups ?? [];
 
       if (groups.isEmpty) {
@@ -538,7 +1130,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const Text('এই ক্লাসের জন্য কোনো সাবজেক্ট গ্রুপ পাওয়া যায়নি।'),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => setState(() => _step = 3),
+              onPressed: () => setState(() => _step = 2),
               child: const Text('পেছনে যাও'),
             ),
           ],
@@ -558,37 +1150,37 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   _selectedBatch = null;
 
                   if (_selectedClassModel?.hasBatch == true && (grp.batches.isNotEmpty || _selectedClassModel!.batches.isNotEmpty)) {
-                    _step = 5; // Jump to batch selection
+                    _step = 4; // Jump to batch selection
                   } else {
-                    _step = 6; // Jump to summary
+                    _step = 5; // Jump to summary
                   }
                 });
               },
+              borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFCFD8DC), width: 1.2),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFFF3E0),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.biotech, color: Color(0xFF017A47), size: 24),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Text(
-                        grp.name,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF017A47).withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
+                ),
+                child: Center(
+                  child: Text(
+                    grp.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF263238),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -597,8 +1189,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    if (_step == 5) {
-      // Step 5: Batch Selection (Dynamic from selected Group or Class)
+    if (_step == 4) {
+      // Step 4: Batch Selection (Dynamic from selected Group or Class)
       List<AcademicBatchModel> availableBatches = [];
       if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
         availableBatches = _selectedGroupModel!.batches;
@@ -612,7 +1204,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             const Text('বর্তমানে কোনো অ্যাক্টিভ ব্যাচ পাওয়া যায়নি।'),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => setState(() => _step = 6),
+              onPressed: () => setState(() => _step = 5),
               child: const Text('ব্যাচ ছাড়াই এগিয়ে যাও'),
             ),
           ],
@@ -631,7 +1223,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   setState(() {
                     _selectedBatchModel = batch;
                     _selectedBatch = batch.name;
-                    _step = 6; // Jump to summary
+                    _step = 5; // Jump to summary
                   });
                 },
                 style: OutlinedButton.styleFrom(
@@ -652,37 +1244,41 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
-    // Step 6: Summary and Final Welcome Screen
+    // Step 5: Summary and Final Welcome Screen
     return Column(
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFECEFF1), width: 1.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryRow('নাম:', _nameController.text.trim()),
-              const Divider(),
+              Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               _buildSummaryRow('লিঙ্গ:', _selectedGender),
-              if (_selectedBirthday != null) const Divider(),
+              if (_selectedBirthday != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_selectedBirthday != null)
                 _buildSummaryRow('জন্মতারিখ:', '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'),
-              if (_addressController.text.trim().isNotEmpty) const Divider(),
+              if (_addressController.text.trim().isNotEmpty) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_addressController.text.trim().isNotEmpty)
                 _buildSummaryRow('ঠিকানা:', _addressController.text.trim()),
-              if (_institutionController.text.trim().isNotEmpty) const Divider(),
-              if (_institutionController.text.trim().isNotEmpty)
-                _buildSummaryRow('প্রতিষ্ঠানের নাম:', _institutionController.text.trim()),
-              const Divider(),
+              Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               _buildSummaryRow('শ্রেণী:', _selectedClass ?? 'নির্বাচন করা হয়নি'),
-              if (_selectedGroup != null) const Divider(),
+              if (_selectedGroup != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_selectedGroup != null) _buildSummaryRow('বিভাগ:', _selectedGroup!),
-              if (_selectedBatch != null) const Divider(),
+              if (_selectedBatch != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_selectedBatch != null) _buildSummaryRow('ব্যাচ:', _selectedBatch!),
             ],
           ),
@@ -695,9 +1291,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             onPressed: !_isSubmitting ? _submitOnboarding : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF017A47),
-              elevation: 0,
+              elevation: 4,
+              shadowColor: const Color(0xFF017A47).withOpacity(0.4),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
             child: _isSubmitting
@@ -707,8 +1304,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                   )
                 : const Text(
-                    'চর্চা শুরু করি!',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                    'শুরু করি!',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
           ),
         ),
@@ -718,17 +1315,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildSummaryRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey[600]),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF263238)),
           ),
         ],
       ),

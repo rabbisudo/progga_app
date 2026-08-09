@@ -3,15 +3,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
+import 'package:video_player/video_player.dart';
 import 'auth_notifier.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 
-class LoginScreen extends ConsumerWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset('assets/images/panda_login.mp4')
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      });
+    _controller.setLooping(true);
+    _controller.setVolume(0.0);
+    _controller.play();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
     // Listen to authentication & error states
@@ -60,15 +91,15 @@ class LoginScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(flex: 3),
+              const Spacer(flex: 2),
               
               Center(
                 child: SvgPicture.asset(
                   'assets/images/logo_vector.svg',
-                  height: 60,
+                  height: 40,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               
               const Center(
                 child: Text(
@@ -79,8 +110,34 @@ class LoginScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
               
-              const Spacer(flex: 2),
+              Center(
+                child: SizedBox(
+                  height: 280,
+                  width: 340,
+                  child: _isInitialized
+                      ? ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            child: SizedBox(
+                              width: _controller.value.size.width,
+                              height: _controller.value.size.height,
+                              child: VideoPlayer(_controller),
+                            ),
+                          ),
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1E88E5),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                ),
+              ),
+              
+              const SizedBox(height: 8),
 
               // Single Provider: Continue with Google Button
               authState.maybeWhen(

@@ -664,8 +664,9 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       }),
                     ],
 
-                    // Premium Explanation Accordion using user daily limit quota
-                    if (_showSolutions) ...[
+                    if (_showSolutions &&
+                        (qData['hasExplanation'] == true ||
+                         (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty))) ...[
                       const SizedBox(height: 12),
                       _ExplanationCard(
                         questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',

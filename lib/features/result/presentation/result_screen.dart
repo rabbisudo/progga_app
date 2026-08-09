@@ -2603,11 +2603,14 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             }),
           ],
 
-          _ExplanationCard(
-            questionId: qId,
-            remainingQuota: widget.remainingQuota,
-          ),
-          const SizedBox(height: 12),
+          if (qData['hasExplanation'] == true || 
+              (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
+            _ExplanationCard(
+              questionId: qId,
+              remainingQuota: widget.remainingQuota,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // Footer Row
           Row(
