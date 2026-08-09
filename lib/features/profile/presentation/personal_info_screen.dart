@@ -180,7 +180,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           SnackBar(
             content: const Text(
               'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
-              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
+              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
             backgroundColor: const Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
@@ -193,7 +193,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           SnackBar(
             content: Text(
               'আপডেট করতে সমস্যা হয়েছে: $e',
-              style: const TextStyle(fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
@@ -219,7 +219,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
@@ -276,14 +276,14 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         value: 'MALE', 
                         child: Text(
                           'ছাত্র', 
-                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                          style: TextStyle(fontSize: 14, fontFamily: 'Li Ador Noirrit', color: isDark ? Colors.white : Colors.black87),
                         ),
                       ),
                       DropdownMenuItem(
                         value: 'FEMALE', 
                         child: Text(
                           'ছাত্রী', 
-                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                          style: TextStyle(fontSize: 14, fontFamily: 'Li Ador Noirrit', color: isDark ? Colors.white : Colors.black87),
                         ),
                       ),
                     ],
@@ -344,7 +344,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                                       value: c,
                                       child: Text(
                                         c.name, 
-                                        style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                        style: TextStyle(fontSize: 14, fontFamily: 'Li Ador Noirrit', color: isDark ? Colors.white : Colors.black87),
                                       ),
                                     ))
                                 .toList(),
@@ -368,7 +368,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                                         value: g,
                                         child: Text(
                                           g.name, 
-                                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                          style: TextStyle(fontSize: 14, fontFamily: 'Li Ador Noirrit', color: isDark ? Colors.white : Colors.black87),
                                         ),
                                       ))
                                   .toList(),
@@ -392,7 +392,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                                         value: b,
                                         child: Text(
                                           b.name, 
-                                          style: TextStyle(fontSize: 14, fontFamily: 'Noto Sans Bengali', color: isDark ? Colors.white : Colors.black87),
+                                          style: TextStyle(fontSize: 14, fontFamily: 'Li Ador Noirrit', color: isDark ? Colors.white : Colors.black87),
                                         ),
                                       ))
                                   .toList(),
@@ -423,7 +423,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             )
                           : const Text(
                               'সংরক্ষণ করুন',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15, fontFamily: 'Noto Sans Bengali'),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15, fontFamily: 'Li Ador Noirrit'),
                             ),
                     ),
                   ),
@@ -447,7 +447,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
           fontSize: 13.5,
           fontWeight: FontWeight.bold,
           color: isDark ? Colors.grey[400] : Colors.grey.shade700,
-          fontFamily: 'Noto Sans Bengali',
+          fontFamily: 'Li Ador Noirrit',
         ),
       ),
     );
@@ -462,7 +462,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       labelStyle: TextStyle(
         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
         fontSize: 13,
-        fontFamily: 'Noto Sans Bengali',
+        fontFamily: 'Li Ador Noirrit',
       ),
       filled: true,
       fillColor: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8F9FA),
@@ -498,7 +498,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       style: TextStyle(
         color: theme.textTheme.bodyLarge?.color,
         fontSize: 14,
-        fontFamily: 'Noto Sans Bengali',
+        fontFamily: 'Li Ador Noirrit',
       ),
       validator: validator,
       decoration: _getInputDecoration(context, label),
@@ -537,7 +537,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
               fontSize: 13,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.grey[400] : Colors.grey.shade700,
-              fontFamily: 'Noto Sans Bengali',
+              fontFamily: 'Li Ador Noirrit',
             ),
           ),
           const SizedBox(height: 6),
@@ -586,7 +586,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           color: value == null 
                               ? (isDark ? Colors.white30 : Colors.black38) 
                               : (isDark ? Colors.white : Colors.black87),
-                          fontFamily: 'Noto Sans Bengali',
+                          fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
                     ),

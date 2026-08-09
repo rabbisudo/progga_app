@@ -72,7 +72,7 @@ class EmptyStateWidget extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
-                fontFamily: 'Noto Sans Bengali',
+                fontFamily: 'Li Ador Noirrit',
               ),
             ),
             if (subtitle != null) ...[
@@ -85,7 +85,7 @@ class EmptyStateWidget extends StatelessWidget {
                   fontSize: 13.5,
                   color: isDark ? Colors.white38 : Colors.black54,
                   height: 1.5,
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
             ],
@@ -98,7 +98,7 @@ class EmptyStateWidget extends StatelessWidget {
                 label: Text(
                   retryLabel ?? 'আবার চেষ্টা করুন',
                   style: const TextStyle(
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                     fontWeight: FontWeight.bold,
                   ),
                 ),

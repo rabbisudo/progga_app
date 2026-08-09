@@ -670,7 +670,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF017A47),
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                         Text(
@@ -680,7 +680,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                           style: TextStyle(
                             fontSize: 11.5,
                             color: isDark ? Colors.white70 : Colors.grey.shade700,
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                       ],
@@ -2287,7 +2287,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF017A47),
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
               if (!isFitb)
@@ -2299,7 +2299,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black87,
                       height: 1.4,
-                      fontFamily: 'Noto Sans Bengali',
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
                 ),
@@ -2569,7 +2569,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: labelTextColor,
-                                  fontFamily: 'Noto Sans Bengali',
+                                  fontFamily: 'Li Ador Noirrit',
                                 ),
                               ),
                             ),
@@ -2586,7 +2586,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                     : (isUserSelected
                                         ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
                                         : (isDark ? Colors.white70 : Colors.black87)),
-                                fontFamily: 'Noto Sans Bengali',
+                                fontFamily: 'Li Ador Noirrit',
                               ),
                             ),
                           ),
@@ -2638,7 +2638,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF017A47),
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                       );

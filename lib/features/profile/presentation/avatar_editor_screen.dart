@@ -394,7 +394,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           const SnackBar(
             content: Text(
               'অ্যাভাটার সফলভাবে সংরক্ষণ করা হয়েছে!',
-              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
+              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
             backgroundColor: Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
@@ -407,7 +407,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           SnackBar(
             content: Text(
               'অ্যাভাটার সংরক্ষণ করা যায়নি: $e',
-              style: const TextStyle(fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
@@ -434,7 +434,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
@@ -537,8 +537,8 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
               indicatorWeight: 3.0,
               labelColor: brandTealColor,
               unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Noto Sans Bengali'),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14, fontFamily: 'Noto Sans Bengali'),
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Li Ador Noirrit'),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14, fontFamily: 'Li Ador Noirrit'),
               dividerColor: Colors.transparent,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: [
@@ -636,7 +636,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       fontSize: 16,
-                      fontFamily: 'Noto Sans Bengali',
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
           ),
@@ -680,7 +680,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: isDark ? Colors.white : brandTealColor,
-          fontFamily: 'Noto Sans Bengali',
+          fontFamily: 'Li Ador Noirrit',
         ),
       ),
     );
@@ -693,7 +693,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         fontSize: 14,
         fontWeight: FontWeight.bold,
         color: Colors.grey,
-        fontFamily: 'Noto Sans Bengali',
+        fontFamily: 'Li Ador Noirrit',
       ),
     );
   }
@@ -739,7 +739,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -782,7 +782,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -825,7 +825,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -867,7 +867,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -908,7 +908,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -953,7 +953,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -994,7 +994,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
             const SizedBox(height: 6),
             Text(
               option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -1115,7 +1115,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         fontWeight: FontWeight.bold,
         fontSize: 14,
         color: Colors.grey,
-        fontFamily: 'Noto Sans Bengali',
+        fontFamily: 'Li Ador Noirrit',
       ),
     );
   }

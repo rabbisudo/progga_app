@@ -120,7 +120,7 @@ class ProfileScreen extends ConsumerWidget {
           fontWeight: FontWeight.w600,
           fontSize: 14.5,
           color: isDark ? Colors.white : Colors.black87,
-          fontFamily: 'Noto Sans Bengali',
+          fontFamily: 'Li Ador Noirrit',
         ),
       ),
       trailing: trailing ?? Icon(
@@ -146,7 +146,7 @@ class ProfileScreen extends ConsumerWidget {
           color: isDark ? const Color(0xFF00C569) : const Color(0xFF086057),
           fontWeight: FontWeight.bold,
           fontSize: 11,
-          fontFamily: 'Noto Sans Bengali',
+          fontFamily: 'Li Ador Noirrit',
         ),
       ),
     );
@@ -167,7 +167,7 @@ class ProfileScreen extends ConsumerWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold, 
             fontSize: 16,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             color: isDark ? Colors.white : Colors.black87,
           ),
         ),
@@ -251,7 +251,7 @@ class ProfileScreen extends ConsumerWidget {
                           fontSize: 18, 
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black87,
-                          fontFamily: 'Noto Sans Bengali',
+                          fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -425,20 +425,20 @@ class ProfileScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 const Text(
                                   'লগআউট',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Noto Sans Bengali'),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Li Ador Noirrit'),
                                 ),
                               ],
                             ),
                             content: const Text(
                               'আপনি কি নিশ্চিত যে আপনি অ্যাকাউন্ট থেকে লগআউট করতে চান?',
-                              style: TextStyle(fontFamily: 'Noto Sans Bengali'),
+                              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(false),
                                 child: const Text(
                                   'বাতিল',
-                                  style: TextStyle(color: Colors.grey, fontFamily: 'Noto Sans Bengali'),
+                                  style: TextStyle(color: Colors.grey, fontFamily: 'Li Ador Noirrit'),
                                 ),
                               ),
                               ElevatedButton(
@@ -450,7 +450,7 @@ class ProfileScreen extends ConsumerWidget {
                                 onPressed: () => Navigator.of(context).pop(true),
                                 child: const Text(
                                   'লগআউট',
-                                  style: TextStyle(color: Colors.white, fontFamily: 'Noto Sans Bengali'),
+                                  style: TextStyle(color: Colors.white, fontFamily: 'Li Ador Noirrit'),
                                 ),
                               ),
                             ],

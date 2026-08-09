@@ -89,7 +89,7 @@ class QuestionBankView extends ConsumerWidget {
                     labelStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      fontFamily: 'Noto Sans Bengali',
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                     tabs: sectionsList.map((sec) {
                       final name = (sec as Map<String, dynamic>)['name']?.toString() ?? '';
@@ -195,7 +195,7 @@ class QuestionBankView extends ConsumerWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                             color: Color(0xFF017A47),
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                       ),
@@ -224,7 +224,7 @@ class QuestionBankView extends ConsumerWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : const Color(0xFF017A47),
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
             ),

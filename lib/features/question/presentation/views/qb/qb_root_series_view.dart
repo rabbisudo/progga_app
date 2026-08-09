@@ -282,7 +282,7 @@ class QbRootSeriesView extends StatelessWidget {
           color: Colors.white,
           fontSize: 22,
           fontWeight: FontWeight.bold,
-          fontFamily: 'Noto Sans Bengali',
+          fontFamily: 'Li Ador Noirrit',
           height: 1.15,
         ),
       )).toList(),

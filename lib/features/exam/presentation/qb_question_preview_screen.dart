@@ -380,7 +380,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF017A47),
-                      fontFamily: 'Noto Sans Bengali',
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
                   const Expanded(
@@ -459,7 +459,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
             fontWeight: FontWeight.bold,
             color: textColor,
             fontSize: 16,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
           ),
         ),
       ),
@@ -532,7 +532,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF017A47),
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                         Expanded(
@@ -543,7 +543,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                               fontWeight: FontWeight.bold,
                               color: textColor,
                               height: 1.4,
-                              fontFamily: 'Noto Sans Bengali',
+                              fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
                         ),
@@ -626,7 +626,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                             fontSize: 12,
                                             fontWeight: FontWeight.bold,
                                             color: labelTextColor,
-                                            fontFamily: 'Noto Sans Bengali',
+                                            fontFamily: 'Li Ador Noirrit',
                                           ),
                                         ),
                                       ),
@@ -641,7 +641,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                           color: showGreen
                                               ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
                                               : (isDark ? Colors.white70 : Colors.black87),
-                                          fontFamily: 'Noto Sans Bengali',
+                                          fontFamily: 'Li Ador Noirrit',
                                         ),
                                       ),
                                     ),
@@ -879,7 +879,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Color(0xFF017A47),
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                         Text(
@@ -889,7 +889,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                           style: TextStyle(
                             fontSize: 11.5,
                             color: isDark ? Colors.white70 : Colors.grey.shade700,
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                       ],

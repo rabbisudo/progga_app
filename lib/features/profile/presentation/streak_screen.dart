@@ -117,7 +117,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              fontFamily: 'Noto Sans Bengali',
+              fontFamily: 'Li Ador Noirrit',
             ),
           ),
 
@@ -129,7 +129,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
             labelStyle: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 15,
-              fontFamily: 'Noto Sans Bengali',
+              fontFamily: 'Li Ador Noirrit',
             ),
             tabs: const [
               Tab(text: 'ব্যক্তিগত'),
@@ -150,7 +150,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
           error: (err, stack) => Center(
             child: Text(
               'তথ্য লোড করতে ত্রুটি: $err',
-              style: const TextStyle(color: Colors.redAccent, fontFamily: 'Noto Sans Bengali'),
+              style: const TextStyle(color: Colors.redAccent, fontFamily: 'Li Ador Noirrit'),
             ),
           ),
           data: (userData) {
@@ -432,7 +432,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                               fontSize: 54,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF017A47),
-                              fontFamily: 'Noto Sans Bengali',
+                              fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
                           const Text(
@@ -441,7 +441,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF017A47),
-                              fontFamily: 'Noto Sans Bengali',
+                              fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
                         ],
@@ -483,7 +483,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                             fontSize: 12.5,
                             color: isDark ? Colors.white70 : Colors.black87,
                             height: 1.4,
-                            fontFamily: 'Noto Sans Bengali',
+                            fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
                       ),
@@ -511,7 +511,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
                 IconButton(
@@ -622,7 +622,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -631,7 +631,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                   style: TextStyle(
                     fontSize: 10.5,
                     color: isDark ? Colors.white54 : Colors.black54,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ],
@@ -692,7 +692,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                   color: isTodayWeekday
                       ? const Color(0xFF017A47)
                       : (isDark ? Colors.white70 : Colors.black87),
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
             );
@@ -773,7 +773,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                 cellContent = Center(
                   child: Text(
                     _toBengaliDigits(dayNumber.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white, fontFamily: 'Noto Sans Bengali'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white, fontFamily: 'Li Ador Noirrit'),
                   ),
                 );
               } else {
@@ -787,7 +787,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
                 cellContent = Center(
                   child: Text(
                     _toBengaliDigits(dayNumber.toString()),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF017A47), fontFamily: 'Noto Sans Bengali'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF017A47), fontFamily: 'Li Ador Noirrit'),
                   ),
                 );
               }
@@ -819,7 +819,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               cellContent = Center(
                 child: Text(
                   _toBengaliDigits(dayNumber.toString()),
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor, fontFamily: 'Noto Sans Bengali'),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: textColor, fontFamily: 'Li Ador Noirrit'),
                 ),
               );
             } else {
@@ -830,7 +830,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> {
               cellContent = Center(
                 child: Text(
                   _toBengaliDigits(dayNumber.toString()),
-                  style: TextStyle(fontSize: 15, color: textColor, fontFamily: 'Noto Sans Bengali'),
+                  style: TextStyle(fontSize: 15, color: textColor, fontFamily: 'Li Ador Noirrit'),
                 ),
               );
             }
@@ -1024,13 +1024,13 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
           children: [
             Text(
               'তথ্য লোড করতে ত্রুটি: $_errorMessage',
-              style: const TextStyle(fontFamily: 'Noto Sans Bengali', color: Colors.redAccent),
+              style: const TextStyle(fontFamily: 'Li Ador Noirrit', color: Colors.redAccent),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => _fetchPage(isInitial: true),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
-              child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Noto Sans Bengali', color: Colors.white)),
+              child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit', color: Colors.white)),
             ),
           ],
         ),
@@ -1073,7 +1073,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
       return const Center(
         child: Text(
           'গ্লোবাল তালিকায় কেউ নেই',
-          style: TextStyle(fontFamily: 'Noto Sans Bengali'),
+          style: TextStyle(fontFamily: 'Li Ador Noirrit'),
         ),
       );
     }
@@ -1149,7 +1149,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           color: widget.isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
-                          fontFamily: 'Noto Sans Bengali',
+                          fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -1158,7 +1158,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                         style: TextStyle(
                           fontSize: 12,
                           color: widget.isDark ? Colors.white30 : Colors.black38,
-                          fontFamily: 'Noto Sans Bengali',
+                          fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
                     ],
@@ -1179,7 +1179,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                         fontSize: 14.5,
                         fontWeight: FontWeight.bold,
                         color: widget.isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
-                        fontFamily: 'Noto Sans Bengali',
+                        fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -1189,7 +1189,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                         fontSize: 12.5,
                         color: Color(0xFF017A47),
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Noto Sans Bengali',
+                        fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
                   ],
@@ -1215,7 +1215,7 @@ Widget _buildRankOverlayBadge(int rank, bool isDark) {
       child: const Center(
         child: Text(
           '১',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Noto Sans Bengali'),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Li Ador Noirrit'),
         ),
       ),
     );
@@ -1231,7 +1231,7 @@ Widget _buildRankOverlayBadge(int rank, bool isDark) {
       child: const Center(
         child: Text(
           '২',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Noto Sans Bengali'),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87, fontFamily: 'Li Ador Noirrit'),
         ),
       ),
     );

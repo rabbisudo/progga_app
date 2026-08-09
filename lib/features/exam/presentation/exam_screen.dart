@@ -208,7 +208,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
               const SizedBox(height: 12),
@@ -219,7 +219,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   fontSize: 14,
                   color: isDark ? Colors.white60 : Colors.black54,
                   height: 1.4,
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
               const SizedBox(height: 24),
@@ -238,7 +238,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ),
@@ -266,7 +266,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           'পরীক্ষা বাতিল করতে চান?',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             fontSize: 16,
             color: isDark ? Colors.white : Colors.black87,
           ),
@@ -274,7 +274,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         content: Text(
           'এখন বের হয়ে গেলে আপনার বর্তমান উত্তরগুলো সংরক্ষিত জমা হয়ে যাবে।',
           style: TextStyle(
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             fontSize: 14,
             color: isDark ? Colors.white70 : Colors.black87,
           ),
@@ -286,7 +286,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               'ফিরে যাও',
               style: TextStyle(
                 color: Colors.grey,
-                fontFamily: 'Noto Sans Bengali',
+                fontFamily: 'Li Ador Noirrit',
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -302,7 +302,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'Noto Sans Bengali',
+                fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ),
@@ -328,7 +328,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           'পরীক্ষা জমা দিতে চান?',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             fontSize: 16,
             color: isDark ? Colors.white : Colors.black87,
           ),
@@ -336,7 +336,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         content: Text(
           'আপনি $totalQ টি প্রশ্নের মধ্যে $answeredCount টির উত্তর দিয়েছেন।\nনিশ্চিতভাবে পরীক্ষা জমা দিতে চান?',
           style: TextStyle(
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
             fontSize: 14,
             color: isDark ? Colors.white70 : Colors.black87,
           ),
@@ -348,7 +348,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               'বাতিল',
               style: TextStyle(
                 color: Colors.grey,
-                fontFamily: 'Noto Sans Bengali',
+                fontFamily: 'Li Ador Noirrit',
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -364,7 +364,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
-                fontFamily: 'Noto Sans Bengali',
+                fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ),
@@ -610,7 +610,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         .replaceAll(RegExp(r'\\\[(.*?)\\\]', dotAll: true), r'$ $1 $');
 
     final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
-    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4, fontFamily: 'Noto Sans Bengali');
+    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4, fontFamily: 'Li Ador Noirrit');
 
     // If text contains $ inline math delimiters (e.g. "solve $x^2 + y^2 = 1$")
     if (normalizedText.contains('\$')) {
@@ -1194,7 +1194,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF017A47),
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
               Expanded(
@@ -1204,7 +1204,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     fontSize: 14.5,
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : Colors.black87,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ),
@@ -1328,7 +1328,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   fontSize: 14.5,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF017A47),
-                  fontFamily: 'Noto Sans Bengali',
+                  fontFamily: 'Li Ador Noirrit',
                 ),
               ),
               Expanded(
@@ -1339,7 +1339,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : Colors.black87,
                     height: 1.4,
-                    fontFamily: 'Noto Sans Bengali',
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ),
@@ -1952,7 +1952,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF017A47),
-                                  fontFamily: 'Noto Sans Bengali'),
+                                  fontFamily: 'Li Ador Noirrit'),
                             ),
                             Expanded(
                               child: _buildMathWidget(
@@ -1962,7 +1962,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                   fontWeight: FontWeight.w600,
                                   color: isDark ? Colors.white : Colors.black87,
                                   height: 1.4,
-                                  fontFamily: 'Noto Sans Bengali',
+                                  fontFamily: 'Li Ador Noirrit',
                                 ),
                               ),
                             ),
@@ -2066,7 +2066,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                                   fontSize: 12,
                                                   fontWeight: FontWeight.bold,
                                                   color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
-                                                  fontFamily: 'Noto Sans Bengali',
+                                                  fontFamily: 'Li Ador Noirrit',
                                                 ),
                                               ),
                                             ),
@@ -2081,7 +2081,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                                                 color: isSelected
                                                     ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
                                                     : (isDark ? Colors.white70 : Colors.black87),
-                                                fontFamily: 'Noto Sans Bengali',
+                                                fontFamily: 'Li Ador Noirrit',
                                               ),
                                               mathColor: isSelected
                                                   ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))

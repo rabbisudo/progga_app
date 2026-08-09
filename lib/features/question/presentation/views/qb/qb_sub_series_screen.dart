@@ -50,7 +50,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
             fontSize: 17,
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : Colors.black87,
-            fontFamily: 'Noto Sans Bengali',
+            fontFamily: 'Li Ador Noirrit',
           ),
         ),
         centerTitle: true,
