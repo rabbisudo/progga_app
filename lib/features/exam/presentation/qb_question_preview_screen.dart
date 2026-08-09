@@ -664,9 +664,8 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       }),
                     ],
 
-                    if (_showSolutions &&
-                        (qData['hasExplanation'] == true ||
-                         (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty))) ...[
+                    if (qData['hasExplanation'] == true ||
+                        (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
                       const SizedBox(height: 12),
                       _ExplanationCard(
                         questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',
