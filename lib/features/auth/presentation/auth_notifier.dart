@@ -11,9 +11,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final SecureStorageService _storage;
   final ApiClient _apiClient;
 
-  AuthNotifier(this._storage, this._apiClient) : super(const AuthState.initial()) {
+  AuthNotifier(
+    this._storage,
+    this._apiClient, [
+    AuthState initialState = const AuthState.initial(),
+  ]) : super(initialState) {
     _apiClient.onUnauthenticated = forceLogout;
-    checkActiveSession();
+    initialState.maybeWhen(
+      authenticated: (_, __) => null,
+      orElse: checkActiveSession,
+    );
   }
 
   /**
@@ -133,10 +140,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
+final authInitialStateProvider = Provider<AuthState>((ref) => const AuthState.initial());
+
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final storage = ref.watch(secureStorageServiceProvider);
   final client = ref.watch(apiClientProvider);
-  return AuthNotifier(storage, client);
+  final initialState = ref.watch(authInitialStateProvider);
+  return AuthNotifier(storage, client, initialState);
 });
 
 

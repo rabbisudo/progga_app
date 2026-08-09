@@ -35,18 +35,26 @@ class RouterTransitionNotifier extends ChangeNotifier {
   }
 }
 
+final initialLocationProvider = Provider<String>((ref) => '/login');
+
 final routerProvider = Provider<GoRouter>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
   final notifier = RouterTransitionNotifier(ref);
+  final initialLocation = ref.watch(initialLocationProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: initialLocation,
     refreshListenable: notifier,
-    redirect: (context, state) async {
-      final token = await secureStorage.getAccessToken();
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isLoggingIn = state.matchedLocation == '/login';
 
-      if (token == null) {
+      final isAuthenticated = authState.maybeWhen(
+        authenticated: (_, __) => true,
+        orElse: () => false,
+      );
+
+      if (!isAuthenticated) {
         // Force redirect to login if attempting protected dashboards
         return isLoggingIn ? null : '/login';
       }
