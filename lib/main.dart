@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
+import 'package:safe_device/safe_device.dart';
 import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
+import 'core/network/api_client.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/auth_notifier.dart';
 import 'app.dart';
@@ -22,6 +26,23 @@ void main() async {
   // Initialize Firebase, Hive, and check the active session in parallel
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
+
+  // Run security checks (Root, Jailbreak, Developer Options, Emulator)
+  bool isDeviceSecure = true;
+  try {
+    final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
+    final developerMode = await FlutterJailbreakDetectionPlus.developerMode;
+    final isRealDevice = await SafeDevice.isRealDevice;
+    final isMockLocation = await SafeDevice.isMockLocation;
+
+    if (kReleaseMode) {
+      if (jailbroken || developerMode || !isRealDevice || isMockLocation) {
+        isDeviceSecure = false;
+      }
+    }
+  } catch (e) {
+    debugPrint('Security environments check warning: $e');
+  }
   
   // Initialize Hive first to ensure the settings box is available for cached reads
   final hiveInitFuture = hiveService.init();
@@ -36,9 +57,13 @@ void main() async {
     }),
     hiveInitFuture,
     Future(() async {
+      if (!isDeviceSecure) {
+        initialLocation = '/security-blocked';
+        return;
+      }
       try {
         final token = await secureStorage.getAccessToken();
-        if (token != null) {
+        if (token != null && token.isNotEmpty) {
           initialLocation = '/home';
           
           // Wait for Hive box to finish opening
@@ -65,6 +90,7 @@ void main() async {
                   'Accept': 'application/json',
                 },
               ));
+              configureDioSslPinning(dio);
               final response = await dio.get('/users/me');
               if (response.statusCode == 200) {
                 initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
