@@ -84,7 +84,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
         // Write tokens to secure vaults
         await _storage.saveAccessToken(accessToken);
-        await _storage.saveRefreshToken(refreshToken);
 
         state = AuthState.authenticated(
           user: user,

@@ -20,11 +20,12 @@ class SecureStorageService {
   }
 
   Future<void> saveRefreshToken(String token) async {
-    await _storage.write(key: _refreshTokenKey, value: token);
+    // Single-token system: no-op
   }
 
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: _refreshTokenKey);
+    // Single-token system: return null
+    return null;
   }
 
   Future<void> clearTokens() async {

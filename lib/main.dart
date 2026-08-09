@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:dio/dio.dart';
 import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
@@ -36,6 +37,26 @@ void main() async {
         if (token != null) {
           initialLocation = '/home';
           initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
+
+          try {
+            // Fetch user profile JSON from backend API under the splash screen
+            final dio = Dio(BaseOptions(
+              baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://192.168.31.101:3000/api/v1'),
+              connectTimeout: const Duration(seconds: 4),
+              receiveTimeout: const Duration(seconds: 4),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+            ));
+            final response = await dio.get('/users/me');
+            if (response.statusCode == 200) {
+              initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
+            }
+          } catch (e) {
+            debugPrint('API fetch profile error, using fallback: $e');
+          }
         }
       } catch (e) {
         debugPrint('Session check error: $e');
