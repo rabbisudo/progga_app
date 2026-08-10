@@ -77,7 +77,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       final eq = questions[i];
       final q = eq.question;
 
-      // Handle MCQ_N sub-questions grouping
+      // Handle MCQ_N and CQ sub-questions grouping
       if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
         lastPassage = null; // Reset passage grouping for standard passages
         
@@ -87,8 +87,12 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           questionLabel: '',
         ));
 
+        final isCQ = q.type?.toUpperCase().startsWith('CQ') == true;
         int subIdx = 1;
         for (final subQ in q.subQuestions!) {
+          final label = isCQ 
+              ? '${(subIdx - 1) == 0 ? "ক" : (subIdx - 1) == 1 ? "খ" : (subIdx - 1) == 2 ? "গ" : (subIdx - 1) == 3 ? "ঘ" : "ঙ"}'
+              : '$currentNumber.$subIdx';
           items.add(ExamRenderItem(
             examQuestion: ExamQuestionModel(
               id: '${eq.id}_sub_$subIdx',
@@ -97,7 +101,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               sortOrder: eq.sortOrder,
               question: subQ,
             ),
-            questionLabel: '$currentNumber.$subIdx',
+            questionLabel: label,
           ));
           subIdx++;
         }

@@ -731,7 +731,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${_toBengaliDigit(index + 1)}.${_toBengaliDigit(subIdx + 1)}. ',
+                                    '${qData['type']?.toString().toUpperCase().startsWith('CQ') == true ? '${subIdx == 0 ? "ক" : subIdx == 1 ? "খ" : subIdx == 2 ? "গ" : subIdx == 3 ? "ঘ" : "ঙ"}' : '${_toBengaliDigit(index + 1)}.${_toBengaliDigit(subIdx + 1)}'}. ',
                                     style: const TextStyle(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.bold,

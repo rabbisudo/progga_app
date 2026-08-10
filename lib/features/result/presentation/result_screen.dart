@@ -2286,6 +2286,274 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final hasSubQuestions = qData['subQuestions'] != null && (qData['subQuestions'] as List).isNotEmpty;
+
+    if (hasSubQuestions) {
+      final subList = qData['subQuestions'] as List<dynamic>;
+      final isCQ = qType?.toUpperCase().startsWith('CQ') == true;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.only(bottom: 24),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF121212) : Colors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+              width: 1.2,
+            ),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Render Parent Passage / Stem
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${widget.index + 1}. ',
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF017A47),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+                Expanded(
+                  child: _buildResultMathWidget(
+                    questionText,
+                    textStyle: TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                      height: 1.4,
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (imageKey != null && imageKey.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildQuestionImage(imageKey),
+            ],
+            const SizedBox(height: 16),
+
+            // Render Sub-questions
+            ...subList.asMap().entries.map((subEntry) {
+              final subIdx = subEntry.key;
+              final subQ = subEntry.value as Map<String, dynamic>;
+              final subQId = subQ['id'] as String? ?? '';
+              final subQText = subQ['questionText'] as String? ?? '';
+              final subQImageKey = subQ['imageKey'] as String?;
+              final subQType = subQ['type'] as String? ?? 'MCQ';
+
+              final subUserAns = widget.answersMap[subQId];
+              final subSelectedOptionId = subUserAns?['selectedOptionId'] as String?;
+
+              final subOptionsList = (subQ['options'] as List<dynamic>?) ?? [];
+
+              final subLabel = isCQ
+                  ? '${subIdx == 0 ? "ক" : subIdx == 1 ? "খ" : subIdx == 2 ? "গ" : subIdx == 3 ? "ঘ" : "ঙ"}'
+                  : '${widget.index + 1}.${subIdx + 1}';
+
+              final isSubWritten = subQType == 'WRITTEN';
+
+              return Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 12.0, bottom: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$subLabel. ',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                        Expanded(
+                          child: _buildResultMathWidget(
+                            subQText,
+                            textStyle: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black87,
+                              height: 1.4,
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (subQImageKey != null && subQImageKey.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      _buildQuestionImage(subQImageKey),
+                    ],
+                    const SizedBox(height: 10),
+
+                    // If not written, render option choices
+                    if (!isSubWritten) ...[
+                      ...subOptionsList.asMap().entries.map((optEntry) {
+                        final optIdx = optEntry.key;
+                        final optData = optEntry.value as Map<String, dynamic>;
+                        final optId = optData['id'] as String?;
+                        final optionText = optData['optionText'] as String? ?? '';
+                        final optImageKey = optData['imageKey'] as String?;
+                        final isCorrect = optData['isCorrect'] as bool? ?? false;
+                        final isUserSelected = subSelectedOptionId == optId;
+
+                        final optLabel = _getOptionLabel(optIdx);
+
+                        Color bgColor = isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA);
+                        Color labelBgColor = isDark ? Colors.white10 : Colors.white;
+                        Color labelTextColor = isDark ? Colors.white60 : Colors.black54;
+                        Border? labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.5);
+
+                        if (isCorrect) {
+                          bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
+                          labelBgColor = const Color(0xFF017A47);
+                          labelTextColor = Colors.white;
+                          labelBorder = null;
+                        } else if (isUserSelected) {
+                          bgColor = isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE);
+                          labelBgColor = Colors.redAccent;
+                          labelTextColor = Colors.white;
+                          labelBorder = null;
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: labelBgColor,
+                                        border: labelBorder,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          optLabel,
+                                          style: TextStyle(
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: labelTextColor,
+                                            fontFamily: 'Li Ador Noirrit',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildResultMathWidget(
+                                        optionText,
+                                        textStyle: TextStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
+                                          color: isCorrect
+                                              ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                              : (isUserSelected
+                                                  ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
+                                                  : (isDark ? Colors.white70 : Colors.black87)),
+                                          fontFamily: 'Li Ador Noirrit',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (optImageKey != null && optImageKey.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  _buildQuestionImage(optImageKey),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+
+                    // Render sub-question explanation card
+                    if (subQ['hasExplanation'] == true ||
+                        (subQ['explanations'] != null && (subQ['explanations'] as List).isNotEmpty)) ...[
+                      const SizedBox(height: 6),
+                      _ExplanationCard(
+                        questionId: subQId,
+                        remainingQuota: widget.remainingQuota,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // Sub-question actions (bookmark/report)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _QuestionActionButtons(questionId: subQId),
+                      ],
+                    ),
+                    const Divider(height: 24, thickness: 0.8),
+                  ],
+                ),
+              );
+            }).toList(),
+
+            // Render general tags for the parent CQ / MCQ_N question
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      ...((qData['tags'] as List<dynamic>?) ?? [])
+                          .map((t) => t.toString().trim())
+                          .where((tStr) => RegExp(r'^[A-Za-z]+\s+\d{2}$').hasMatch(tStr))
+                          .map((tStr) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF017A47).withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(100),
+                            border: Border.all(color: const Color(0xFF017A47).withOpacity(0.15), width: 1.0),
+                          ),
+                          child: Text(
+                            tStr,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF017A47),
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.only(bottom: 24),
@@ -2433,108 +2701,108 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
               ...optionsList.asMap().entries.map((optEntry) {
                 final optIdx = optEntry.key;
                 final optData = optEntry.value as Map<String, dynamic>;
-              final optionText = optData['optionText'] as String? ?? '';
-              final label = _getCqLabel(optIdx);
-              final subKey = _getSubKey(optIdx);
-              final isExpanded = _subExplanationExpanded[subKey] ?? false;
+                final optionText = optData['optionText'] as String? ?? '';
+                final label = _getCqLabel(optIdx);
+                final subKey = _getSubKey(optIdx);
+                final isExpanded = _subExplanationExpanded[subKey] ?? false;
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$label. ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$label. ',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildResultMathWidget(
+                              optionText,
+                              textStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: InkWell(
+                          onTap: () => _toggleSubExplanation(qId, subKey),
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (_isLoading && _activeSubKey == subKey)
+                                  const SizedBox(
+                                    width: 12,
+                                    height: 12,
+                                    child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFF017A47)),
+                                  )
+                                else
+                                  const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 13),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isExpanded ? 'ব্যাখ্যা বন্ধ করো' : '$label এর ব্যাখ্যা',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF017A47),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: const Color(0xFF017A47),
+                                  size: 14,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        Expanded(
+                      ),
+                      if (isExpanded) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200),
+                          ),
                           child: _buildResultMathWidget(
-                            optionText,
+                            _parsedExplanations[subKey] ?? 'কোনো ব্যাখ্যা পাওয়া যায়নি।',
                             textStyle: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 13.5,
                               color: isDark ? Colors.white70 : Colors.black87,
-                              height: 1.4,
+                              height: 1.5,
                             ),
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: InkWell(
-                        onTap: () => _toggleSubExplanation(qId, subKey),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_isLoading && _activeSubKey == subKey)
-                                const SizedBox(
-                                  width: 12,
-                                  height: 12,
-                                  child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFF017A47)),
-                                )
-                              else
-                                const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 13),
-                              const SizedBox(width: 6),
-                              Text(
-                                isExpanded ? 'ব্যাখ্যা বন্ধ করো' : '$label এর ব্যাখ্যা',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF017A47),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                color: const Color(0xFF017A47),
-                                size: 14,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isExpanded) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200),
-                        ),
-                        child: _buildResultMathWidget(
-                          _parsedExplanations[subKey] ?? 'কোনো ব্যাখ্যা পাওয়া যায়নি।',
-                          textStyle: TextStyle(
-                            fontSize: 13.5,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
                     ],
-                  ],
-                ),
-              );
-            }),
+                  ),
+                );
+              }),
           ] else ...[
             // MCQ Content: Selectable Options review
             ...optionsList.asMap().entries.map((optEntry) {
