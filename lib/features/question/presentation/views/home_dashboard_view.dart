@@ -8,19 +8,28 @@ import '../../../leaderboard/domain/leaderboard_model.dart';
 import '../../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../../profile/presentation/profile_notifier.dart';
 import '../../../academics/data/academics_repository.dart';
+import '../../../../core/storage/hive_service.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/bouncing_card.dart';
 import '../widgets/banner_slider.dart';
 
 final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
+  final hive = ref.read(hiveServiceProvider);
   try {
     final response = await client.dio.get('/banners');
     if (response.statusCode == 200 && response.data != null) {
       final List<dynamic> list = response.data;
-      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      await hive.cacheList('cached_active_banners', result);
+      return result;
     }
   } catch (_) {}
+  
+  final cached = hive.getCachedList('cached_active_banners');
+  if (cached != null) {
+    return cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
   return [];
 });
 
@@ -449,7 +458,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                     ],
                     
                     // Shimmer loading inside leaderboard cards
-                    if (leaderboardAsync is AsyncLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty)) ...[
+                    if (leaderboardAsync.isLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty)) ...[
                       ...List.generate(3, (index) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         child: Row(
@@ -464,7 +473,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                           ],
                         ),
                       )),
-                    ] else if (leaderboardAsync is AsyncError || leaderboardAsync.value == null) ...[
+                    ] else if (leaderboardAsync.hasError || leaderboardAsync.value == null) ...[
                       _buildLeaderboardRow(
                         name: userName,
                         score: userScore,

@@ -12,6 +12,10 @@ import 'core/navigation/app_router.dart';
 import 'core/network/api_client.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/auth_notifier.dart';
+import 'core/widgets/empty_state_widget.dart';
+import 'features/profile/presentation/profile_notifier.dart';
+import 'features/leaderboard/presentation/leaderboard_notifier.dart';
+import 'features/academics/data/academics_repository.dart';
 import 'app.dart';
 
 void main() async {
@@ -107,6 +111,11 @@ void main() async {
     }),
   ]);
 
+  // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return SafeErrorWidget(details: details);
+  };
+
   runApp(
     ProviderScope(
       overrides: [
@@ -139,4 +148,53 @@ Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {
     }
     return MapEntry(key.toString(), value);
   });
+}
+
+class SafeErrorWidget extends StatefulWidget {
+  final FlutterErrorDetails details;
+  const SafeErrorWidget({Key? key, required this.details}) : super(key: key);
+
+  @override
+  State<SafeErrorWidget> createState() => _SafeErrorWidgetState();
+}
+
+class _SafeErrorWidgetState extends State<SafeErrorWidget> {
+  @override
+  Widget build(BuildContext context) {
+    final exception = widget.details.exception;
+    final isNetwork = exception is NetworkException || 
+                      exception.toString().contains('NetworkException') ||
+                      exception.toString().contains('DioException') ||
+                      exception.toString().contains('SocketException') ||
+                      exception.toString().contains('timeout') ||
+                      exception.toString().contains('Connection failed') ||
+                      exception.toString().contains('Network connection failed');
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F5),
+      body: SafeArea(
+        child: EmptyStateWidget(
+          title: isNetwork ? 'নেটওয়ার্ক সংযোগ নেই' : 'একটি ত্রুটি ঘটেছে',
+          subtitle: isNetwork 
+              ? 'অনুগ্রহ করে আপনার ইন্টারনেট সংযোগটি পরীক্ষা করে আবার চেষ্টা করুন।'
+              : 'অ্যাপ্লিকেশনটিতে একটি সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+          icon: isNetwork ? Icons.wifi_off_rounded : Icons.bug_report_rounded,
+          onRetry: () {
+            try {
+              final container = ProviderScope.containerOf(context);
+              container.invalidate(userProfileProvider);
+              container.invalidate(myLeaderboardProvider);
+              container.invalidate(studentCurriculumProvider);
+              container.invalidate(studentQbCurriculumProvider);
+            } catch (_) {
+              // Fallback
+            }
+            setState(() {});
+          },
+        ),
+      ),
+    );
+  }
 }

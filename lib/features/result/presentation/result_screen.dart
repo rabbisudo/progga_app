@@ -36,6 +36,7 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
         'type': eq.question.type,
         'marks': eq.question.marks,
         'tags': eq.question.tags,
+        'hasExplanation': eq.question.hasExplanation ?? false,
         'options': eq.question.options.map((opt) => opt.toJson()).toList(),
         'explanations': eq.question.explanations?.map((exp) => exp.toJson()).toList() ?? [],
         'subQuestions': eq.question.subQuestions?.map((subQ) => {
@@ -49,6 +50,7 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
           'type': subQ.type,
           'marks': subQ.marks,
           'tags': subQ.tags,
+          'hasExplanation': subQ.hasExplanation ?? false,
           'options': subQ.options.map((opt) => opt.toJson()).toList(),
           'explanations': subQ.explanations?.map((exp) => exp.toJson()).toList() ?? [],
         }).toList(),

@@ -39,6 +39,46 @@ class HiveService {
     return Hive.box(settingsBoxName);
   }
 
+  Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {
+    return source.map((key, value) {
+      if (value is Map) {
+        return MapEntry(key.toString(), recursivelyCastMap(value));
+      } else if (value is List) {
+        return MapEntry(
+          key.toString(),
+          value.map((item) {
+            if (item is Map) {
+              return recursivelyCastMap(item);
+            }
+            return item;
+          }).toList(),
+        );
+      }
+      return MapEntry(key.toString(), value);
+    });
+  }
+
+  List<dynamic>? getCachedList(String key) {
+    try {
+      final list = getSettingsBox().get(key);
+      if (list is List) {
+        return list.map((item) {
+          if (item is Map) {
+            return recursivelyCastMap(item);
+          }
+          return item;
+        }).toList();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> cacheList(String key, List<dynamic> list) async {
+    try {
+      await getSettingsBox().put(key, list);
+    } catch (_) {}
+  }
+
   Future<void> clearAll() async {
     await getPracticeBox().clear();
     await getSettingsBox().clear();

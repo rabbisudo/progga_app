@@ -5,16 +5,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/storage/hive_service.dart';
 import '../domain/auth_state.dart';
 import 'package:dio/dio.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final SecureStorageService _storage;
   final ApiClient _apiClient;
+  final HiveService _hiveService;
 
   AuthNotifier(
     this._storage,
-    this._apiClient, [
+    this._apiClient,
+    this._hiveService, [
     AuthState initialState = const AuthState.initial(),
   ]) : super(initialState) {
     _apiClient.onUnauthenticated = forceLogout;
@@ -43,12 +46,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
           accessToken: token,
         );
       } else {
+        if (response.statusCode == 401 || response.statusCode == 403) {
+          await _storage.clearTokens();
+          state = const AuthState.initial();
+        } else {
+          final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
+          state = AuthState.authenticated(
+            user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
+            accessToken: token,
+          );
+        }
+      }
+    } catch (e) {
+      bool isNetworkError = false;
+      if (e is DioException) {
+        final errType = e.type;
+        if (errType == DioExceptionType.connectionTimeout ||
+            errType == DioExceptionType.sendTimeout ||
+            errType == DioExceptionType.receiveTimeout ||
+            errType == DioExceptionType.connectionError) {
+          isNetworkError = true;
+        }
+      }
+      if (isNetworkError) {
+        final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
+        state = AuthState.authenticated(
+          user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
+          accessToken: token,
+        );
+      } else {
         await _storage.clearTokens();
         state = const AuthState.initial();
       }
-    } catch (e) {
-      await _storage.clearTokens();
-      state = const AuthState.initial();
     }
   }
 
@@ -145,8 +174,9 @@ final authInitialStateProvider = Provider<AuthState>((ref) => const AuthState.in
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final storage = ref.watch(secureStorageServiceProvider);
   final client = ref.watch(apiClientProvider);
+  final hive = ref.watch(hiveServiceProvider);
   final initialState = ref.watch(authInitialStateProvider);
-  return AuthNotifier(storage, client, initialState);
+  return AuthNotifier(storage, client, hive, initialState);
 });
 
 

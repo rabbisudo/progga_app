@@ -64,6 +64,7 @@ _$QuestionModelImpl _$$QuestionModelImplFromJson(Map<String, dynamic> json) =>
       negativeMarks: (json['negativeMarks'] as num).toDouble(),
       status: json['status'] as String,
       type: json['type'] as String?,
+      hasExplanation: json['hasExplanation'] as bool?,
       options: (json['options'] as List<dynamic>)
           .map((e) => OptionModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -97,6 +98,7 @@ Map<String, dynamic> _$$QuestionModelImplToJson(_$QuestionModelImpl instance) =>
       'negativeMarks': instance.negativeMarks,
       'status': instance.status,
       'type': instance.type,
+      'hasExplanation': instance.hasExplanation,
       'options': instance.options,
       'explanations': instance.explanations,
       'subQuestions': instance.subQuestions,

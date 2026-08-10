@@ -51,6 +51,7 @@ class QuestionModel with _$QuestionModel {
     required double negativeMarks,
     required String status,
     String? type,
+    bool? hasExplanation,
     required List<OptionModel> options,
     List<ExplanationModel>? explanations,
     List<QuestionModel>? subQuestions,

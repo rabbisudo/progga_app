@@ -777,8 +777,8 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                 const SizedBox(height: 12),
                                 _buildSubOptionsGrid(subOptions, isDark, textColor),
                               ],
-                              if (subQ['hasExplanation'] == true ||
-                                  (subQ['explanations'] != null && (subQ['explanations'] as List).isNotEmpty)) ...[
+                              if (_showSolutions && (subQ['hasExplanation'] == true ||
+                                  (subQ['explanations'] != null && (subQ['explanations'] as List).isNotEmpty))) ...[
                                 const SizedBox(height: 10),
                                 _ExplanationCard(
                                   questionId: subQ['id']?.toString() ?? subQ['_id']?.toString() ?? '',
@@ -884,8 +884,8 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                         }),
                       ],
 
-                      if (qData['hasExplanation'] == true ||
-                          (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
+                      if (_showSolutions && (qData['hasExplanation'] == true ||
+                          (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty))) ...[
                         const SizedBox(height: 12),
                         _ExplanationCard(
                           questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',

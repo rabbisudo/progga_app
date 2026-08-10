@@ -460,6 +460,7 @@ mixin _$QuestionModel {
   double get negativeMarks => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   String? get type => throw _privateConstructorUsedError;
+  bool? get hasExplanation => throw _privateConstructorUsedError;
   List<OptionModel> get options => throw _privateConstructorUsedError;
   List<ExplanationModel>? get explanations =>
       throw _privateConstructorUsedError;
@@ -498,6 +499,7 @@ abstract class $QuestionModelCopyWith<$Res> {
       double negativeMarks,
       String status,
       String? type,
+      bool? hasExplanation,
       List<OptionModel> options,
       List<ExplanationModel>? explanations,
       List<QuestionModel>? subQuestions});
@@ -536,6 +538,7 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
     Object? negativeMarks = null,
     Object? status = null,
     Object? type = freezed,
+    Object? hasExplanation = freezed,
     Object? options = null,
     Object? explanations = freezed,
     Object? subQuestions = freezed,
@@ -621,6 +624,10 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as String?,
+      hasExplanation: freezed == hasExplanation
+          ? _value.hasExplanation
+          : hasExplanation // ignore: cast_nullable_to_non_nullable
+              as bool?,
       options: null == options
           ? _value.options
           : options // ignore: cast_nullable_to_non_nullable
@@ -666,6 +673,7 @@ abstract class _$$QuestionModelImplCopyWith<$Res>
       double negativeMarks,
       String status,
       String? type,
+      bool? hasExplanation,
       List<OptionModel> options,
       List<ExplanationModel>? explanations,
       List<QuestionModel>? subQuestions});
@@ -702,6 +710,7 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
     Object? negativeMarks = null,
     Object? status = null,
     Object? type = freezed,
+    Object? hasExplanation = freezed,
     Object? options = null,
     Object? explanations = freezed,
     Object? subQuestions = freezed,
@@ -787,6 +796,10 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
           ? _value.type
           : type // ignore: cast_nullable_to_non_nullable
               as String?,
+      hasExplanation: freezed == hasExplanation
+          ? _value.hasExplanation
+          : hasExplanation // ignore: cast_nullable_to_non_nullable
+              as bool?,
       options: null == options
           ? _value._options
           : options // ignore: cast_nullable_to_non_nullable
@@ -827,6 +840,7 @@ class _$QuestionModelImpl implements _QuestionModel {
       required this.negativeMarks,
       required this.status,
       this.type,
+      this.hasExplanation,
       required final List<OptionModel> options,
       final List<ExplanationModel>? explanations,
       final List<QuestionModel>? subQuestions})
@@ -884,6 +898,8 @@ class _$QuestionModelImpl implements _QuestionModel {
   final String status;
   @override
   final String? type;
+  @override
+  final bool? hasExplanation;
   final List<OptionModel> _options;
   @override
   List<OptionModel> get options {
@@ -914,7 +930,7 @@ class _$QuestionModelImpl implements _QuestionModel {
 
   @override
   String toString() {
-    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, boardId: $boardId, collegeId: $collegeId, varsityId: $varsityId, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, type: $type, options: $options, explanations: $explanations, subQuestions: $subQuestions)';
+    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, boardId: $boardId, collegeId: $collegeId, varsityId: $varsityId, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, type: $type, hasExplanation: $hasExplanation, options: $options, explanations: $explanations, subQuestions: $subQuestions)';
   }
 
   @override
@@ -952,6 +968,8 @@ class _$QuestionModelImpl implements _QuestionModel {
                 other.negativeMarks == negativeMarks) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.type, type) || other.type == type) &&
+            (identical(other.hasExplanation, hasExplanation) ||
+                other.hasExplanation == hasExplanation) &&
             const DeepCollectionEquality().equals(other._options, _options) &&
             const DeepCollectionEquality()
                 .equals(other._explanations, _explanations) &&
@@ -983,6 +1001,7 @@ class _$QuestionModelImpl implements _QuestionModel {
         negativeMarks,
         status,
         type,
+        hasExplanation,
         const DeepCollectionEquality().hash(_options),
         const DeepCollectionEquality().hash(_explanations),
         const DeepCollectionEquality().hash(_subQuestions)
@@ -1024,6 +1043,7 @@ abstract class _QuestionModel implements QuestionModel {
       required final double negativeMarks,
       required final String status,
       final String? type,
+      final bool? hasExplanation,
       required final List<OptionModel> options,
       final List<ExplanationModel>? explanations,
       final List<QuestionModel>? subQuestions}) = _$QuestionModelImpl;
@@ -1071,6 +1091,8 @@ abstract class _QuestionModel implements QuestionModel {
   String get status;
   @override
   String? get type;
+  @override
+  bool? get hasExplanation;
   @override
   List<OptionModel> get options;
   @override

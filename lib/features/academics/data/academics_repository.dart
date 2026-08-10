@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../domain/academics_model.dart';
 import '../../profile/presentation/profile_notifier.dart';
+import '../../../core/storage/hive_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
@@ -63,11 +64,23 @@ final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchStudentCurriculum(
-    classId: classId,
-    groupId: groupId,
-    userId: userId,
-  );
+  final hive = ref.read(hiveServiceProvider);
+
+  try {
+    final data = await repo.fetchStudentCurriculum(
+      classId: classId,
+      groupId: groupId,
+      userId: userId,
+    );
+    await hive.cacheList('cached_student_curriculum', data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList('cached_student_curriculum');
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
@@ -79,12 +92,24 @@ final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchStudentCurriculum(
-    classId: classId,
-    groupId: groupId,
-    userId: userId,
-    isQuestionBank: true,
-  );
+  final hive = ref.read(hiveServiceProvider);
+
+  try {
+    final data = await repo.fetchStudentCurriculum(
+      classId: classId,
+      groupId: groupId,
+      userId: userId,
+      isQuestionBank: true,
+    );
+    await hive.cacheList('cached_student_qb_curriculum', data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList('cached_student_qb_curriculum');
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 // Added Question Bank Series methods to AcademicsRepository
@@ -149,26 +174,64 @@ final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchQuestionBankSeries(
-    classId: profile.classId!,
-    subjectId: subjectId,
-  );
+  final hive = ref.read(hiveServiceProvider);
+  final cacheKey = 'cached_qb_series_sub_${profile.classId}_$subjectId';
+
+  try {
+    final data = await repo.fetchQuestionBankSeries(
+      classId: profile.classId!,
+      subjectId: subjectId,
+    );
+    await hive.cacheList(cacheKey, data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, idsStr) async {
   if (idsStr.isEmpty) return [];
   final ids = idsStr.split(',').where((id) => id.trim().isNotEmpty).toList();
-  if (ids.isEmpty) return [];
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchExamsByIds(ids);
+  final hive = ref.read(hiveServiceProvider);
+  final cacheKey = 'cached_qb_exams_${idsStr.hashCode}';
+
+  try {
+    final data = await repo.fetchExamsByIds(ids);
+    await hive.cacheList(cacheKey, data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbClassSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchQuestionBankSeries(
-    classId: classId,
-    subjectId: '',
-  );
+  final hive = ref.read(hiveServiceProvider);
+  final cacheKey = 'cached_qb_series_$classId';
+
+  try {
+    final data = await repo.fetchQuestionBankSeries(
+      classId: classId,
+      subjectId: '',
+    );
+    await hive.cacheList(cacheKey, data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbClassSectionsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
@@ -176,9 +239,22 @@ final qbClassSectionsProvider = FutureProvider.family.autoDispose<List<dynamic>,
   final groupId = profile?.groupId;
   final batchId = profile?.batchId;
   final repo = ref.watch(academicsRepositoryProvider);
-  return repo.fetchQuestionBankSections(
-    classId: classId,
-    groupId: groupId,
-    batchId: batchId,
-  );
+  final hive = ref.read(hiveServiceProvider);
+  final cacheKey = 'cached_qb_sections_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
+
+  try {
+    final data = await repo.fetchQuestionBankSections(
+      classId: classId,
+      groupId: groupId,
+      batchId: batchId,
+    );
+    await hive.cacheList(cacheKey, data);
+    return data;
+  } catch (e) {
+    final cached = hive.getCachedList(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
