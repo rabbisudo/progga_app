@@ -65,6 +65,27 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     });
   }
 
+  String _toBengaliDigit(dynamic number) {
+    if (number == null) return '০';
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bengali = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String str = '$number';
+    for (int i = 0; i < english.length; i++) {
+      str = str.replaceAll(english[i], bengali[i]);
+    }
+    return str;
+  }
+
+  String _formatMarks(dynamic marks) {
+    if (marks == null) return '';
+    final num val = num.tryParse(marks.toString()) ?? 0;
+    if (val == 0) return '';
+    if (val == val.toInt()) {
+      return ' [মান: ${_toBengaliDigit(val.toInt())}]';
+    }
+    return ' [মান: ${_toBengaliDigit(val)}]';
+  }
+
   List<ExamRenderItem> _computeRenderItems(List<ExamQuestionModel> questions) {
     final List<ExamRenderItem> items = [];
     int currentNumber = 1;
@@ -93,13 +114,26 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           final label = isCQ 
               ? '${(subIdx - 1) == 0 ? "ক" : (subIdx - 1) == 1 ? "খ" : (subIdx - 1) == 2 ? "গ" : (subIdx - 1) == 3 ? "ঘ" : "ঙ"}'
               : '$currentNumber.$subIdx';
+          
+          final subMarks = subQ.marks;
+          final marksStr = _formatMarks(subMarks);
+          String subQText = subQ.questionText;
+          if (marksStr.isNotEmpty) {
+            if (subQText.endsWith('</p>')) {
+              subQText = subQText.substring(0, subQText.length - 4) + marksStr + '</p>';
+            } else {
+              subQText = subQText + marksStr;
+            }
+          }
+          final updatedSubQ = subQ.copyWith(questionText: subQText);
+
           items.add(ExamRenderItem(
             examQuestion: ExamQuestionModel(
               id: '${eq.id}_sub_$subIdx',
               examId: eq.examId,
               questionId: subQ.id,
               sortOrder: eq.sortOrder,
-              question: subQ,
+              question: updatedSubQ,
             ),
             questionLabel: label,
           ));

@@ -40,6 +40,16 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     return str;
   }
 
+  String _formatMarks(dynamic marks) {
+    if (marks == null) return '';
+    final num val = num.tryParse(marks.toString()) ?? 0;
+    if (val == 0) return '';
+    if (val == val.toInt()) {
+      return ' [মান: ${_toBengaliDigit(val.toInt())}]';
+    }
+    return ' [মান: ${_toBengaliDigit(val)}]';
+  }
+
   // Get Bengali options label (ক, খ, গ, ঘ, ঙ, চ)
   String _getOptionLabel(int index) {
     const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
@@ -709,7 +719,17 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       ...(qData['subQuestions'] as List).asMap().entries.map((subEntry) {
                         final subIdx = subEntry.key;
                         final subQ = subEntry.value as Map<String, dynamic>;
-                        final subQText = subQ['questionText'] as String? ?? '';
+                        final rawSubQText = subQ['questionText'] as String? ?? '';
+                        final subMarks = subQ['marks'] ?? subQ['point'];
+                        final marksStr = _formatMarks(subMarks);
+                        String subQText = rawSubQText;
+                        if (marksStr.isNotEmpty) {
+                          if (subQText.endsWith('</p>')) {
+                            subQText = subQText.substring(0, subQText.length - 4) + marksStr + '</p>';
+                          } else {
+                            subQText = subQText + marksStr;
+                          }
+                        }
                         final subOptions = (subQ['options'] as List<dynamic>?) ?? [];
 
                         return Container(
