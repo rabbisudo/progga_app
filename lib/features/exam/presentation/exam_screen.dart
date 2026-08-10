@@ -76,6 +76,35 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     for (int i = 0; i < questions.length; i++) {
       final eq = questions[i];
       final q = eq.question;
+
+      // Handle MCQ_N sub-questions grouping
+      if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
+        lastPassage = null; // Reset passage grouping for standard passages
+        
+        items.add(ExamRenderItem(
+          passage: q.questionText,
+          passageNumber: '$currentNumber',
+          questionLabel: '',
+        ));
+
+        int subIdx = 1;
+        for (final subQ in q.subQuestions!) {
+          items.add(ExamRenderItem(
+            examQuestion: ExamQuestionModel(
+              id: '${eq.id}_sub_$subIdx',
+              examId: eq.examId,
+              questionId: subQ.id,
+              sortOrder: eq.sortOrder,
+              question: subQ,
+            ),
+            questionLabel: '$currentNumber.$subIdx',
+          ));
+          subIdx++;
+        }
+        currentNumber++;
+        continue;
+      }
+
       final match = passageRegex.firstMatch(q.questionText);
 
       if (match != null) {
@@ -1627,7 +1656,17 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       _cachedRenderItems = _computeRenderItems(state.exam!.questions);
     }
     final renderItems = _cachedRenderItems ?? [];
-    final totalQuestions = state.exam?.questions.length ?? 0;
+    int totalQuestions = 0;
+    if (state.exam != null) {
+      for (final eq in state.exam!.questions) {
+        final q = eq.question;
+        if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
+          totalQuestions += q.subQuestions!.length;
+        } else {
+          totalQuestions += 1;
+        }
+      }
+    }
 
     final answeredCount = state.selectedOptions.values.where((opt) => opt != null).length +
         _uploadedImages.values.where((list) => list.isNotEmpty).length;

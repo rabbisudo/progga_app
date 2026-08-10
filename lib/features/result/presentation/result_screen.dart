@@ -38,9 +38,33 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
         'tags': eq.question.tags,
         'options': eq.question.options.map((opt) => opt.toJson()).toList(),
         'explanations': eq.question.explanations?.map((exp) => exp.toJson()).toList() ?? [],
+        'subQuestions': eq.question.subQuestions?.map((subQ) => {
+          'id': subQ.id,
+          'subjectId': subQ.subjectId,
+          'chapterId': subQ.chapterId,
+          'topicId': subQ.topicId,
+          'questionText': subQ.questionText,
+          'imageKey': subQ.imageKey,
+          'latexFormula': subQ.latexFormula,
+          'type': subQ.type,
+          'marks': subQ.marks,
+          'tags': subQ.tags,
+          'options': subQ.options.map((opt) => opt.toJson()).toList(),
+          'explanations': subQ.explanations?.map((exp) => exp.toJson()).toList() ?? [],
+        }).toList(),
       },
     };
   }).toList();
+
+  int totalQuestionsCount = 0;
+  for (final eq in exam.questions) {
+    final q = eq.question;
+    if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
+      totalQuestionsCount += q.subQuestions!.length;
+    } else {
+      totalQuestionsCount += 1;
+    }
+  }
 
   return {
     'exam': {
@@ -52,10 +76,10 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
       'passMarks': exam.passMarks,
       'questions': mappedQuestions,
     },
-    'totalQuestions': exam.questions.length,
+    'totalQuestions': totalQuestionsCount,
     'correctCount': 0,
     'wrongCount': 0,
-    'skippedCount': exam.questions.length,
+    'skippedCount': totalQuestionsCount,
     'score': 0.0,
     'timeTaken': 0,
     'answers': [],

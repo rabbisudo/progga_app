@@ -463,6 +463,7 @@ mixin _$QuestionModel {
   List<OptionModel> get options => throw _privateConstructorUsedError;
   List<ExplanationModel>? get explanations =>
       throw _privateConstructorUsedError;
+  List<QuestionModel>? get subQuestions => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -498,7 +499,8 @@ abstract class $QuestionModelCopyWith<$Res> {
       String status,
       String? type,
       List<OptionModel> options,
-      List<ExplanationModel>? explanations});
+      List<ExplanationModel>? explanations,
+      List<QuestionModel>? subQuestions});
 }
 
 /// @nodoc
@@ -536,6 +538,7 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
     Object? type = freezed,
     Object? options = null,
     Object? explanations = freezed,
+    Object? subQuestions = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -626,6 +629,10 @@ class _$QuestionModelCopyWithImpl<$Res, $Val extends QuestionModel>
           ? _value.explanations
           : explanations // ignore: cast_nullable_to_non_nullable
               as List<ExplanationModel>?,
+      subQuestions: freezed == subQuestions
+          ? _value.subQuestions
+          : subQuestions // ignore: cast_nullable_to_non_nullable
+              as List<QuestionModel>?,
     ) as $Val);
   }
 }
@@ -660,7 +667,8 @@ abstract class _$$QuestionModelImplCopyWith<$Res>
       String status,
       String? type,
       List<OptionModel> options,
-      List<ExplanationModel>? explanations});
+      List<ExplanationModel>? explanations,
+      List<QuestionModel>? subQuestions});
 }
 
 /// @nodoc
@@ -696,6 +704,7 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
     Object? type = freezed,
     Object? options = null,
     Object? explanations = freezed,
+    Object? subQuestions = freezed,
   }) {
     return _then(_$QuestionModelImpl(
       id: null == id
@@ -786,6 +795,10 @@ class __$$QuestionModelImplCopyWithImpl<$Res>
           ? _value._explanations
           : explanations // ignore: cast_nullable_to_non_nullable
               as List<ExplanationModel>?,
+      subQuestions: freezed == subQuestions
+          ? _value._subQuestions
+          : subQuestions // ignore: cast_nullable_to_non_nullable
+              as List<QuestionModel>?,
     ));
   }
 }
@@ -815,10 +828,12 @@ class _$QuestionModelImpl implements _QuestionModel {
       required this.status,
       this.type,
       required final List<OptionModel> options,
-      final List<ExplanationModel>? explanations})
+      final List<ExplanationModel>? explanations,
+      final List<QuestionModel>? subQuestions})
       : _tags = tags,
         _options = options,
-        _explanations = explanations;
+        _explanations = explanations,
+        _subQuestions = subQuestions;
 
   factory _$QuestionModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$QuestionModelImplFromJson(json);
@@ -887,9 +902,19 @@ class _$QuestionModelImpl implements _QuestionModel {
     return EqualUnmodifiableListView(value);
   }
 
+  final List<QuestionModel>? _subQuestions;
+  @override
+  List<QuestionModel>? get subQuestions {
+    final value = _subQuestions;
+    if (value == null) return null;
+    if (_subQuestions is EqualUnmodifiableListView) return _subQuestions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   String toString() {
-    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, boardId: $boardId, collegeId: $collegeId, varsityId: $varsityId, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, type: $type, options: $options, explanations: $explanations)';
+    return 'QuestionModel(id: $id, questionText: $questionText, imageKey: $imageKey, latexFormula: $latexFormula, difficulty: $difficulty, subjectId: $subjectId, chapterId: $chapterId, topicId: $topicId, board: $board, boardId: $boardId, collegeId: $collegeId, varsityId: $varsityId, year: $year, source: $source, tags: $tags, estimatedTime: $estimatedTime, marks: $marks, negativeMarks: $negativeMarks, status: $status, type: $type, options: $options, explanations: $explanations, subQuestions: $subQuestions)';
   }
 
   @override
@@ -929,7 +954,9 @@ class _$QuestionModelImpl implements _QuestionModel {
             (identical(other.type, type) || other.type == type) &&
             const DeepCollectionEquality().equals(other._options, _options) &&
             const DeepCollectionEquality()
-                .equals(other._explanations, _explanations));
+                .equals(other._explanations, _explanations) &&
+            const DeepCollectionEquality()
+                .equals(other._subQuestions, _subQuestions));
   }
 
   @JsonKey(ignore: true)
@@ -957,7 +984,8 @@ class _$QuestionModelImpl implements _QuestionModel {
         status,
         type,
         const DeepCollectionEquality().hash(_options),
-        const DeepCollectionEquality().hash(_explanations)
+        const DeepCollectionEquality().hash(_explanations),
+        const DeepCollectionEquality().hash(_subQuestions)
       ]);
 
   @JsonKey(ignore: true)
@@ -997,7 +1025,8 @@ abstract class _QuestionModel implements QuestionModel {
       required final String status,
       final String? type,
       required final List<OptionModel> options,
-      final List<ExplanationModel>? explanations}) = _$QuestionModelImpl;
+      final List<ExplanationModel>? explanations,
+      final List<QuestionModel>? subQuestions}) = _$QuestionModelImpl;
 
   factory _QuestionModel.fromJson(Map<String, dynamic> json) =
       _$QuestionModelImpl.fromJson;
@@ -1046,6 +1075,8 @@ abstract class _QuestionModel implements QuestionModel {
   List<OptionModel> get options;
   @override
   List<ExplanationModel>? get explanations;
+  @override
+  List<QuestionModel>? get subQuestions;
   @override
   @JsonKey(ignore: true)
   _$$QuestionModelImplCopyWith<_$QuestionModelImpl> get copyWith =>

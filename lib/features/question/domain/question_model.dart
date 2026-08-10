@@ -53,6 +53,7 @@ class QuestionModel with _$QuestionModel {
     String? type,
     required List<OptionModel> options,
     List<ExplanationModel>? explanations,
+    List<QuestionModel>? subQuestions,
   }) = _QuestionModel;
 
   factory QuestionModel.fromJson(Map<String, dynamic> json) => _$QuestionModelFromJson(json);

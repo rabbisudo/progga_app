@@ -256,13 +256,24 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     if (state.exam == null) return list;
 
     for (final eq in state.exam!.questions) {
-      final qId = eq.question.id;
-      list.push({
-        'questionId': qId,
-        'selectedOptionId': state.selectedOptions[qId] ?? null,
-        'markedForReview': state.markedForReview[qId] ?? false,
-        'timeSpent': state.timeSpent[qId] ?? 0,
-      });
+      final q = eq.question;
+      if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
+        for (final subQ in q.subQuestions!) {
+          list.push({
+            'questionId': subQ.id,
+            'selectedOptionId': state.selectedOptions[subQ.id] ?? null,
+            'markedForReview': state.markedForReview[subQ.id] ?? false,
+            'timeSpent': state.timeSpent[subQ.id] ?? 0,
+          });
+        }
+      } else {
+        list.push({
+          'questionId': q.id,
+          'selectedOptionId': state.selectedOptions[q.id] ?? null,
+          'markedForReview': state.markedForReview[q.id] ?? false,
+          'timeSpent': state.timeSpent[q.id] ?? 0,
+        });
+      }
     }
     return list;
   }

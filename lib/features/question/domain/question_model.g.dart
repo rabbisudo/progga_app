@@ -70,6 +70,9 @@ _$QuestionModelImpl _$$QuestionModelImplFromJson(Map<String, dynamic> json) =>
       explanations: (json['explanations'] as List<dynamic>?)
           ?.map((e) => ExplanationModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      subQuestions: (json['subQuestions'] as List<dynamic>?)
+          ?.map((e) => QuestionModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$$QuestionModelImplToJson(_$QuestionModelImpl instance) =>
@@ -96,4 +99,5 @@ Map<String, dynamic> _$$QuestionModelImplToJson(_$QuestionModelImpl instance) =>
       'type': instance.type,
       'options': instance.options,
       'explanations': instance.explanations,
+      'subQuestions': instance.subQuestions,
     };

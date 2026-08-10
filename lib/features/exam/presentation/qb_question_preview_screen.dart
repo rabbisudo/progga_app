@@ -352,6 +352,138 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     );
   }
 
+  Widget _buildSubOptionsGrid(List<dynamic> optionsList, bool isDark, Color textColor) {
+    if (optionsList.isEmpty) return const SizedBox.shrink();
+
+    bool useSingleColumn = false;
+    for (var opt in optionsList) {
+      final optData = opt as Map<String, dynamic>;
+      final text = optData['optionText'] as String? ?? '';
+      final img = optData['imageKey'] as String?;
+      if (text.length > 30 || (img != null && img.isNotEmpty)) {
+        useSingleColumn = true;
+        break;
+      }
+    }
+
+    if (useSingleColumn) {
+      return Column(
+        children: optionsList.asMap().entries.map((entry) {
+          return _buildOptionRow(entry.key, entry.value as Map<String, dynamic>, isDark, textColor);
+        }).toList(),
+      );
+    }
+
+    final List<Widget> rows = [];
+    for (int i = 0; i < optionsList.length; i += 2) {
+      final leftOpt = optionsList[i] as Map<String, dynamic>;
+      final rightOpt = (i + 1 < optionsList.length) ? optionsList[i + 1] as Map<String, dynamic> : null;
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _buildOptionRow(i, leftOpt, isDark, textColor),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: rightOpt != null 
+                  ? _buildOptionRow(i + 1, rightOpt, isDark, textColor) 
+                  : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(children: rows);
+  }
+
+  Widget _buildOptionRow(int optIdx, Map<String, dynamic> optData, bool isDark, Color textColor) {
+    final optionText = optData['optionText'] as String? ?? '';
+    final optImageKey = optData['imageKey'] as String?;
+    final isCorrect = optData['isCorrect'] as bool? ?? false;
+    final showGreen = _showSolutions && isCorrect;
+
+    final label = _getOptionLabel(optIdx);
+
+    final bgColor = showGreen
+        ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+        : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
+
+    final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+    final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
+    final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: showGreen
+            ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
+            : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: labelBgColor,
+                  border: labelBorder,
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: labelTextColor,
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildMathWidget(
+                  optionText,
+                  textStyle: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
+                    color: showGreen
+                        ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                        : (isDark ? Colors.white70 : Colors.black87),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+              ),
+              if (showGreen)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF017A47),
+                  size: 16,
+                ),
+            ],
+          ),
+          if (optImageKey != null && optImageKey.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _buildQuestionImage(optImageKey),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSkeleton(bool isDark) {
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
@@ -572,107 +704,176 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       ),
                     ],
 
-                    if (qData['type']?.toString().toUpperCase() != 'WRITTEN') ...[
-                      const SizedBox(height: 16),
+                    if (qData['subQuestions'] != null && (qData['subQuestions'] as List).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      ...(qData['subQuestions'] as List).asMap().entries.map((subEntry) {
+                        final subIdx = subEntry.key;
+                        final subQ = subEntry.value as Map<String, dynamic>;
+                        final subQText = subQ['questionText'] as String? ?? '';
+                        final subOptions = (subQ['options'] as List<dynamic>?) ?? [];
 
-                      // Options List
-                      ...optionsList.asMap().entries.map((optEntry) {
-                        final optIdx = optEntry.key;
-                        final optData = optEntry.value as Map<String, dynamic>;
-                        final optionText = optData['optionText'] as String? ?? '';
-                        final optImageKey = optData['imageKey'] as String?;
-                        final isCorrect = optData['isCorrect'] as bool? ?? false;
-                        final showGreen = _showSolutions && isCorrect;
-
-                        final label = _getOptionLabel(optIdx);
-
-                        // Design styles for option cards
-                        final bgColor = showGreen
-                            ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
-                            : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
-
-                        final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
-                        final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
-                        final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: showGreen
-                                  ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
-                                  : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
+                        return Container(
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+                              width: 1.2,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 26,
-                                      height: 26,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: labelBgColor,
-                                        border: labelBorder,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Sub-question Header
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${_toBengaliDigit(index + 1)}.${_toBengaliDigit(subIdx + 1)}. ',
+                                    style: const TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF017A47),
+                                      fontFamily: 'Li Ador Noirrit',
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _buildMathWidget(
+                                      subQText,
+                                      textStyle: TextStyle(
+                                        fontSize: 14.5,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                        height: 1.4,
+                                        fontFamily: 'Li Ador Noirrit',
                                       ),
-                                      child: Center(
-                                        child: Text(
-                                          label,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: labelTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (subQ['type']?.toString().toUpperCase() != 'WRITTEN') ...[
+                                const SizedBox(height: 12),
+                                _buildSubOptionsGrid(subOptions, isDark, textColor),
+                              ],
+                              if (subQ['hasExplanation'] == true ||
+                                  (subQ['explanations'] != null && (subQ['explanations'] as List).isNotEmpty)) ...[
+                                const SizedBox(height: 10),
+                                _ExplanationCard(
+                                  questionId: subQ['id']?.toString() ?? subQ['_id']?.toString() ?? '',
+                                  remainingQuota: ref.watch(dailyQuotaProvider),
+                                  buildMath: _buildMathWidget,
+                                  buildImage: _buildQuestionImage,
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ] else ...[
+                      if (qData['type']?.toString().toUpperCase() != 'WRITTEN') ...[
+                        const SizedBox(height: 16),
+
+                        // Options List
+                        ...optionsList.asMap().entries.map((optEntry) {
+                          final optIdx = optEntry.key;
+                          final optData = optEntry.value as Map<String, dynamic>;
+                          final optionText = optData['optionText'] as String? ?? '';
+                          final optImageKey = optData['imageKey'] as String?;
+                          final isCorrect = optData['isCorrect'] as bool? ?? false;
+                          final showGreen = _showSolutions && isCorrect;
+
+                          final label = _getOptionLabel(optIdx);
+
+                          // Design styles for option cards
+                          final bgColor = showGreen
+                              ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+                              : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
+
+                          final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+                          final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
+                          final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: bgColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: showGreen
+                                    ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
+                                    : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 26,
+                                        height: 26,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: labelBgColor,
+                                          border: labelBorder,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            label,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: labelTextColor,
+                                              fontFamily: 'Li Ador Noirrit',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildMathWidget(
+                                          optionText,
+                                          textStyle: TextStyle(
+                                            fontSize: 13.5,
+                                            fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
+                                            color: showGreen
+                                                ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                                : (isDark ? Colors.white70 : Colors.black87),
                                             fontFamily: 'Li Ador Noirrit',
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildMathWidget(
-                                        optionText,
-                                        textStyle: TextStyle(
-                                          fontSize: 13.5,
-                                          fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
-                                          color: showGreen
-                                              ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
-                                              : (isDark ? Colors.white70 : Colors.black87),
-                                          fontFamily: 'Li Ador Noirrit',
+                                      if (showGreen)
+                                        const Icon(
+                                          Icons.check_circle_rounded,
+                                          color: Color(0xFF017A47),
+                                          size: 18,
                                         ),
-                                      ),
-                                    ),
-                                    if (showGreen)
-                                      const Icon(
-                                        Icons.check_circle_rounded,
-                                        color: Color(0xFF017A47),
-                                        size: 18,
-                                      ),
+                                    ],
+                                  ),
+                                  if (optImageKey != null && optImageKey.isNotEmpty) ...[
+                                    const SizedBox(height: 6),
+                                    _buildQuestionImage(optImageKey),
                                   ],
-                                ),
-                                if (optImageKey != null && optImageKey.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  _buildQuestionImage(optImageKey),
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
-                    ],
+                          );
+                        }),
+                      ],
 
-                    if (qData['hasExplanation'] == true ||
-                        (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
-                      const SizedBox(height: 12),
-                      _ExplanationCard(
-                        questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',
-                        remainingQuota: ref.watch(dailyQuotaProvider),
-                        buildMath: _buildMathWidget,
-                        buildImage: _buildQuestionImage,
-                      ),
+                      if (qData['hasExplanation'] == true ||
+                          (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
+                        const SizedBox(height: 12),
+                        _ExplanationCard(
+                          questionId: qData['id']?.toString() ?? qData['_id']?.toString() ?? '',
+                          remainingQuota: ref.watch(dailyQuotaProvider),
+                          buildMath: _buildMathWidget,
+                          buildImage: _buildQuestionImage,
+                        ),
+                      ],
                     ],
                   ],
                 ),
