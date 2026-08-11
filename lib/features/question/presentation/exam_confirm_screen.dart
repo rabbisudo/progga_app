@@ -23,6 +23,8 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
   late Map<String, int> _subjectQuestionCounts;
   late int _totalTimeMinutes;
   String _selectedQuestionType = 'MCQ';
+  final Set<String> _selectedStandardKeys = {};
+  bool _hasInitializedStandards = false;
 
   @override
   void initState() {
@@ -419,6 +421,48 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     final selectedChapterIds = chapterIdStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
     final selectedTopicIds = topicIdStr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toSet();
 
+    final uniqueTopicStandards = <String>{};
+    curriculumAsync.whenData((subjectsList) {
+      const allowedStandardNames = {'Engineering', 'Varsity', 'Medical', 'Academic', 'Main Book'};
+      for (var subject in subjectsList) {
+        final sId = subject['id'] as String? ?? '';
+        if (!selectedSubjectIds.contains(sId)) continue;
+        
+        final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+        for (var chapter in chapters) {
+          final topics = (chapter['topics'] as List<dynamic>?) ?? [];
+          for (var topic in topics) {
+            final tId = topic['id'] as String? ?? '';
+            if (selectedTopicIds.isEmpty || selectedTopicIds.contains(tId)) {
+              final stds = (topic['standards'] as List<dynamic>?)?.cast<String>() ?? [];
+              for (var std in stds) {
+                if (allowedStandardNames.contains(std)) {
+                  uniqueTopicStandards.add(std);
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!_hasInitializedStandards && uniqueTopicStandards.isNotEmpty) {
+      _hasInitializedStandards = true;
+      final standardKeyMap = {
+        'Engineering': 'engineering',
+        'Varsity': 'varsity',
+        'Medical': 'medical',
+        'Academic': 'hsc',
+        'Main Book': 'main_book',
+      };
+      for (var stdName in uniqueTopicStandards) {
+        final key = standardKeyMap[stdName];
+        if (key != null) {
+          _selectedStandardKeys.add(key);
+        }
+      }
+    }
+
     curriculumAsync.when(
       data: (subjectsList) {
         debugPrint('DEBUG: subjectsList count=${subjectsList.length}');
@@ -796,14 +840,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF017A47),
                                     borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF017A47).withOpacity(0.35),
-                                        blurRadius: 10,
-                                        spreadRadius: 1,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),
@@ -842,6 +878,94 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                         );
                       },
                     ),
+
+                    if (uniqueTopicStandards.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        'স্ট্যান্ডার্ডস',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Builder(
+                        builder: (context) {
+                          final standardsList = uniqueTopicStandards.toList();
+                          final totalItems = standardsList.length;
+                          if (totalItems == 0) return const SizedBox.shrink();
+
+                          final standardKeyMap = {
+                            'Engineering': 'engineering',
+                            'Varsity': 'varsity',
+                            'Medical': 'medical',
+                            'Academic': 'hsc',
+                            'Main Book': 'main_book',
+                          };
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 4.5,
+                            ),
+                            itemCount: totalItems,
+                            itemBuilder: (context, index) {
+                              final stdName = standardsList[index];
+                              final key = standardKeyMap[stdName] ?? '';
+                              final isSelected = _selectedStandardKeys.contains(key);
+
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                decoration: BoxDecoration(
+                                  color: isSelected 
+                                      ? const Color(0xFF017A47).withOpacity(0.04) 
+                                      : cardColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSelected 
+                                        ? const Color(0xFF017A47) 
+                                        : borderColor,
+                                    width: isSelected ? 1.5 : 1.0,
+                                  ),
+                                ),
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      if (isSelected) {
+                                        if (_selectedStandardKeys.length > 1) {
+                                          _selectedStandardKeys.remove(key);
+                                        }
+                                      } else {
+                                        _selectedStandardKeys.add(key);
+                                      }
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Center(
+                                    child: Text(
+                                      stdName,
+                                      style: TextStyle(
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected 
+                                            ? const Color(0xFF017A47) 
+                                            : textColor.withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
 
                     const SizedBox(height: 24),
 
@@ -1100,6 +1224,8 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                     'chapterId': joinedChapterIds.toString(),
                                   if (joinedTopicIds != null && joinedTopicIds.toString().isNotEmpty)
                                     'topicId': joinedTopicIds.toString(),
+                                  if (_selectedStandardKeys.isNotEmpty)
+                                    'quesStandard': _selectedStandardKeys.join(','),
                                 },
                               );
 

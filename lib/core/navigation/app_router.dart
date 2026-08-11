@@ -154,6 +154,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
           final qParams = state.uri.queryParameters;
+          final quesStandardParam = qParams['quesStandard'];
+          final quesStandardList = (quesStandardParam != null && quesStandardParam.isNotEmpty)
+              ? quesStandardParam.split(',').map((s) => s.trim()).toList()
+              : null;
           return ExamScreen(
             id: id,
             subjectId: qParams['subjectId'],
@@ -162,6 +166,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             limit: int.tryParse(qParams['limit'] ?? ''),
             timeMinutes: int.tryParse(qParams['time'] ?? ''),
             questionType: qParams['questionType'],
+            quesStandard: quesStandardList,
           );
         },
       ),

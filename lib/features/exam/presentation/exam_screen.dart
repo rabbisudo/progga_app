@@ -21,6 +21,7 @@ class ExamScreen extends ConsumerStatefulWidget {
   final int? limit;
   final int? timeMinutes;
   final String? questionType;
+  final List<String>? quesStandard;
 
   const ExamScreen({
     super.key,
@@ -31,6 +32,7 @@ class ExamScreen extends ConsumerStatefulWidget {
     this.limit,
     this.timeMinutes,
     this.questionType,
+    this.quesStandard,
   });
 
   @override
@@ -201,6 +203,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
             limit: widget.limit,
             timeMinutes: widget.timeMinutes,
             questionType: widget.questionType,
+            quesStandard: widget.quesStandard,
           );
     });
 

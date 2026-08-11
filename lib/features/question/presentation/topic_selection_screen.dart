@@ -593,7 +593,13 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                             } else {
                                               for (var tp in topics) {
                                                 if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
-                                                  topicNames.add(tp['name'] as String? ?? chName);
+                                                  final name = tp['name'] as String? ?? chName;
+                                                  final stds = (tp['standards'] as List<dynamic>?)?.cast<String>() ?? [];
+                                                  if (stds.isNotEmpty) {
+                                                    topicNames.add('$name (${stds.join(", ")})');
+                                                  } else {
+                                                    topicNames.add(name);
+                                                  }
                                                 }
                                               }
                                             }
@@ -878,10 +884,12 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     ...selTopics.map((t) {
                                       final tMap = t as Map<String, dynamic>;
                                       final tName = tMap['name'] ?? 'টপিক';
+                                      final stds = (tMap['standards'] as List<dynamic>?)?.cast<String>() ?? [];
+                                      final displayName = stds.isNotEmpty ? '$tName (${stds.join(", ")})' : tName;
                                       return Padding(
                                         padding: const EdgeInsets.only(left: 12.0, top: 2.0),
                                         child: Text(
-                                          tName,
+                                          displayName,
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
@@ -1067,15 +1075,34 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                 _buildCheckboxWidget(isTopicSelected),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Text(
-                                    topicName,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: isTopicSelected ? FontWeight.bold : FontWeight.w500,
-                                      color: isTopicSelected ? const Color(0xFF017A47) : textColor,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        topicName,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: isTopicSelected ? FontWeight.bold : FontWeight.w500,
+                                          color: isTopicSelected ? const Color(0xFF017A47) : textColor,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (topicMap['standards'] != null && (topicMap['standards'] as List).isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          (topicMap['standards'] as List).join(', '),
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: isTopicSelected
+                                                ? const Color(0xFF017A47).withOpacity(0.7)
+                                                : subTextColor.withOpacity(0.8),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(width: 8),
