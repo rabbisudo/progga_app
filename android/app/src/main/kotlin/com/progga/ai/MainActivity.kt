@@ -1,4 +1,4 @@
-package com.progga.ai
+package com.progga.app
 
 import io.flutter.embedding.android.FlutterActivity
 

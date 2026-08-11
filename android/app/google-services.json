@@ -7,18 +7,26 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:781610946731:android:2722f3e599393c935227ee",
+        "mobilesdk_app_id": "1:781610946731:android:c8dfec5b398393545227ee",
         "android_client_info": {
-          "package_name": "com.progga.ai"
+          "package_name": "com.progga.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "781610946731-jctcpoeddgph32r5o1mhfb0e7ak2bnn8.apps.googleusercontent.com",
+          "client_id": "781610946731-bpo3u6ue6bf0191j25upijo77avq4oev.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.progga.ai",
+            "package_name": "com.progga.app",
             "certificate_hash": "a4291d67fc4c9fbb63fd2afb270e657c1317bea7"
+          }
+        },
+        {
+          "client_id": "781610946731-jh0vtchlrtcprti9c1giuj7oolr4ns6t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.progga.app",
+            "certificate_hash": "5075ede37a5dcff6259799f06cd9c6d26ea406eb"
           }
         },
         {
