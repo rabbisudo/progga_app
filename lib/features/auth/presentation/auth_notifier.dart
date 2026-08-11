@@ -162,6 +162,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /**
+   * Permanently deletes user account, invalidates session, and signs out.
+   */
+  Future<void> deleteAccount() async {
+    try {
+      final token = await _storage.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        await _apiClient.dio.delete('/users/me');
+      }
+    } catch (_) {}
+
+    await _storage.clearTokens();
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+    } catch (_) {}
+    state = const AuthState.initial();
+  }
+
+  /**
    * Resets auth state back to initial.
    */
   void resetState() {

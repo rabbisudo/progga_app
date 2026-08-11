@@ -468,6 +468,69 @@ class ProfileScreen extends ConsumerWidget {
                         }
                       },
                     ),
+                    _buildFlatMenuTile(
+                      theme: theme,
+                      color: const Color(0xFFFF3B30),
+                      icon: Icons.delete_forever_rounded,
+                      title: 'অ্যাকাউন্ট ডিলিট করুন',
+                      isDark: isDark,
+                      onTap: () async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            title: Row(
+                              children: [
+                                const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'অ্যাকাউন্ট ডিলিট',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Li Ador Noirrit'),
+                                ),
+                              ],
+                            ),
+                            content: const Text(
+                              'আপনি কি নিশ্চিত যে আপনি স্থায়ীভাবে আপনার অ্যাকাউন্ট ডিলিট করতে চান? আপনার সব স্কোর, মক পরীক্ষার ইতিহাস এবং প্রগ্রেস চিরতরে মুছে যাবে এবং এটি আর ফিরে পাওয়া যাবে না।',
+                              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text(
+                                  'বাতিল',
+                                  style: TextStyle(color: Colors.grey, fontFamily: 'Li Ador Noirrit'),
+                                ),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.redAccent,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text(
+                                  'ডিলিট করুন',
+                                  style: TextStyle(color: Colors.white, fontFamily: 'Li Ador Noirrit'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (shouldDelete == true) {
+                          ref.invalidate(userProfileProvider);
+                          ref.invalidate(leaderboardProvider);
+                          ref.invalidate(practiceProvider);
+                          await ref.read(authProvider.notifier).deleteAccount();
+                          if (context.mounted) {
+                            context.go('/login');
+                          }
+                        }
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 32),
