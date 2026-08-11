@@ -351,8 +351,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                                           entry.avatarKey!.isNotEmpty)
                                       ? entry.avatarKey!
                                       : 'https://api.dicebear.com/9.x/avataaars/svg?seed=${Uri.encodeComponent(entry.userId)}';
-                                  final bool showPro =
-                                      (index % 2 == 1) || (name.length % 2 == 0);
+                                  final bool showPro = false;
 
                                   return Container(
                                     padding: const EdgeInsets.symmetric(
