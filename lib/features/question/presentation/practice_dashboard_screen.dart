@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/widgets/custom_avatar.dart';
@@ -52,6 +53,26 @@ class PracticeDashboardScreen extends ConsumerStatefulWidget {
 
 class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScreen> {
   int _currentNavIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestNotificationPermission();
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    try {
+      await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {

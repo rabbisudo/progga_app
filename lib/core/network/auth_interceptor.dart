@@ -20,6 +20,18 @@ class AuthInterceptor extends Interceptor {
   }
 
   @override
+  Future<void> onResponse(
+    Response response,
+    ResponseInterceptorHandler handler,
+  ) async {
+    final renewedToken = response.headers.value('x-renewed-token');
+    if (renewedToken != null && renewedToken.isNotEmpty) {
+      await _storageService.saveAccessToken(renewedToken);
+    }
+    return handler.next(response);
+  }
+
+  @override
   Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
