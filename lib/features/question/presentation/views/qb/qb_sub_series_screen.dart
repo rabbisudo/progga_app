@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../academics/data/academics_repository.dart';
 import '../../../../profile/presentation/profile_notifier.dart';
@@ -136,71 +135,12 @@ class QbSubSeriesScreen extends ConsumerWidget {
                 title = 'সংক্ষিপ্ত প্রশ্ন';
               }
 
-              final subLogo = subSeriesMap['logo']?.toString() ?? subSeriesMap['banner']?.toString() ?? '';
-
               void handleNavigation() {
                 if (hasNestedSubSeries) {
                   context.push('/qb-sub-series/$subIdStr', extra: subName);
                 } else {
                   context.push('/qb-exams/$subIdStr', extra: subName);
                 }
-              }
-
-              if (subLogo.isNotEmpty) {
-                return BouncingCard(
-                  onTap: handleNavigation,
-                  child: Card(
-                    elevation: 0,
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: subLogo,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey.shade50,
-                            child: const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF017A47),
-                                ),
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: cardColor,
-                            child: Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(icon, style: const TextStyle(fontSize: 32)),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    title,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
               }
 
               return BouncingCard(

@@ -56,148 +56,93 @@ class QbRootSeriesView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 12),
-          GridView.builder(
+          ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
             itemCount: sortedSubjectIds.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final subjectId = sortedSubjectIds[index];
               final subjectSeries = groupedBySubject[subjectId]!;
               final firstSeries = subjectSeries.first;
               final subjectObj = firstSeries['subject'] as Map<String, dynamic>?;
               final subjectName = subjectObj?['name']?.toString() ?? firstSeries['name']?.toString() ?? 'অন্যান্য';
-              final subjectIcon = subjectObj?['icon']?.toString();
-              final imageUrl = firstSeries['logo']?.toString() ?? firstSeries['banner']?.toString() ?? subjectObj?['imageUrl']?.toString() ?? '';
+              final subjectIcon = subjectObj?['icon']?.toString() ?? '📚';
               final count = _getCategoryCount(firstSeries);
 
+              void handleNavigation() {
+                final subSeriesList = (firstSeries['subSeries'] as List<dynamic>?) ?? [];
+
+                if (subSeriesList.isNotEmpty) {
+                  showQbSubSeriesBottomSheet(
+                    context: context,
+                    title: subjectName,
+                    subSeries: subSeriesList,
+                    isDark: isDark,
+                  );
+                } else {
+                  context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
+                }
+              }
+
+              final subSeriesListIds = (firstSeries['subSeries'] as List<dynamic>?) ?? [];
+              String subtitleText = 'অনুশীলন শুরু করুন';
+              if (subSeriesListIds.isNotEmpty) {
+                subtitleText = '${toBengaliDigits(subSeriesListIds.length.toString())}টি অধ্যায় বা ক্যাটাগরি';
+              } else if (count > 0) {
+                subtitleText = '${toBengaliDigits(count.toString())}টি পরীক্ষা রয়েছে';
+              }
+
               return BouncingCard(
-                onTap: () {
-                  final subSeriesListIds = (firstSeries['subSeries'] as List<dynamic>?) ?? [];
-                  final validSubSeries = subSeriesListIds.map((subId) {
-                    return seriesList.firstWhere(
-                      (s) => s['id']?.toString() == subId.toString(),
-                      orElse: () => null,
-                    );
-                  }).where((s) => s != null).toList();
-
-                  if (validSubSeries.isNotEmpty) {
-                    context.push('/qb-sub-series/${firstSeries['id']}', extra: subjectName);
-                  } else {
-                    context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
-                  }
-                },
-                child: Card(
-                  elevation: 0,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                onTap: handleNavigation,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
+                      width: 1,
+                    ),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    fit: StackFit.expand,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                  child: Row(
                     children: [
-                      if (imageUrl.isNotEmpty)
-                        Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                            if (wasSynchronouslyLoaded) return child;
-                            return AnimatedOpacity(
-                              opacity: frame == null ? 0 : 1,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeOut,
-                              child: child,
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              color: Colors.grey.shade50,
-                              child: const Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFF017A47),
-                                    ),
-                                  ),
-                                ),
-                            );
-                          },
-                          errorBuilder: (context, _, __) => Container(
-                            decoration: BoxDecoration(
-                              gradient: _getSubjectGradient(subjectName),
+                      // Middle Title & Subtitle
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              subjectName,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        )
-                      else
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: _getSubjectGradient(subjectName),
-                          ),
-                        ),
-
-                      if (imageUrl.isEmpty)
-                        Positioned(
-                          top: 16,
-                          left: 16,
-                          right: 16,
-                          child: _buildSubjectTitle(subjectName),
-                        ),
-                      if (imageUrl.isEmpty)
-                        Positioned(
-                          bottom: 16,
-                          right: 16,
-                          child: Text(
-                            subjectIcon ?? '📚',
-                            style: const TextStyle(fontSize: 48),
-                          ),
-                        ),
-
-                      Positioned(
-                        bottom: 16,
-                        left: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2C2C2C) : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitleText,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white60 : Colors.black45,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: 'Li Ador Noirrit',
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 14,
-                                color: isDark ? Colors.white70 : const Color(0xFF495057),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                toBengaliDigits('$count'),
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : const Color(0xFF212529),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Right Chevron Arrow
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: isDark ? Colors.white30 : Colors.grey.shade400,
+                        size: 16,
                       ),
                     ],
                   ),
@@ -208,84 +153,6 @@ class QbRootSeriesView extends StatelessWidget {
           const SizedBox(height: 100),
         ],
       ),
-    );
-  }
-
-  LinearGradient _getSubjectGradient(String subjectName) {
-    final name = subjectName.toLowerCase();
-    if (name.contains('পদার্থ') || name.contains('physics')) {
-      return const LinearGradient(
-        colors: [Color(0xFF001F4D), Color(0xFF004080)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (name.contains('উচ্চতর') || name.contains('higher')) {
-      return const LinearGradient(
-        colors: [Color(0xFF4D2600), Color(0xFF804000)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (name.contains('জীববিজ্ঞান') || name.contains('biology')) {
-      return const LinearGradient(
-        colors: [Color(0xFF330033), Color(0xFF660066)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (name.contains('রসায়ন') || name.contains('chemistry')) {
-      return const LinearGradient(
-        colors: [Color(0xFF1F003D), Color(0xFF400080)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (name.contains('গণিত') || name.contains('math')) {
-      return const LinearGradient(
-        colors: [Color(0xFF4D3D00), Color(0xFF806600)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (name.contains('ইংরেজী') || name.contains('english')) {
-      return const LinearGradient(
-        colors: [Color(0xFF4D0000), Color(0xFF800000)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    }
-    return const LinearGradient(
-      colors: [Color(0xFF003D24), Color(0xFF00804C)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-  }
-
-  Widget _buildSubjectTitle(String title) {
-    List<String> parts = [];
-    if (title.contains('ইংরেজী ১ম')) {
-      parts = ['ইংরেজী', '১ম পত্র'];
-    } else if (title.contains('ইংরেজী ২য়')) {
-      parts = ['ইংরেজী', '২য় পত্র'];
-    } else if (title.contains('English 1st')) {
-      parts = ['English', '1st Paper'];
-    } else if (title.contains('English 2nd')) {
-      parts = ['English', '2nd Paper'];
-    } else if (title.contains('বাংলা ১ম')) {
-      parts = ['বাংলা', '১ম পত্র'];
-    } else if (title.contains('বাংলা ২য়')) {
-      parts = ['বাংলা', '২য় পত্র'];
-    } else {
-      parts = [title];
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: parts.map((part) => Text(
-        part,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Li Ador Noirrit',
-          height: 1.15,
-        ),
-      )).toList(),
     );
   }
 

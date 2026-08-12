@@ -1,13 +1,13 @@
  import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../academics/data/academics_repository.dart';
 import '../../../profile/presentation/profile_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/bouncing_card.dart';
+import 'qb/qb_helpers.dart';
 
 class QuestionBankView extends ConsumerWidget {
   const QuestionBankView({super.key});
@@ -110,7 +110,7 @@ class QuestionBankView extends ConsumerWidget {
                   children: sectionsList.map((sec) {
                     final sectionMap = sec as Map<String, dynamic>;
                     final seriesList = (sectionMap['series'] as List<dynamic>?) ?? [];
-                    return _buildSeriesGrid(context, seriesList, isDark);
+                    return _buildSeriesList(context, seriesList, isDark);
                   }).toList(),
                 ),
               ),
@@ -118,12 +118,12 @@ class QuestionBankView extends ConsumerWidget {
           ),
         );
       },
-      loading: () => _buildSubjectGridSkeleton(),
+      loading: () => _buildSubjectListSkeleton(),
       error: (err, _) => _buildErrorWidget('ডাটা লোড করা যায়নি: $err'),
     );
   }
 
-  Widget _buildSeriesGrid(BuildContext context, List<dynamic> seriesList, bool isDark) {
+  Widget _buildSeriesList(BuildContext context, List<dynamic> seriesList, bool isDark) {
     if (seriesList.isEmpty) {
       return const EmptyStateWidget(
         title: 'কোনো সিরিজ পাওয়া যায়নি',
@@ -132,109 +132,110 @@ class QuestionBankView extends ConsumerWidget {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 100.0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.0,
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 100.0),
       itemCount: seriesList.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final seriesMap = seriesList[index] as Map<String, dynamic>;
         final name = seriesMap['name']?.toString() ?? '';
         final idStr = seriesMap['id']?.toString() ?? '';
-        final logo = seriesMap['logo']?.toString() ?? seriesMap['banner']?.toString() ?? '';
         final subSeriesCount = (seriesMap['subSeries'] as List<dynamic>?)?.length ?? 0;
 
         void handleNavigation() {
           if (subSeriesCount > 0) {
-            context.push('/qb-sub-series/$idStr', extra: name);
+            final subSeriesList = (seriesMap['subSeries'] as List<dynamic>?) ?? [];
+            showQbSubSeriesBottomSheet(
+              context: context,
+              title: name,
+              subSeries: subSeriesList,
+              isDark: isDark,
+            );
           } else {
             context.push('/qb-exams/$idStr', extra: name);
           }
         }
 
-        if (logo.isNotEmpty) {
-          return BouncingCard(
-            onTap: handleNavigation,
-            child: Card(
-              elevation: 0,
-              margin: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: logo,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey.shade50,
-                      child: const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF017A47),
-                          ),
-                        ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.teal.shade50,
-                      child: Center(
-                        child: Text(
-                          name,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Color(0xFF017A47),
-                            fontFamily: 'Li Ador Noirrit',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Removed bottom dark gradient and title overlay to let the full banner show cleanly
-                ],
-              ),
-            ),
-          );
+        int itemsCount = subSeriesCount;
+        if (itemsCount == 0) {
+          final labelNameMap = Map<String, dynamic>.from(seriesMap['labelName'] as Map? ?? {});
+          if (labelNameMap.isNotEmpty) {
+            for (final val in labelNameMap.values) {
+              if (val is List) itemsCount += val.length;
+            }
+          }
+        }
+        if (itemsCount == 0) {
+          final examsStr = seriesMap['exams']?.toString() ?? '';
+          if (examsStr.isNotEmpty) {
+            itemsCount = examsStr.split(',').where((x) => x.trim().isNotEmpty).length;
+          }
+        }
+
+        String subtitleText = 'অনুশীলন শুরু করুন';
+        if (subSeriesCount > 0) {
+          subtitleText = '${toBengaliDigits(subSeriesCount.toString())}টি অধ্যায় বা ক্যাটাগরি';
+        } else if (itemsCount > 0) {
+          subtitleText = '${toBengaliDigits(itemsCount.toString())}টি পরীক্ষা রয়েছে';
         }
 
         return BouncingCard(
           onTap: handleNavigation,
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.teal.shade50,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: Text(
-                name,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : const Color(0xFF017A47),
-                  fontFamily: 'Li Ador Noirrit',
-                ),
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
+                width: 1,
               ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            child: Row(
+              children: [
+                // Middle Title & Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitleText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white60 : Colors.black45,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Right Chevron Arrow
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: isDark ? Colors.white30 : Colors.grey.shade400,
+                  size: 16,
+                ),
+              ],
             ),
           ),
         );
       },
     );
   }
-
-
 
   Widget _buildErrorWidget(String message) {
     return Center(
@@ -249,54 +250,17 @@ class QuestionBankView extends ConsumerWidget {
     );
   }
 
-  LinearGradient _getGradientForSection(String name) {
-    final nameLower = name.toLowerCase();
-    if (nameLower.contains('physics') || nameLower.contains('পদার্থ')) {
-      return const LinearGradient(
-        colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (nameLower.contains('chemistry') || nameLower.contains('রসায়ন')) {
-      return const LinearGradient(
-        colors: [Color(0xFF1D976C), Color(0xFF93F9B9)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (nameLower.contains('math') || nameLower.contains('গণিত')) {
-      return const LinearGradient(
-        colors: [Color(0xFF3A6073), Color(0xFF3A6073)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    } else if (nameLower.contains('biology') || nameLower.contains('জীব')) {
-      return const LinearGradient(
-        colors: [Color(0xFF134E5E), Color(0xFF71B280)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
-    }
-    return const LinearGradient(
-      colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-  }
 
-  Widget _buildSubjectGridSkeleton() {
-    return GridView.builder(
+
+  Widget _buildSubjectListSkeleton() {
+    return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.0,
-      ),
-      itemCount: 4,
+      itemCount: 6,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) => const ShimmerSkeleton(
         width: double.infinity,
-        height: double.infinity,
-        borderRadius: 24,
+        height: 80,
+        borderRadius: 20,
       ),
     );
   }
