@@ -429,7 +429,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF017A47))),
+        loading: () => _buildSkeleton(context, isDark),
         error: (err, _) => Center(child: Text('ডাটা লোড করা যায়নি: $err')),
       ),
     );

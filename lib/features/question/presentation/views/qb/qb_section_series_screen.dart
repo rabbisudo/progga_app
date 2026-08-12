@@ -90,12 +90,18 @@ class QbSectionSeriesScreen extends ConsumerWidget {
                   final subSeriesList = (seriesMap['subSeries'] as List<dynamic>?) ?? [];
                   showQbSubSeriesBottomSheet(
                     context: context,
+                    ref: ref,
                     title: name,
                     subSeries: subSeriesList,
                     isDark: isDark,
                   );
                 } else {
-                  context.push('/qb-exams/$idStr', extra: name);
+                  final resolvedList = (seriesMap['examsResolvedList'] as List<dynamic>?) ?? [];
+                  if (resolvedList.length == 1) {
+                    context.push('/exam-preview/${resolvedList.first}', extra: name);
+                  } else {
+                    context.push('/qb-exams/$idStr', extra: name);
+                  }
                 }
               }
 

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/bouncing_card.dart';
 import 'qb_helpers.dart';
 
-class QbRootSeriesView extends StatelessWidget {
+class QbRootSeriesView extends ConsumerWidget {
   final List<dynamic> seriesList;
 
   const QbRootSeriesView({
@@ -12,7 +13,7 @@ class QbRootSeriesView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -77,12 +78,18 @@ class QbRootSeriesView extends StatelessWidget {
                 if (subSeriesList.isNotEmpty) {
                   showQbSubSeriesBottomSheet(
                     context: context,
+                    ref: ref,
                     title: subjectName,
                     subSeries: subSeriesList,
                     isDark: isDark,
                   );
                 } else {
-                  context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
+                  final resolvedList = (firstSeries['examsResolvedList'] as List<dynamic>?) ?? [];
+                  if (resolvedList.length == 1) {
+                    context.push('/exam-preview/${resolvedList.first}', extra: subjectName);
+                  } else {
+                    context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
+                  }
                 }
               }
 

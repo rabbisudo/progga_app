@@ -47,6 +47,7 @@ String getExamDateStr(dynamic createdAt, String examTitle) {
 
 void showQbSubSeriesBottomSheet({
   required BuildContext context,
+  required WidgetRef ref,
   required String title,
   required List<dynamic> subSeries,
   required bool isDark,
@@ -118,8 +119,8 @@ void showQbSubSeriesBottomSheet({
                 final subName = subMap['name']?.toString() ?? '';
                 final subIdStr = subMap['id']?.toString() ?? '';
 
-                final nestedSubIds = (subMap['subSeries'] as List<dynamic>?) ?? [];
-                final hasNestedSubSeries = nestedSubIds.isNotEmpty;
+                final nestedSubSeries = (subMap['subSeries'] as List<dynamic>?) ?? [];
+                final hasNestedSubSeries = nestedSubSeries.isNotEmpty;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
@@ -127,9 +128,20 @@ void showQbSubSeriesBottomSheet({
                     onTap: () {
                       Navigator.pop(context);
                       if (hasNestedSubSeries) {
-                        context.push('/qb-sub-series/$subIdStr', extra: subName);
+                        showQbSubSeriesBottomSheet(
+                          context: context,
+                          ref: ref,
+                          title: subName,
+                          subSeries: nestedSubSeries,
+                          isDark: isDark,
+                        );
                       } else {
-                        context.push('/qb-exams/$subIdStr', extra: subName);
+                        final resolvedList = (subMap['examsResolvedList'] as List<dynamic>?) ?? [];
+                        if (resolvedList.length == 1) {
+                          context.push('/exam-preview/${resolvedList.first}', extra: subName);
+                        } else {
+                          context.push('/qb-exams/$subIdStr', extra: subName);
+                        }
                       }
                     },
                     borderRadius: BorderRadius.circular(16),

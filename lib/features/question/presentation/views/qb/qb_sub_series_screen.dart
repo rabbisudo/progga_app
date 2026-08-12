@@ -69,13 +69,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
             return const Center(child: Text('সিরিজ পাওয়া যায়নি।'));
           }
 
-          final subSeriesListIds = (activeSeries['subSeries'] as List<dynamic>?) ?? [];
-          final validSubSeries = subSeriesListIds.map((subId) {
-            return seriesList.firstWhere(
-              (s) => s['id']?.toString() == subId.toString(),
-              orElse: () => null,
-            );
-          }).where((s) => s != null).toList();
+          final validSubSeries = (activeSeries['subSeries'] as List<dynamic>?) ?? [];
 
           if (validSubSeries.isEmpty) {
             return const Center(child: Text('কোনো উপ-সিরিজ পাওয়া যায়নি।'));

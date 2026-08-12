@@ -110,7 +110,7 @@ class QuestionBankView extends ConsumerWidget {
                   children: sectionsList.map((sec) {
                     final sectionMap = sec as Map<String, dynamic>;
                     final seriesList = (sectionMap['series'] as List<dynamic>?) ?? [];
-                    return _buildSeriesList(context, seriesList, isDark);
+                    return _buildSeriesList(context, ref, seriesList, isDark);
                   }).toList(),
                 ),
               ),
@@ -123,7 +123,7 @@ class QuestionBankView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSeriesList(BuildContext context, List<dynamic> seriesList, bool isDark) {
+  Widget _buildSeriesList(BuildContext context, WidgetRef ref, List<dynamic> seriesList, bool isDark) {
     if (seriesList.isEmpty) {
       return const EmptyStateWidget(
         title: 'কোনো সিরিজ পাওয়া যায়নি',
@@ -147,12 +147,18 @@ class QuestionBankView extends ConsumerWidget {
             final subSeriesList = (seriesMap['subSeries'] as List<dynamic>?) ?? [];
             showQbSubSeriesBottomSheet(
               context: context,
+              ref: ref,
               title: name,
               subSeries: subSeriesList,
               isDark: isDark,
             );
           } else {
-            context.push('/qb-exams/$idStr', extra: name);
+            final resolvedList = (seriesMap['examsResolvedList'] as List<dynamic>?) ?? [];
+            if (resolvedList.length == 1) {
+              context.push('/exam-preview/${resolvedList.first}', extra: name);
+            } else {
+              context.push('/qb-exams/$idStr', extra: name);
+            }
           }
         }
 
