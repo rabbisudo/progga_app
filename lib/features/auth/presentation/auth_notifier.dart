@@ -22,25 +22,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
   ]) : super(initialState) {
     _apiClient.onUnauthenticated = forceLogout;
     initialState.maybeWhen(
-      authenticated: (_, __) => null,
-      orElse: checkActiveSession,
+      authenticated: (_, __) {
+        // Run silent check in background on boot to ensure token validity and refresh profile
+        checkActiveSession(silent: true);
+      },
+      orElse: () => checkActiveSession(),
     );
   }
 
   /**
    * Evaluates if a token is present, and tries fetching profile data.
    */
-  Future<void> checkActiveSession() async {
+  Future<void> checkActiveSession({bool silent = false}) async {
     final token = await _storage.getAccessToken();
     if (token == null) {
       state = const AuthState.initial();
       return;
     }
 
-    state = const AuthState.loading();
+    if (!silent) {
+      state = const AuthState.loading();
+    }
     try {
       final response = await _apiClient.dio.get('/users/me');
       if (response.statusCode == 200) {
+        // Cache user profile
+        _hiveService.getSettingsBox().put('cached_user_profile', response.data);
+
         state = AuthState.authenticated(
           user: response.data,
           accessToken: token,
@@ -50,11 +58,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           await _storage.clearTokens();
           state = const AuthState.initial();
         } else {
-          final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
-          state = AuthState.authenticated(
-            user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
-            accessToken: token,
-          );
+          if (!silent) {
+            final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
+            state = AuthState.authenticated(
+              user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
+              accessToken: token,
+            );
+          }
         }
       }
     } catch (e) {
@@ -69,11 +79,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
         }
       }
       if (isNetworkError) {
-        final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
-        state = AuthState.authenticated(
-          user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
-          accessToken: token,
-        );
+        if (!silent) {
+          final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
+          state = AuthState.authenticated(
+            user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
+            accessToken: token,
+          );
+        }
       } else {
         await _storage.clearTokens();
         state = const AuthState.initial();
@@ -113,6 +125,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
         // Write tokens to secure vaults
         await _storage.saveAccessToken(accessToken);
+
+        // Cache user profile
+        _hiveService.getSettingsBox().put('cached_user_profile', user);
 
         state = AuthState.authenticated(
           user: user,
@@ -185,6 +200,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
    */
   void resetState() {
     state = const AuthState.initial();
+  }
+
+  /**
+   * Updates user data in authenticated state.
+   */
+  void updateUserData(Map<String, dynamic> userJson) {
+    state.maybeWhen(
+      authenticated: (user, token) {
+        state = AuthState.authenticated(
+          user: userJson,
+          accessToken: token,
+        );
+      },
+      orElse: () {},
+    );
   }
 }
 

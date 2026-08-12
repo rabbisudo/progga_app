@@ -85,7 +85,7 @@ void main() async {
             initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
             try {
               final dio = Dio(BaseOptions(
-                baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://192.168.31.101:3000/api/v1'),
+                baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'https://proggadata.twelvemind.com/api/v1'),
                 connectTimeout: const Duration(seconds: 4),
                 receiveTimeout: const Duration(seconds: 4),
                 headers: {

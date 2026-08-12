@@ -10,7 +10,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   @override
   FutureOr<UserData> build() async {
     final repository = ref.read(profileRepositoryProvider);
-    final authState = ref.read(authProvider);
+    final authState = ref.watch(authProvider);
     return authState.maybeWhen(
       authenticated: (user, token) {
         if (user.isNotEmpty) {
@@ -89,6 +89,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
           ? await repository.fetchMyProfile()
           : currentData.copyWith(profile: updatedProfile);
       _cacheProfile(data.toJson());
+      ref.read(authProvider.notifier).updateUserData(data.toJson());
       return data;
     });
     if (state.hasError) {
@@ -106,6 +107,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
           ? await repository.fetchMyProfile()
           : currentData.copyWith(profile: updatedProfile);
       _cacheProfile(resData.toJson());
+      ref.read(authProvider.notifier).updateUserData(resData.toJson());
       return resData;
     });
     if (state.hasError) {

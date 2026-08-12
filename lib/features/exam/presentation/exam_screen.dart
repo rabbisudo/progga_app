@@ -820,9 +820,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     if (cleanKey.startsWith('http://') || cleanKey.startsWith('https://')) {
       imageUrl = cleanKey;
     } else if (cleanKey.startsWith('/')) {
-      imageUrl = 'http://192.168.31.101:3000$cleanKey';
+      imageUrl = 'https://proggadata.twelvemind.com$cleanKey';
     } else {
-      imageUrl = 'http://192.168.31.101:3000/api/v1/questions/file/$cleanKey';
+      imageUrl = 'https://proggadata.twelvemind.com/api/v1/questions/file/$cleanKey';
     }
 
     return Padding(
