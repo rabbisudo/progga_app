@@ -31,16 +31,15 @@ void main() async {
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
-  // Run security checks (Root, Jailbreak, Developer Options, Emulator)
+  // Run security checks (Root, Jailbreak, Emulator)
   bool isDeviceSecure = true;
   try {
     final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
-    final developerMode = await FlutterJailbreakDetectionPlus.developerMode;
     final isRealDevice = await SafeDevice.isRealDevice;
     final isMockLocation = await SafeDevice.isMockLocation;
 
     if (kReleaseMode) {
-      if (jailbroken || developerMode || !isRealDevice || isMockLocation) {
+      if (jailbroken || !isRealDevice || isMockLocation) {
         isDeviceSecure = false;
       }
     }
@@ -61,10 +60,7 @@ void main() async {
     }),
     hiveInitFuture,
     Future(() async {
-      if (!isDeviceSecure) {
-        initialLocation = '/security-blocked';
-        return;
-      }
+      SecurityConfig.isDeviceSecure = isDeviceSecure;
       try {
         final token = await secureStorage.getAccessToken();
         if (token != null && token.isNotEmpty) {

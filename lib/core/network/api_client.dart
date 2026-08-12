@@ -142,6 +142,27 @@ class DeviceInfoInterceptor extends Interceptor {
   }
 }
 
+class SecurityConfig {
+  static bool isDeviceSecure = true;
+}
+
+class SecurityInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (!SecurityConfig.isDeviceSecure) {
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          error: 'নিরাপত্তা ঝুঁকি রয়েছে: অনুগ্রহ করে রুট বা জেলব্রেক ডিভাইস পরিবর্তন করুন।',
+          type: DioExceptionType.cancel,
+        ),
+      );
+    } else {
+      handler.next(options);
+    }
+  }
+}
+
 class NetworkException implements Exception {
   final String message;
   final int? statusCode;
@@ -170,6 +191,7 @@ class ApiClient {
       },
     );
     configureDioSslPinning(dio);
+    dio.interceptors.add(SecurityInterceptor());
     dio.interceptors.add(HmacSigningInterceptor());
     dio.interceptors.add(DeviceInfoInterceptor());
     dio.interceptors.add(AuthInterceptor(
@@ -209,7 +231,7 @@ class ApiClient {
         }
         break;
       case DioExceptionType.cancel:
-        message = 'Request cancelled.';
+        message = error.error?.toString() ?? 'Request cancelled.';
         break;
       case DioExceptionType.connectionError:
         message = 'Network connection failed. Check your internet link.';

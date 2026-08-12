@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/secure_storage_service.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/auth_notifier.dart';
-import '../../features/auth/presentation/security_blocked_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/profile/presentation/personal_info_screen.dart';
 import '../../features/profile/presentation/my_reports_screen.dart';
@@ -49,11 +48,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final isLoggingIn = state.matchedLocation == '/login';
-      final isSecurityBlocked = state.matchedLocation == '/security-blocked';
-
-      if (isSecurityBlocked) {
-        return null;
-      }
 
       final isAuthenticated = authState.maybeWhen(
         authenticated: (_, __) => true,
@@ -73,10 +67,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/security-blocked',
-        builder: (context, state) => const SecurityBlockedScreen(),
-      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
