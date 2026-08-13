@@ -61,12 +61,14 @@ class QuestionBankView extends ConsumerWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 10, bottom: 6),
-                color: theme.scaffoldBackgroundColor,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300,
+                      width: 1.2,
+                    ),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TabBar(
@@ -76,13 +78,6 @@ class QuestionBankView extends ConsumerWidget {
                     indicator: BoxDecoration(
                       color: const Color(0xFF017A47),
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF017A47).withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 1.5),
-                        ),
-                      ],
                     ),
                     labelColor: Colors.white,
                     unselectedLabelColor: isDark ? Colors.white38 : Colors.black54,
