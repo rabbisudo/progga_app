@@ -60,7 +60,7 @@ class QuestionBankView extends ConsumerWidget {
               // Premium Dynamic Subject TabBar (Balanced size)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.only(top: 10, bottom: 6),
+                // padding: const EdgeInsets.only(top: 10, bottom: 6),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   padding: const EdgeInsets.all(4),
