@@ -195,10 +195,41 @@ class QuestionBankView extends ConsumerWidget {
                 color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
                 width: 1,
               ),
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.025),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
             child: Row(
               children: [
+                // Left dynamic gradient icon container
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: _getLeftIconGradient(index, isDark),
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getLeftIconGradient(index, isDark).colors.first.withOpacity(isDark ? 0.15 : 0.22),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    _getLeftIcon(index),
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
                 // Middle Title & Subtitle
                 Expanded(
                   child: Column(
@@ -215,25 +246,53 @@ class QuestionBankView extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitleText,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white60 : Colors.black45,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
+                      const SizedBox(height: 6),
+                      // Styled info badge
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: subSeriesCount > 0
+                                  ? const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08)
+                                  : const Color(0xFF1E88E5).withOpacity(isDark ? 0.16 : 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              subtitleText,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: subSeriesCount > 0
+                                    ? const Color(0xFF02A25F)
+                                    : const Color(0xFF1E88E5),
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Right Chevron Arrow
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: isDark ? Colors.white30 : Colors.grey.shade400,
-                  size: 16,
+                // Right Chevron Arrow with circular plate
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey.shade50,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: isDark ? Colors.white30 : Colors.grey.shade400,
+                    size: 18,
+                  ),
                 ),
               ],
             ),
@@ -269,5 +328,34 @@ class QuestionBankView extends ConsumerWidget {
         borderRadius: 20,
       ),
     );
+  }
+
+  LinearGradient _getLeftIconGradient(int index, bool isDark) {
+    final gradients = [
+      [const Color(0xFF00B09B), const Color(0xFF96C93D)],
+      [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
+      [const Color(0xFFF12711), const Color(0xFFF5AF19)],
+      [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
+      [const Color(0xFFF857A6), const Color(0xFFFF5858)],
+      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+    ];
+    final selected = gradients[index % gradients.length];
+    return LinearGradient(
+      colors: selected.map((c) => isDark ? c.withOpacity(0.85) : c).toList(),
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+  }
+
+  IconData _getLeftIcon(int index) {
+    final icons = [
+      Icons.menu_book_rounded,
+      Icons.school_rounded,
+      Icons.emoji_events_rounded,
+      Icons.workspace_premium_rounded,
+      Icons.assignment_rounded,
+      Icons.auto_stories_rounded,
+    ];
+    return icons[index % icons.length];
   }
 }
