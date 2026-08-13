@@ -182,175 +182,6 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
               ),
             ),
 
-            // My Subjects (আমার বিষয়সমূহ) Header & Horizontal List
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'আমার বিষয়সমূহ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => widget.onTabSelected(2), // Swapping to Mock Exam tab
-                    child: Row(
-                      children: [
-                        Text(
-                          'সবগুলো',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF017A47),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 10,
-                          color: const Color(0xFF017A47),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            SizedBox(
-              height: 105,
-              child: curriculumAsync.when(
-                data: (subjects) {
-                  if (subjects.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'কোনো বিষয় পাওয়া যায়নি',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: subjects.length,
-                    itemBuilder: (context, index) {
-                      final subject = subjects[index] as Map<String, dynamic>;
-                      final subjectName = subject['name'] ?? 'বিষয়';
-                      final rawIcon = subject['icon'] as String?;
-                      final rawImageUrl = subject['imageUrl'] as String?;
-
-                      final iconImageUrl = (rawIcon != null && (rawIcon.startsWith('http://') || rawIcon.startsWith('https://')))
-                          ? rawIcon
-                          : ((rawImageUrl != null && rawImageUrl.isNotEmpty && (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')))
-                              ? rawImageUrl
-                              : null);
-                      final emojiIcon = (rawIcon != null && !rawIcon.startsWith('http')) ? rawIcon : '📚';
-
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: BouncingCard(
-                          onTap: () {
-                            context.push(
-                              '/topic-selection/${subject['id']}',
-                              extra: subjectName,
-                            );
-                          },
-                          child: Container(
-                            width: 135,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.015),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: isDark 
-                                        ? const Color(0xFF017A47).withOpacity(0.12) 
-                                        : const Color(0xFF017A47).withOpacity(0.06),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Center(
-                                    child: iconImageUrl != null
-                                        ? Image.network(
-                                            iconImageUrl,
-                                            width: 18,
-                                            height: 18,
-                                            fit: BoxFit.contain,
-                                            errorBuilder: (context, error, stackTrace) => Text(
-                                              emojiIcon,
-                                              style: const TextStyle(fontSize: 16),
-                                            ),
-                                          )
-                                        : Text(
-                                            emojiIcon,
-                                            style: const TextStyle(fontSize: 16),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  subjectName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-                loading: () => ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: 4,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: ShimmerSkeleton(
-                      width: 135,
-                      height: 105,
-                      borderRadius: 20,
-                    ),
-                  ),
-                ),
-                error: (err, _) => Center(
-                  child: Text(
-                    'লোড ব্যর্থ হয়েছে',
-                    style: TextStyle(fontSize: 11, color: Colors.red[300]),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
             // 3. Premium Redesigned Leaderboard Card
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -360,16 +191,9 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+                    color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade200,
                     width: 1.2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.02),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
                 ),
                 child: Column(
                   children: [
@@ -390,6 +214,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: isDark ? Colors.white : Colors.black87,
+                                    fontFamily: 'Li Ador Noirrit',
                                   ),
                                 ),
                               ],
@@ -602,16 +427,9 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: gradientColors.last.withOpacity(isDark ? 0.15 : 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.6),
-                width: 1,
+                color: isDark ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.5),
+                width: 1.2,
               ),
             ),
             child: Column(
@@ -635,6 +453,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ],
@@ -690,21 +509,10 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isCurrentUser
-                ? (isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.2))
+                ? (isDark ? const Color(0xFF017A47).withOpacity(0.4) : const Color(0xFF017A47).withOpacity(0.25))
                 : (isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFECEFF1)),
-            width: 1.5,
+            width: 1.2,
           ),
-          boxShadow: isCurrentUser
-              ? [
-                  BoxShadow(
-                    color: isDark 
-                        ? const Color(0xFF017A47).withOpacity(0.04) 
-                        : const Color(0xFF017A47).withOpacity(0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  )
-                ]
-              : null,
         ),
         child: InkWell(
           onTap: () => context.push('/leaderboard'),
@@ -767,6 +575,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                       color: isCurrentUser 
                           ? const Color(0xFF017A47) 
                           : (isDark ? Colors.white : Colors.black87),
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
                 ),
@@ -776,6 +585,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                     color: const Color(0xFF017A47),
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ],
@@ -813,5 +623,23 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       default:
         return 'আয়রন লীগ';
     }
+  }
+
+  LinearGradient _getLeftIconGradient(int index, bool isDark) {
+    final gradients = [
+      [const Color(0xFF00B09B), const Color(0xFF96C93D)],
+      [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
+      [const Color(0xFFF12711), const Color(0xFFF5AF19)],
+      [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
+      [const Color(0xFFF857A6), const Color(0xFFFF5858)],
+      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+    ];
+    final selected = gradients[index % gradients.length];
+    final opacity = isDark ? 0.22 : 0.12;
+    return LinearGradient(
+      colors: selected.map((c) => c.withOpacity(opacity)).toList(),
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
   }
 }
