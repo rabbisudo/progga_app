@@ -75,6 +75,7 @@ class QuestionBankView extends ConsumerWidget {
                     isScrollable: sectionsList.length > 3,
                     dividerColor: Colors.transparent,
                     indicatorSize: TabBarIndicatorSize.tab,
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
                     indicator: BoxDecoration(
                       color: const Color(0xFF017A47),
                       borderRadius: BorderRadius.circular(20),

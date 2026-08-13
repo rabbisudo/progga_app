@@ -144,7 +144,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: _currentNavIndex == 0
           ? AppBar(
-              backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+              backgroundColor: Colors.transparent,
               elevation: 0,
               scrolledUnderElevation: 0,
               surfaceTintColor: Colors.transparent,
@@ -240,7 +240,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           : (_currentNavIndex == 3 || _currentNavIndex == 1
               ? null
               : AppBar(
-                  backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+                  backgroundColor: Colors.transparent,
                   elevation: 0,
                   scrolledUnderElevation: 0,
                   surfaceTintColor: Colors.transparent,

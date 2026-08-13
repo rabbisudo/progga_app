@@ -65,16 +65,11 @@ class MockExamListView extends ConsumerWidget {
           );
         }
 
-        return GridView.builder(
+        return ListView.separated(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 3.0,
-          ),
           itemCount: subjects.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final subject = subjects[index] as Map<String, dynamic>;
             final subjectName = subject['name'] ?? 'বিষয়';
@@ -95,68 +90,87 @@ class MockExamListView extends ConsumerWidget {
                   extra: subjectName,
                 );
               },
-              child: Card(
-                margin: EdgeInsets.zero,
-                elevation: 0,
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: isDark ? Colors.white.withOpacity(0.05) : const Color(0xFFECEFF1),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade200,
                     width: 1.2,
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isDark 
-                              ? const Color(0xFF017A47).withOpacity(0.12) 
-                              : const Color(0xFF017A47).withOpacity(0.06),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: iconImageUrl != null
-                              ? Image.network(
-                                  iconImageUrl,
-                                  width: 18,
-                                  height: 18,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Text(
-                                    emojiIcon,
-                                    style: const TextStyle(fontSize: 15),
-                                  ),
-                                )
-                              : Text(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: _getLeftIconGradient(index, isDark),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: iconImageUrl != null
+                            ? Image.network(
+                                iconImageUrl,
+                                width: 22,
+                                height: 22,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => Text(
                                   emojiIcon,
-                                  style: const TextStyle(fontSize: 15),
+                                  style: const TextStyle(fontSize: 18),
                                 ),
-                        ),
+                              )
+                            : Text(
+                                emojiIcon,
+                                style: const TextStyle(fontSize: 18),
+                              ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          subjectName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            subjectName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  "মক পরীক্ষা দিন",
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF02A25F),
+                                    fontFamily: 'Li Ador Noirrit',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 16,
-                        color: isDark ? Colors.grey[600] : Colors.grey[400],
-                      ),
-                    ],
-                  ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 20,
+                      color: isDark ? Colors.white30 : Colors.grey.shade400,
+                    ),
+                  ],
                 ),
               ),
             );
@@ -167,21 +181,34 @@ class MockExamListView extends ConsumerWidget {
   }
 
   Widget _buildExamSubjectGridSkeleton() {
-    return GridView.builder(
+    return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 3.0,
-      ),
-      itemCount: 8,
+      itemCount: 6,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) => const ShimmerSkeleton(
         width: double.infinity,
-        height: double.infinity,
-        borderRadius: 16,
+        height: 72,
+        borderRadius: 20,
       ),
+    );
+  }
+
+  LinearGradient _getLeftIconGradient(int index, bool isDark) {
+    final gradients = [
+      [const Color(0xFF00B09B), const Color(0xFF96C93D)],
+      [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
+      [const Color(0xFFF12711), const Color(0xFFF5AF19)],
+      [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
+      [const Color(0xFFF857A6), const Color(0xFFFF5858)],
+      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+    ];
+    final selected = gradients[index % gradients.length];
+    final opacity = isDark ? 0.22 : 0.12;
+    return LinearGradient(
+      colors: selected.map((c) => c.withOpacity(opacity)).toList(),
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
     );
   }
 }
