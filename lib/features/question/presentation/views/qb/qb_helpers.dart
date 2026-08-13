@@ -54,6 +54,7 @@ void showQbSubSeriesBottomSheet({
 }) {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -72,131 +73,116 @@ void showQbSubSeriesBottomSheet({
         );
       }
 
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Pull handle bar
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Pull handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Title
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontFamily: 'Li Ador Noirrit',
+                const SizedBox(height: 16),
+                // Title
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'অনুশীলনের বিভাগ নির্বাচন করুন',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                  fontFamily: 'Li Ador Noirrit',
+                const SizedBox(height: 4),
+                Text(
+                  'অনুশীলনের বিভাগ নির্বাচন করুন',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white60 : Colors.black54,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              // List of sub-series
-              ...subSeries.map((subObj) {
-                final subMap = subObj as Map<String, dynamic>;
-                final subName = subMap['name']?.toString() ?? '';
-                final subIdStr = subMap['id']?.toString() ?? '';
+                const SizedBox(height: 20),
+                // List of sub-series
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: subSeries.map((subObj) {
+                        final subMap = subObj as Map<String, dynamic>;
+                        final subName = subMap['name']?.toString() ?? '';
+                        final subIdStr = subMap['id']?.toString() ?? '';
 
-                final nestedSubSeries = (subMap['subSeries'] as List<dynamic>?) ?? [];
-                final hasNestedSubSeries = nestedSubSeries.isNotEmpty;
+                        final nestedSubSeries = (subMap['subSeries'] as List<dynamic>?) ?? [];
+                        final hasNestedSubSeries = nestedSubSeries.isNotEmpty;
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      if (hasNestedSubSeries) {
-                        showQbSubSeriesBottomSheet(
-                          context: context,
-                          ref: ref,
-                          title: subName,
-                          subSeries: nestedSubSeries,
-                          isDark: isDark,
-                        );
-                      } else {
-                        final resolvedList = (subMap['examsResolvedList'] as List<dynamic>?) ?? [];
-                        if (resolvedList.length == 1) {
-                          context.push('/exam-preview/${resolvedList.first}', extra: subName);
-                        } else {
-                          context.push('/qb-exams/$subIdStr', extra: subName);
-                        }
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF252528) : Colors.grey.shade50,
-                        border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
-                          width: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          // Glowing leading dot indicator
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF02A25F),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF02A25F).withOpacity(0.4),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 1),
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (hasNestedSubSeries) {
+                                showQbSubSeriesBottomSheet(
+                                  context: context,
+                                  ref: ref,
+                                  title: subName,
+                                  subSeries: nestedSubSeries,
+                                  isDark: isDark,
+                                );
+                              } else {
+                                final resolvedList = (subMap['examsResolvedList'] as List<dynamic>?) ?? [];
+                                if (resolvedList.length == 1) {
+                                  context.push('/exam-preview/${resolvedList.first}', extra: subName);
+                                } else {
+                                  context.push('/qb-exams/$subIdStr', extra: subName);
+                                }
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                              decoration: BoxDecoration(
+                                color: isDark ? const Color(0xFF252528) : Colors.grey.shade50,
+                                border: Border.all(
+                                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                                  width: 1,
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              subName,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                                fontFamily: 'Li Ador Noirrit',
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                subName,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
                               ),
                             ),
                           ),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: 18,
-                            color: isDark ? Colors.white30 : Colors.grey.shade400,
-                          ),
-                        ],
-                      ),
+                        );
+                      }).toList(),
                     ),
                   ),
-                );
-              }),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       );

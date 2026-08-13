@@ -243,7 +243,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                               context.pushReplacement('/exam-preview/$examId', extra: cleanTitle);
                             });
                           }
-                          return _buildSkeleton(context, isDark);
+                          return _buildSkeleton(context, isDark, showSearchAndTabs: false);
                         }
 
                         var filteredList = examsList;
@@ -420,7 +420,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                           },
                         );
                       },
-                      loading: () => _buildSkeleton(context, isDark),
+                      loading: () => _buildSkeleton(context, isDark, showSearchAndTabs: false),
                       error: (err, _) => Center(child: Text('পরীক্ষা লোড করতে ব্যর্থ হয়েছে: $err')),
                     );
                   },
@@ -429,70 +429,103 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
             ],
           );
         },
-        loading: () => _buildSkeleton(context, isDark),
+        loading: () => _buildSkeleton(context, isDark, showSearchAndTabs: true),
         error: (err, _) => Center(child: Text('ডাটা লোড করা যায়নি: $err')),
       ),
     );
   }
 
-  Widget _buildSkeleton(BuildContext context, bool isDark) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: 4,
-      shrinkWrap: true,
+  Widget _buildSkeleton(BuildContext context, bool isDark, {bool showSearchAndTabs = false}) {
+    return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const ShimmerSkeleton(
-                width: 180,
-                height: 16,
-                borderRadius: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (showSearchAndTabs) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: ShimmerSkeleton(
+                width: MediaQuery.of(context).size.width - 32,
+                height: 44,
+                borderRadius: 12,
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
-                  ),
+            ),
+            Container(
+              height: 38,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: const [
+                  ShimmerSkeleton(width: 55, height: 38, borderRadius: 12),
+                  SizedBox(width: 8),
+                  ShimmerSkeleton(width: 70, height: 38, borderRadius: 12),
+                  SizedBox(width: 8),
+                  ShimmerSkeleton(width: 60, height: 38, borderRadius: 12),
+                  SizedBox(width: 8),
+                  ShimmerSkeleton(width: 65, height: 38, borderRadius: 12),
                 ],
               ),
-            ],
+            ),
+          ],
+          ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: 4,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const ShimmerSkeleton(
+                      width: 180,
+                      height: 16,
+                      borderRadius: 4,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
