@@ -294,13 +294,6 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.015),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),

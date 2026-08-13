@@ -147,15 +147,6 @@ class QbSubSeriesScreen extends ConsumerWidget {
                       color: isDark ? Colors.white.withOpacity(0.08) : textColor.withOpacity(0.15), 
                       width: 1.5,
                     ),
-                    boxShadow: isDark
-                        ? []
-                        : [
-                            BoxShadow(
-                              color: textColor.withOpacity(0.08),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                   ),
                   padding: const EdgeInsets.all(12.0),
                   child: Column(

@@ -154,7 +154,6 @@ void showQbSubSeriesBottomSheet({
                             },
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
-                              width: double.infinity,
                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
                               decoration: BoxDecoration(
                                 color: isDark ? const Color(0xFF252528) : Colors.grey.shade50,
@@ -164,15 +163,42 @@ void showQbSubSeriesBottomSheet({
                                 ),
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: Text(
-                                subName,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                  fontFamily: 'Li Ador Noirrit',
-                                ),
+                              child: Row(
+                                children: [
+                                  // Glowing leading dot indicator
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF02A25F),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF02A25F).withOpacity(0.4),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      subName,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                        fontFamily: 'Li Ador Noirrit',
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    size: 18,
+                                    color: isDark ? Colors.white30 : Colors.grey.shade400,
+                                  ),
+                                ],
                               ),
                             ),
                           ),

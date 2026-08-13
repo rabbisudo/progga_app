@@ -195,41 +195,10 @@ class QuestionBankView extends ConsumerWidget {
                 color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
                 width: 1,
               ),
-              boxShadow: isDark
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.025),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
             child: Row(
               children: [
-                // Left dynamic gradient icon container
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: _getLeftIconGradient(index, isDark),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _getLeftIconGradient(index, isDark).colors.first.withOpacity(isDark ? 0.15 : 0.22),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    _getLeftIcon(index),
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 14),
                 // Middle Title & Subtitle
                 Expanded(
                   child: Column(
