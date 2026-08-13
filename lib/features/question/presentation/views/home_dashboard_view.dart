@@ -12,6 +12,8 @@ import '../../../../core/storage/hive_service.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/bouncing_card.dart';
 import '../widgets/banner_slider.dart';
+import '../widgets/spaced_repetition_widget.dart';
+import 'spaced_repetition_notifier.dart';
 
 final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
@@ -71,6 +73,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final leaderboardAsync = ref.watch(myLeaderboardProvider);
     final bannersAsync = ref.watch(activeBannersProvider);
     final curriculumAsync = ref.watch(studentCurriculumProvider);
+    final spacedCardsAsync = ref.watch(spacedRepetitionProvider);
 
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
@@ -180,6 +183,21 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   ),
                 ],
               ),
+            ),
+
+            // Spaced Repetition Card Widget
+            spacedCardsAsync.when(
+              data: (cards) {
+                if (cards.isEmpty) return const SizedBox.shrink();
+                return SpacedRepetitionWidget(
+                  cards: cards,
+                  onFinished: () {
+                    ref.read(spacedRepetitionProvider.notifier).refresh();
+                  },
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (err, _) => const SizedBox.shrink(),
             ),
 
             // 3. Premium Redesigned Leaderboard Card

@@ -73,6 +73,35 @@ class QuestionRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<List<dynamic>> fetchPendingSpacedRepetition() async {
+    try {
+      final response = await _apiClient.dio.get('/questions/spaced-repetition/pending');
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> submitSpacedRepetitionAttempt({
+    String? questionId,
+    String? qbQuestionId,
+    required bool isCorrect,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/questions/spaced-repetition/attempt',
+        data: {
+          if (questionId != null) 'questionId': questionId,
+          if (qbQuestionId != null) 'qbQuestionId': qbQuestionId,
+          'isCorrect': isCorrect,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final questionRepositoryProvider = Provider<QuestionRepository>((ref) {
