@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BannerSliderWidget extends StatefulWidget {
   final List<Map<String, dynamic>> banners;
@@ -98,12 +99,6 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                                 end: Alignment.bottomRight,
                               )
                             : null,
-                        image: hasImage
-                            ? DecorationImage(
-                                image: NetworkImage(imageUrl),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
@@ -114,7 +109,37 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                         ],
                       ),
                       child: hasImage
-                          ? const SizedBox.expand()
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientColors,
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: gradientColors,
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.error_outline, color: Colors.white),
+                                ),
+                              ),
+                            )
                           : Padding(
                               padding: const EdgeInsets.all(18),
                               child: Row(

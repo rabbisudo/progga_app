@@ -146,6 +146,59 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /**
+   * Submits an Email and Password login request.
+   */
+  Future<void> loginWithEmailAndPassword(String email, String password) async {
+    state = const AuthState.loading();
+    try {
+      final deviceUuid = await _storage.getOrGenerateDeviceUuid();
+      
+      String? fcmToken;
+      try {
+        fcmToken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        // Fallback if token retrieval fails (e.g. during developer local simulators)
+        fcmToken = null;
+      }
+
+      final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+      
+      final response = await _apiClient.dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+        'deviceUuid': deviceUuid,
+        'deviceOs': deviceOs,
+        'deviceToken': fcmToken,
+      });
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final accessToken = data['tokens']['accessToken'] as String;
+        final user = data['user'] as Map<String, dynamic>;
+
+        // Write tokens to secure vaults
+        await _storage.saveAccessToken(accessToken);
+
+        // Cache user profile
+        _hiveService.getSettingsBox().put('cached_user_profile', user);
+
+        state = AuthState.authenticated(
+          user: user,
+          accessToken: accessToken,
+        );
+      } else {
+        state = const AuthState.error(message: 'লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      }
+    } on DioException catch (dioErr) {
+      final networkErr = _apiClient.handleError(dioErr);
+      state = AuthState.error(message: networkErr.message);
+    } catch (e) {
+      debugPrint('Login exception: $e');
+      state = const AuthState.error(message: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    }
+  }
+
+  /**
    * Logs out user, invalidates JWT token on backend, and purges cached session data.
    */
   Future<void> logout() async {

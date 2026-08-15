@@ -366,7 +366,7 @@ class ProfileScreen extends ConsumerWidget {
                       icon: Icons.lock_outline_rounded,
                       title: user.password == null ? 'পাসওয়ার্ড সেট করুন' : 'পাসওয়ার্ড পরিবর্তন করুন',
                       isDark: isDark,
-                      onTap: () => _showPasswordUpdateDialog(context, ref, user.password == null),
+                      onTap: () => context.push('/change-password'),
                     ),
                     _buildFlatMenuTile(
                       theme: theme,

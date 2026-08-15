@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CustomAvatar extends StatelessWidget {
   final String? avatarUrl;
@@ -71,7 +72,7 @@ class CustomAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: bg,
-      backgroundImage: NetworkImage(cleanedUrl),
+      backgroundImage: CachedNetworkImageProvider(cleanedUrl),
       onBackgroundImageError: (exception, stackTrace) {
         // Handled internally by Flutter, falls back to child
       },
