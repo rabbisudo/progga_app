@@ -27,12 +27,12 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
           return cached;
         }
         return repository.fetchMyProfile().then((data) {
-          _cacheProfile(data.toJson());
+          _cacheProfile(_toMap(data));
           return data;
         });
       },
       orElse: () => repository.fetchMyProfile().then((data) {
-        _cacheProfile(data.toJson());
+        _cacheProfile(_toMap(data));
         return data;
       }),
     );
@@ -45,6 +45,13 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
     } catch (e) {
       // safe bypass
     }
+  }
+
+  Map<String, dynamic> _toMap(UserData data) {
+    return {
+      ...data.toJson(),
+      'profile': data.profile?.toJson(),
+    };
   }
 
   UserData? _loadCachedProfile() {
@@ -88,8 +95,8 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
       final data = currentData == null
           ? await repository.fetchMyProfile()
           : currentData.copyWith(profile: updatedProfile);
-      _cacheProfile(data.toJson());
-      ref.read(authProvider.notifier).updateUserData(data.toJson());
+      _cacheProfile(_toMap(data));
+      ref.read(authProvider.notifier).updateUserData(_toMap(data));
       return data;
     });
     if (state.hasError) {
@@ -106,9 +113,26 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
       final resData = currentData == null
           ? await repository.fetchMyProfile()
           : currentData.copyWith(profile: updatedProfile);
-      _cacheProfile(resData.toJson());
-      ref.read(authProvider.notifier).updateUserData(resData.toJson());
+      _cacheProfile(_toMap(resData));
+      ref.read(authProvider.notifier).updateUserData(_toMap(resData));
       return resData;
+    });
+    if (state.hasError) {
+      throw state.error!;
+    }
+  }
+
+  Future<void> setPassword({String? oldPassword, required String newPassword}) async {
+    final repository = ref.read(profileRepositoryProvider);
+    state = AsyncLoading<UserData>().copyWithPrevious(state);
+    state = await AsyncValue.guard(() async {
+      await repository.setPassword(oldPassword: oldPassword, newPassword: newPassword);
+      
+      // Fetch latest profile state so cached_user_profile is updated with the password field set
+      final data = await repository.fetchMyProfile();
+      _cacheProfile(_toMap(data));
+      ref.read(authProvider.notifier).updateUserData(_toMap(data));
+      return data;
     });
     if (state.hasError) {
       throw state.error!;

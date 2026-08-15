@@ -116,6 +116,7 @@ class UserData with _$UserData {
     required String id,
     required String email,
     required String username,
+    String? password,
     @Default('USER') String role,
     required bool isActive,
     required String createdAt,

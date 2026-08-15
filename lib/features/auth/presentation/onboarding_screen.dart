@@ -378,229 +378,241 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 140),
-            // 1. Speech Bubble
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFF1E88E5).withOpacity(0.15),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1E88E5).withOpacity(0.06),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      // 1. Speech Bubble
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: const Color(0xFF1E88E5).withOpacity(0.15),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF1E88E5).withOpacity(0.06),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: TypewriterText(
+                                text: speechText,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A237E), // deep indigo
+                                  letterSpacing: 0.1,
+                                ),
+                              ),
+                            ),
+                            // Speech bubble triangle pointing down
+                            Transform.translate(
+                              offset: const Offset(0, -6),
+                              child: Transform.rotate(
+                                angle: 0.785, // 45 degrees
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: const Color(0xFF1E88E5).withOpacity(0.15),
+                                        width: 1.5,
+                                      ),
+                                      right: BorderSide(
+                                        color: const Color(0xFF1E88E5).withOpacity(0.15),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: TypewriterText(
-                      text: speechText,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A237E), // deep indigo
-                        letterSpacing: 0.1,
                       ),
-                    ),
-                  ),
-                  // Speech bubble triangle pointing down
-                  Transform.translate(
-                    offset: const Offset(0, -6),
-                    child: Transform.rotate(
-                      angle: 0.785, // 45 degrees
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            bottom: BorderSide(
-                              color: const Color(0xFF1E88E5).withOpacity(0.15),
-                              width: 1.5,
-                            ),
-                            right: BorderSide(
-                              color: const Color(0xFF1E88E5).withOpacity(0.15),
-                              width: 1.5,
-                            ),
+                      const SizedBox(height: 10),
+                      // 2. Animated Mascot / Panda Videos
+                      if (_step == 0)
+                        Center(
+                          child: SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: _isSleepingInitialized && _sleepingController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _sleepingController!.value.size.width,
+                                        height: _sleepingController!.value.size.height,
+                                        child: VideoPlayer(_sleepingController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
                           ),
-                        ),
+                        )
+                      else if (_step == 1)
+                        Center(
+                          child: SizedBox(
+                            height: 260,
+                            width: 260,
+                            child: _isHappyInitialized && _happyController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _happyController!.value.size.width,
+                                        height: _happyController!.value.size.height,
+                                        child: VideoPlayer(_happyController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else if (_step == 2)
+                        Center(
+                          child: SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: _isCelebratingInitialized && _celebratingController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _celebratingController!.value.size.width,
+                                        height: _celebratingController!.value.size.height,
+                                        child: VideoPlayer(_celebratingController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else if (_step == 3)
+                        Center(
+                          child: SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: _isYawningInitialized && _yawningController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _yawningController!.value.size.width,
+                                        height: _yawningController!.value.size.height,
+                                        child: VideoPlayer(_yawningController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else if (_step == 4)
+                        Center(
+                          child: SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: _isScaredInitialized && _scaredController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _scaredController!.value.size.width,
+                                        height: _scaredController!.value.size.height,
+                                        child: VideoPlayer(_scaredController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else if (_step == 5)
+                        Center(
+                          child: SizedBox(
+                            height: 250,
+                            width: 250,
+                            child: _isPartyInitialized && _partyController != null
+                                ? ClipRect(
+                                    child: FittedBox(
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.center,
+                                      child: SizedBox(
+                                        width: _partyController!.value.size.width,
+                                        height: _partyController!.value.size.height,
+                                        child: VideoPlayer(_partyController!),
+                                      ),
+                                    ),
+                                  )
+                                : const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF1E88E5),
+                                      strokeWidth: 2.5,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else
+                        CheeroMascot(state: mascotState, isTalking: _isTalking),
+                      const Spacer(flex: 1),
+                      // 3. Dynamic options based on Step
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                        child: _buildStepContent(),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            // 2. Animated Mascot / Panda Videos
-            if (_step == 0)
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  width: 250,
-                  child: _isSleepingInitialized && _sleepingController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _sleepingController!.value.size.width,
-                              height: _sleepingController!.value.size.height,
-                              child: VideoPlayer(_sleepingController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else if (_step == 1)
-              Center(
-                child: SizedBox(
-                  height: 260,
-                  width: 260,
-                  child: _isHappyInitialized && _happyController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _happyController!.value.size.width,
-                              height: _happyController!.value.size.height,
-                              child: VideoPlayer(_happyController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else if (_step == 2)
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  width: 250,
-                  child: _isCelebratingInitialized && _celebratingController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _celebratingController!.value.size.width,
-                              height: _celebratingController!.value.size.height,
-                              child: VideoPlayer(_celebratingController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else if (_step == 3)
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  width: 250,
-                  child: _isYawningInitialized && _yawningController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _yawningController!.value.size.width,
-                              height: _yawningController!.value.size.height,
-                              child: VideoPlayer(_yawningController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else if (_step == 4)
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  width: 250,
-                  child: _isScaredInitialized && _scaredController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _scaredController!.value.size.width,
-                              height: _scaredController!.value.size.height,
-                              child: VideoPlayer(_scaredController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else if (_step == 5)
-              Center(
-                child: SizedBox(
-                  height: 250,
-                  width: 250,
-                  child: _isPartyInitialized && _partyController != null
-                      ? ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: _partyController!.value.size.width,
-                              height: _partyController!.value.size.height,
-                              child: VideoPlayer(_partyController!),
-                            ),
-                          ),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1E88E5),
-                            strokeWidth: 2.5,
-                          ),
-                        ),
-                ),
-              )
-            else
-              CheeroMascot(state: mascotState, isTalking: _isTalking),
-            const Spacer(flex: 1),
-            // 3. Dynamic options based on Step
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: _buildStepContent(),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

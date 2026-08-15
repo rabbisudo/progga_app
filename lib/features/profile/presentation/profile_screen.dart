@@ -362,6 +362,14 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     _buildFlatMenuTile(
                       theme: theme,
+                      color: const Color(0xFFFF9500),
+                      icon: Icons.lock_outline_rounded,
+                      title: user.password == null ? 'পাসওয়ার্ড সেট করুন' : 'পাসওয়ার্ড পরিবর্তন করুন',
+                      isDark: isDark,
+                      onTap: () => _showPasswordUpdateDialog(context, ref, user.password == null),
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
                       color: const Color(0xFF009688),
                       customIcon: SvgPicture.string(
                         _privacySvg,
@@ -539,6 +547,185 @@ class ProfileScreen extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showPasswordUpdateDialog(BuildContext context, WidgetRef ref, bool isFirstTime) {
+    final formKey = GlobalKey<FormState>();
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                isFirstTime ? 'পাসওয়ার্ড সেট করুন' : 'পাসওয়ার্ড পরিবর্তন করুন',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Li Ador Noirrit',
+                  fontSize: 18,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!isFirstTime) ...[
+                        TextFormField(
+                          controller: oldPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'বর্তমান পাসওয়ার্ড',
+                            labelStyle: const TextStyle(fontFamily: 'Li Ador Noirrit', fontSize: 13),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: brandTealColor, width: 2),
+                            ),
+                          ),
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty) {
+                              return 'বর্তমান পাসওয়ার্ড দিন';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextFormField(
+                        controller: newPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'নতুন পাসওয়ার্ড',
+                          labelStyle: const TextStyle(fontFamily: 'Li Ador Noirrit', fontSize: 13),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: brandTealColor, width: 2),
+                          ),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'নতুন পাসওয়ার্ড দিন';
+                          }
+                          if (val.trim().length < 6) {
+                            return 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: confirmPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'পাসওয়ার্ড নিশ্চিত করুন',
+                          labelStyle: const TextStyle(fontFamily: 'Li Ador Noirrit', fontSize: 13),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: brandTealColor, width: 2),
+                          ),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) {
+                            return 'পাসওয়ার্ডটি পুনরায় লিখুন';
+                          }
+                          if (val.trim() != newPasswordController.text.trim()) {
+                            return 'পাসওয়ার্ড দুটি মেলেনি';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.pop(context),
+                  child: Text(
+                    'বাতিল',
+                    style: TextStyle(
+                      fontFamily: 'Li Ador Noirrit',
+                      color: isDark ? Colors.white70 : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: brandTealColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+                          setState(() => isSaving = true);
+                          try {
+                            await ref.read(userProfileProvider.notifier).setPassword(
+                                  oldPassword: isFirstTime ? null : oldPasswordController.text.trim(),
+                                  newPassword: newPasswordController.text.trim(),
+                                );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'পাসওয়ার্ড সফলভাবে সেট হয়েছে',
+                                    style: TextStyle(fontFamily: 'Li Ador Noirrit'),
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setState(() => isSaving = false);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    e.toString().replaceAll('Exception:', '').trim(),
+                                    style: const TextStyle(fontFamily: 'Li Ador Noirrit'),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'সংরক্ষণ',
+                          style: TextStyle(
+                            fontFamily: 'Li Ador Noirrit',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

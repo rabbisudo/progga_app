@@ -34,6 +34,17 @@ class ProfileRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<void> setPassword({String? oldPassword, required String newPassword}) async {
+    try {
+      await _apiClient.dio.patch('/users/me/password', data: {
+        if (oldPassword != null && oldPassword.isNotEmpty) 'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      });
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {

@@ -952,6 +952,7 @@ mixin _$UserData {
   String get id => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String get username => throw _privateConstructorUsedError;
+  String? get password => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
@@ -975,6 +976,7 @@ abstract class $UserDataCopyWith<$Res> {
       {String id,
       String email,
       String username,
+      String? password,
       String role,
       bool isActive,
       String createdAt,
@@ -1002,6 +1004,7 @@ class _$UserDataCopyWithImpl<$Res, $Val extends UserData>
     Object? id = null,
     Object? email = null,
     Object? username = null,
+    Object? password = freezed,
     Object? role = null,
     Object? isActive = null,
     Object? createdAt = null,
@@ -1023,6 +1026,10 @@ class _$UserDataCopyWithImpl<$Res, $Val extends UserData>
           ? _value.username
           : username // ignore: cast_nullable_to_non_nullable
               as String,
+      password: freezed == password
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String?,
       role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
@@ -1079,6 +1086,7 @@ abstract class _$$UserDataImplCopyWith<$Res>
       {String id,
       String email,
       String username,
+      String? password,
       String role,
       bool isActive,
       String createdAt,
@@ -1105,6 +1113,7 @@ class __$$UserDataImplCopyWithImpl<$Res>
     Object? id = null,
     Object? email = null,
     Object? username = null,
+    Object? password = freezed,
     Object? role = null,
     Object? isActive = null,
     Object? createdAt = null,
@@ -1126,6 +1135,10 @@ class __$$UserDataImplCopyWithImpl<$Res>
           ? _value.username
           : username // ignore: cast_nullable_to_non_nullable
               as String,
+      password: freezed == password
+          ? _value.password
+          : password // ignore: cast_nullable_to_non_nullable
+              as String?,
       role: null == role
           ? _value.role
           : role // ignore: cast_nullable_to_non_nullable
@@ -1165,6 +1178,7 @@ class _$UserDataImpl implements _UserData {
       {required this.id,
       required this.email,
       required this.username,
+      this.password,
       this.role = 'USER',
       required this.isActive,
       required this.createdAt,
@@ -1185,6 +1199,8 @@ class _$UserDataImpl implements _UserData {
   final String email;
   @override
   final String username;
+  @override
+  final String? password;
   @override
   @JsonKey()
   final String role;
@@ -1228,7 +1244,7 @@ class _$UserDataImpl implements _UserData {
 
   @override
   String toString() {
-    return 'UserData(id: $id, email: $email, username: $username, role: $role, isActive: $isActive, createdAt: $createdAt, profile: $profile, streakHistory: $streakHistory, monthlyActiveDates: $monthlyActiveDates, frozenStreakDates: $frozenStreakDates)';
+    return 'UserData(id: $id, email: $email, username: $username, password: $password, role: $role, isActive: $isActive, createdAt: $createdAt, profile: $profile, streakHistory: $streakHistory, monthlyActiveDates: $monthlyActiveDates, frozenStreakDates: $frozenStreakDates)';
   }
 
   @override
@@ -1240,6 +1256,8 @@ class _$UserDataImpl implements _UserData {
             (identical(other.email, email) || other.email == email) &&
             (identical(other.username, username) ||
                 other.username == username) &&
+            (identical(other.password, password) ||
+                other.password == password) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
@@ -1261,6 +1279,7 @@ class _$UserDataImpl implements _UserData {
       id,
       email,
       username,
+      password,
       role,
       isActive,
       createdAt,
@@ -1288,6 +1307,7 @@ abstract class _UserData implements UserData {
       {required final String id,
       required final String email,
       required final String username,
+      final String? password,
       final String role,
       required final bool isActive,
       required final String createdAt,
@@ -1305,6 +1325,8 @@ abstract class _UserData implements UserData {
   String get email;
   @override
   String get username;
+  @override
+  String? get password;
   @override
   String get role;
   @override
