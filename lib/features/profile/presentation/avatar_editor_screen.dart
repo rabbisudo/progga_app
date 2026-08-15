@@ -389,7 +389,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       ref.invalidate(practiceProvider);
 
       if (mounted) {
-        context.pop();
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -441,7 +441,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         centerTitle: true,
         leading: CustomBackButton(
           color: isDark ? Colors.white : Colors.black87,
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Column(

@@ -175,7 +175,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       ref.invalidate(practiceProvider);
 
       if (mounted) {
-        context.pop();
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text(
@@ -226,7 +226,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         centerTitle: true,
         leading: CustomBackButton(
           color: isDark ? Colors.white : Colors.black87,
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: profileAsync.when(

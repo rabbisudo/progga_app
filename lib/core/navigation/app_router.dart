@@ -31,7 +31,11 @@ class RouterTransitionNotifier extends ChangeNotifier {
 
   RouterTransitionNotifier(this._ref) {
     _ref.listen(authProvider, (previous, next) {
-      notifyListeners();
+      final prevAuth = previous?.maybeWhen(authenticated: (_, __) => true, orElse: () => false) ?? false;
+      final nextAuth = next.maybeWhen(authenticated: (_, __) => true, orElse: () => false);
+      if (prevAuth != nextAuth) {
+        notifyListeners();
+      }
     });
   }
 }
