@@ -86,7 +86,12 @@ class QbSectionSeriesScreen extends ConsumerWidget {
               final subSeriesCount = (seriesMap['subSeries'] as List<dynamic>?)?.length ?? 0;
 
               void handleNavigation() {
-                if (subSeriesCount > 0) {
+                final nameLower = name.toLowerCase();
+                final isK = nameLower.contains('kbhandar') || nameLower.contains('ক ভাণ্ডার');
+                final isKh = nameLower.contains('khabhandar') || nameLower.contains('খ ভাণ্ডার');
+                if (isK || isKh) {
+                  context.push('/exam-preview/$idStr', extra: name);
+                } else if (subSeriesCount > 0) {
                   final subSeriesList = (seriesMap['subSeries'] as List<dynamic>?) ?? [];
                   showQbSubSeriesBottomSheet(
                     context: context,

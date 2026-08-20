@@ -74,8 +74,14 @@ class QbRootSeriesView extends ConsumerWidget {
 
               void handleNavigation() {
                 final subSeriesList = (firstSeries['subSeries'] as List<dynamic>?) ?? [];
+                final idStr = firstSeries['id']?.toString() ?? '';
+                final nameLower = subjectName.toLowerCase();
+                final isK = nameLower.contains('kbhandar') || nameLower.contains('ক ভাণ্ডার');
+                final isKh = nameLower.contains('khabhandar') || nameLower.contains('খ ভাণ্ডার');
 
-                if (subSeriesList.isNotEmpty) {
+                if (isK || isKh) {
+                  context.push('/exam-preview/$idStr', extra: subjectName);
+                } else if (subSeriesList.isNotEmpty) {
                   showQbSubSeriesBottomSheet(
                     context: context,
                     ref: ref,
@@ -88,7 +94,7 @@ class QbRootSeriesView extends ConsumerWidget {
                   if (resolvedList.length == 1) {
                     context.push('/exam-preview/${resolvedList.first}', extra: subjectName);
                   } else {
-                    context.push('/qb-exams/${firstSeries['id']}', extra: subjectName);
+                    context.push('/qb-exams/$idStr', extra: subjectName);
                   }
                 }
               }

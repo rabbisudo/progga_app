@@ -7,6 +7,7 @@ import '../../../../profile/presentation/profile_notifier.dart';
 import '../../../../../core/widgets/custom_back_button.dart';
 import '../../widgets/bouncing_card.dart';
 import '../../widgets/shimmer_skeleton.dart';
+import 'qb_helpers.dart';
 
 class QbSubSeriesScreen extends ConsumerWidget {
   final String seriesId;
@@ -60,10 +61,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
       ),
       body: seriesAsync.when(
         data: (seriesList) {
-          final activeSeries = seriesList.firstWhere(
-            (s) => s['id']?.toString() == seriesId,
-            orElse: () => null,
-          );
+          final activeSeries = findSeriesRecursively(seriesList, seriesId);
 
           if (activeSeries == null) {
             return const Center(child: Text('সিরিজ পাওয়া যায়নি।'));
@@ -89,10 +87,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
               // Check if this sub-series itself has sub-series (nested levels)
               final nestedSubIds = (subSeriesMap['subSeries'] as List<dynamic>?) ?? [];
               final validNested = nestedSubIds.map((subId) {
-                return seriesList.firstWhere(
-                  (s) => s['id']?.toString() == subId.toString(),
-                  orElse: () => null,
-                );
+                return findSeriesRecursively(seriesList, subId.toString());
               }).where((s) => s != null).toList();
               final hasNestedSubSeries = validNested.isNotEmpty;
 
@@ -130,7 +125,11 @@ class QbSubSeriesScreen extends ConsumerWidget {
               }
 
               void handleNavigation() {
-                if (hasNestedSubSeries) {
+                final isK = subNameLower.contains('kbhandar') || subNameLower.contains('ক ভাণ্ডার');
+                final isKh = subNameLower.contains('khabhandar') || subNameLower.contains('খ ভাণ্ডার');
+                if (isK || isKh) {
+                  context.push('/exam-preview/$subIdStr', extra: subName);
+                } else if (hasNestedSubSeries) {
                   context.push('/qb-sub-series/$subIdStr', extra: subName);
                 } else {
                   context.push('/qb-exams/$subIdStr', extra: subName);

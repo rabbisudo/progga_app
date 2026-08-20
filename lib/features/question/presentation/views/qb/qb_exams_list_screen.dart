@@ -69,10 +69,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
       ),
       body: seriesAsync.when(
         data: (seriesList) {
-          final activeSeries = seriesList.firstWhere(
-            (s) => s['id']?.toString() == widget.subSeriesId,
-            orElse: () => null,
-          );
+          final activeSeries = findSeriesRecursively(seriesList, widget.subSeriesId);
 
           if (activeSeries == null) {
             return const Center(child: Text('পরীক্ষা সিরিজ পাওয়া যায়নি।'));

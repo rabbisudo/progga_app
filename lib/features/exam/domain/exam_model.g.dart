@@ -11,7 +11,7 @@ _$ExamQuestionModelImpl _$$ExamQuestionModelImplFromJson(
     _$ExamQuestionModelImpl(
       id: json['id'] as String,
       examId: json['examId'] as String,
-      questionId: json['questionId'] as String,
+      questionId: json['questionId'] as String?,
       sortOrder: (json['sortOrder'] as num).toInt(),
       question:
           QuestionModel.fromJson(json['question'] as Map<String, dynamic>),

@@ -171,7 +171,7 @@ class NetworkException implements Exception {
   NetworkException({required this.message, this.statusCode, this.data});
 
   @override
-  String toString() => 'NetworkException: $message (Status: $statusCode)';
+  String toString() => message;
 }
 
 class ApiClient {
@@ -204,7 +204,7 @@ class ApiClient {
    * Helper that evaluates and normalizes client exception types.
    */
   NetworkException handleError(DioException error) {
-    String message = 'An unexpected connection error occurred';
+    String message = 'একটি অপ্রত্যাশিত নেটওয়ার্ক সমস্যা ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
     int? code = error.response?.statusCode;
     Map<String, dynamic>? responseData;
 
@@ -217,24 +217,24 @@ class ApiClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        message = 'Connection timeout. Check your network link stability.';
+        message = 'সংযোগের সময়সীমা পার হয়ে গেছে। অনুগ্রহ করে ইন্টারনেট সংযোগটি পরীক্ষা করুন।';
         break;
       case DioExceptionType.badResponse:
         if (code == 401) {
-          message = 'Authentication failed. Please login again.';
+          message = 'লগইন সেশন শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।';
         } else if (code == 403) {
-          message = 'Access forbidden. Verification permissions missing.';
+          message = 'প্রবেশাধিকার সংরক্ষিত। প্রয়োজনীয় পারমিশন নেই।';
         } else if (code == 404) {
-          message = 'Resource not found in target directories.';
+          message = 'অনুরোধকৃত তথ্যটি খুঁজে পাওয়া যায়নি।';
         } else if (code == 429) {
-          message = 'Too many requests. Please wait a moment.';
+          message = 'অতিরিক্ত অনুরোধ পাঠানো হয়েছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।';
         }
         break;
       case DioExceptionType.cancel:
-        message = error.error?.toString() ?? 'Request cancelled.';
+        message = 'অনুরোধ বাতিল করা হয়েছে।';
         break;
       case DioExceptionType.connectionError:
-        message = 'Network connection failed. Check your internet link.';
+        message = 'নেটওয়ার্ক সংযোগ ব্যর্থ হয়েছে। আপনার ইন্টারনেট চেক করুন।';
         break;
       default:
         break;

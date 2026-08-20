@@ -135,7 +135,12 @@ void showQbSubSeriesBottomSheet({
                           child: InkWell(
                             onTap: () {
                               Navigator.pop(context);
-                              if (hasNestedSubSeries) {
+                              final subNameLower = subName.toLowerCase();
+                              final isK = subNameLower.contains('kbhandar') || subNameLower.contains('ক ভাণ্ডার');
+                              final isKh = subNameLower.contains('khabhandar') || subNameLower.contains('খ ভাণ্ডার');
+                              if (isK || isKh) {
+                                context.push('/exam-preview/$subIdStr', extra: subName);
+                              } else if (hasNestedSubSeries) {
                                 showQbSubSeriesBottomSheet(
                                   context: context,
                                   ref: ref,
@@ -214,4 +219,22 @@ void showQbSubSeriesBottomSheet({
       );
     },
   );
+}
+
+Map<String, dynamic>? findSeriesRecursively(List<dynamic> list, String targetId) {
+  for (final item in list) {
+    if (item is Map<String, dynamic>) {
+      if (item['id']?.toString() == targetId) {
+        return item;
+      }
+      final subSeries = item['subSeries'];
+      if (subSeries is List) {
+        final found = findSeriesRecursively(subSeries, targetId);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+  }
+  return null;
 }

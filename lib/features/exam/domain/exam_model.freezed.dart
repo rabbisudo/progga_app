@@ -22,7 +22,7 @@ ExamQuestionModel _$ExamQuestionModelFromJson(Map<String, dynamic> json) {
 mixin _$ExamQuestionModel {
   String get id => throw _privateConstructorUsedError;
   String get examId => throw _privateConstructorUsedError;
-  String get questionId => throw _privateConstructorUsedError;
+  String? get questionId => throw _privateConstructorUsedError;
   int get sortOrder => throw _privateConstructorUsedError;
   QuestionModel get question => throw _privateConstructorUsedError;
 
@@ -41,7 +41,7 @@ abstract class $ExamQuestionModelCopyWith<$Res> {
   $Res call(
       {String id,
       String examId,
-      String questionId,
+      String? questionId,
       int sortOrder,
       QuestionModel question});
 
@@ -63,7 +63,7 @@ class _$ExamQuestionModelCopyWithImpl<$Res, $Val extends ExamQuestionModel>
   $Res call({
     Object? id = null,
     Object? examId = null,
-    Object? questionId = null,
+    Object? questionId = freezed,
     Object? sortOrder = null,
     Object? question = null,
   }) {
@@ -76,10 +76,10 @@ class _$ExamQuestionModelCopyWithImpl<$Res, $Val extends ExamQuestionModel>
           ? _value.examId
           : examId // ignore: cast_nullable_to_non_nullable
               as String,
-      questionId: null == questionId
+      questionId: freezed == questionId
           ? _value.questionId
           : questionId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -111,7 +111,7 @@ abstract class _$$ExamQuestionModelImplCopyWith<$Res>
   $Res call(
       {String id,
       String examId,
-      String questionId,
+      String? questionId,
       int sortOrder,
       QuestionModel question});
 
@@ -132,7 +132,7 @@ class __$$ExamQuestionModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? examId = null,
-    Object? questionId = null,
+    Object? questionId = freezed,
     Object? sortOrder = null,
     Object? question = null,
   }) {
@@ -145,10 +145,10 @@ class __$$ExamQuestionModelImplCopyWithImpl<$Res>
           ? _value.examId
           : examId // ignore: cast_nullable_to_non_nullable
               as String,
-      questionId: null == questionId
+      questionId: freezed == questionId
           ? _value.questionId
           : questionId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       sortOrder: null == sortOrder
           ? _value.sortOrder
           : sortOrder // ignore: cast_nullable_to_non_nullable
@@ -167,7 +167,7 @@ class _$ExamQuestionModelImpl implements _ExamQuestionModel {
   const _$ExamQuestionModelImpl(
       {required this.id,
       required this.examId,
-      required this.questionId,
+      this.questionId,
       required this.sortOrder,
       required this.question});
 
@@ -179,7 +179,7 @@ class _$ExamQuestionModelImpl implements _ExamQuestionModel {
   @override
   final String examId;
   @override
-  final String questionId;
+  final String? questionId;
   @override
   final int sortOrder;
   @override
@@ -229,7 +229,7 @@ abstract class _ExamQuestionModel implements ExamQuestionModel {
   const factory _ExamQuestionModel(
       {required final String id,
       required final String examId,
-      required final String questionId,
+      final String? questionId,
       required final int sortOrder,
       required final QuestionModel question}) = _$ExamQuestionModelImpl;
 
@@ -241,7 +241,7 @@ abstract class _ExamQuestionModel implements ExamQuestionModel {
   @override
   String get examId;
   @override
-  String get questionId;
+  String? get questionId;
   @override
   int get sortOrder;
   @override

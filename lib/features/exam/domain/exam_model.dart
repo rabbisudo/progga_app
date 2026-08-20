@@ -9,7 +9,7 @@ class ExamQuestionModel with _$ExamQuestionModel {
   const factory ExamQuestionModel({
     required String id,
     required String examId,
-    required String questionId,
+    String? questionId,
     required int sortOrder,
     required QuestionModel question,
   }) = _ExamQuestionModel;
