@@ -1195,13 +1195,6 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                             if (nextLabel == null) {
                               _activeGapQuestionId = null;
                             }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('সবগুলো শূন্যস্থান পূরণ করা হয়েছে!'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
                           }
                         }
                         

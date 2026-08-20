@@ -1244,34 +1244,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
 
     try {
       final repo = ref.read(examRepositoryProvider);
-      final res = await repo.toggleBookmark(widget.questionId);
-      final message = res['message'] as String? ?? (_isBookmarked ? 'প্রশ্নটি বুকমার্কে সংরক্ষিত হয়েছে!' : 'বুকমার্ক থেকে সরিয়ে ফেলা হয়েছে');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(
-                  _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_remove_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  message,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            backgroundColor: _isBookmarked ? const Color(0xFF017A47) : Colors.grey.shade800,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
+      await repo.toggleBookmark(widget.questionId);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -1390,36 +1363,14 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                       onPressed: controller.text.trim().length >= 20
                           ? () async {
                               final detailsText = controller.text.trim();
-                              final messenger = ScaffoldMessenger.of(context);
                               Navigator.pop(context);
 
                               try {
                                 final repo = ref.read(examRepositoryProvider);
-                                final res = await repo.reportQuestion(
+                                await repo.reportQuestion(
                                   widget.questionId,
                                   selectedReason,
                                   details: detailsText.isNotEmpty ? detailsText : null,
-                                );
-                                final msg = res['message'] as String? ?? 'আপনার রিপোর্ট সফলভাবে জমা হয়েছে! ধন্যবাদ।';
-
-                                messenger.hideCurrentSnackBar();
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Row(
-                                      children: [
-                                        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          msg,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                    backgroundColor: const Color(0xFF017A47),
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: const Duration(seconds: 3),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
                                 );
                               } catch (e) {
                                 // Ignore
