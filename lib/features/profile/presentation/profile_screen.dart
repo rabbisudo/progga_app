@@ -104,31 +104,39 @@ class ProfileScreen extends ConsumerWidget {
     required VoidCallback onTap,
     bool isDark = false,
   }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(isDark ? 0.15 : 0.1),
-          borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      child: ListTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: customIcon ?? Icon(icon, size: 18, color: color),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 14.5,
-          color: isDark ? Colors.white : Colors.black87,
-          fontFamily: 'Li Ador Noirrit',
+        splashColor: color.withOpacity(isDark ? 0.16 : 0.08),
+        hoverColor: color.withOpacity(isDark ? 0.10 : 0.05),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(isDark ? 0.15 : 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: customIcon ?? Icon(icon, size: 18, color: color),
         ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14.5,
+            color: isDark ? Colors.white : Colors.black87,
+            fontFamily: 'Li Ador Noirrit',
+          ),
+        ),
+        trailing: trailing ?? Icon(
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: isDark ? Colors.white30 : Colors.grey.shade400,
+        ),
+        onTap: onTap,
       ),
-      trailing: trailing ?? Icon(
-        Icons.chevron_right_rounded,
-        size: 20,
-        color: isDark ? Colors.white30 : Colors.grey.shade400,
-      ),
-      onTap: onTap,
     );
   }
 

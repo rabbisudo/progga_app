@@ -265,9 +265,13 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       bottomNavigationBar: PremiumBottomNavBar(
         selectedIndex: _currentNavIndex,
         onDestinationSelected: (index) {
-          setState(() {
-            _currentNavIndex = index;
-          });
+          if (index == 3) {
+            context.push('/profile');
+          } else {
+            setState(() {
+              _currentNavIndex = index;
+            });
+          }
         },
       ),
     );
