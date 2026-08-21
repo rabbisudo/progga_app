@@ -281,16 +281,21 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                         ),
                         child: Row(
                           children: [
-                            const Text('🚀', style: TextStyle(fontSize: 18)),
+                            Icon(
+                              Icons.tips_and_updates_outlined,
+                              size: 18,
+                              color: isDark ? Colors.amber[200] : const Color(0xFFE65100),
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'কুইজ বা মক পরীক্ষায় অংশ নিয়ে XP অর্জন করুন এবং লিডারবোর্ডে এগিয়ে যান!',
+                                'কুইজ বা মক পরীক্ষায় অংশ নিয়ে পয়েন্ট অর্জন করুন এবং লিডারবোর্ডে এগিয়ে যান!',
                                 style: TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
                                   color: isDark ? Colors.amber[200] : const Color(0xFFE65100),
                                   height: 1.3,
+                                  fontFamily: 'Li Ador Noirrit',
                                 ),
                               ),
                             ),
@@ -320,7 +325,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                       _buildLeaderboardRow(
                         name: userName,
                         score: userScore,
-                        avatarText: '😎',
+                        avatarText: userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                         avatarBg: const Color(0xFF81C784),
                         isCurrentUser: true,
                         rank: 1,
@@ -351,50 +356,32 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                               LeaderboardPlayer(
                                 name: userName,
                                 score: userScore,
-                                avatarText: '😎',
+                                avatarText: userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                                 avatarBg: const Color(0xFF81C784),
                                 isCurrentUser: true,
                               ),
                             );
                           }
 
-                          // Sort and assign rankings
+                          // Sort all players descending by points
                           allPlayers.sort((a, b) => b.score.compareTo(a.score));
-                          
-                          // Create key mapping for user ranking
-                          final Map<String, int> ranksMap = {};
-                          for (int i = 0; i < allPlayers.length; i++) {
-                            ranksMap[allPlayers[i].name] = i + 1;
-                          }
 
-                          int myIndex = allPlayers.indexWhere((p) => p.isCurrentUser);
-
-                          List<LeaderboardPlayer> displayPlayers = [];
-                          if (allPlayers.length <= 3) {
-                            displayPlayers = allPlayers;
-                          } else if (myIndex == 0) {
-                            displayPlayers = [allPlayers[0], allPlayers[1], allPlayers[2]];
-                          } else if (myIndex == allPlayers.length - 1) {
-                            displayPlayers = [allPlayers[myIndex - 2], allPlayers[myIndex - 1], allPlayers[myIndex]];
-                          } else if (myIndex != -1) {
-                            displayPlayers = [allPlayers[myIndex - 1], allPlayers[myIndex], allPlayers[myIndex + 1]];
-                          } else {
-                            displayPlayers = allPlayers.take(3).toList();
-                          }
+                          // Always display true Top 3 ranking players (1, 2, 3)
+                          final top3Players = allPlayers.take(3).toList();
 
                           return Column(
-                            children: displayPlayers.map((player) {
-                              final int rank = ranksMap[player.name] ?? 4;
+                            children: List.generate(top3Players.length, (i) {
+                              final player = top3Players[i];
                               return _buildLeaderboardRow(
                                 name: player.name,
                                 score: player.score,
                                 avatarText: player.avatarText,
                                 avatarBg: player.avatarBg,
                                 isCurrentUser: player.isCurrentUser,
-                                rank: rank,
+                                rank: i + 1,
                                 context: context,
                               );
-                            }).toList(),
+                            }),
                           );
                         }
                       ),
@@ -496,26 +483,41 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget rankWidget;
+    Color rankBg;
+    Color rankTextColor;
     if (rank == 1) {
-      rankWidget = const Text('🥇', style: TextStyle(fontSize: 18));
+      rankBg = isDark ? const Color(0xFF2A2315) : const Color(0xFFFEF3C7);
+      rankTextColor = const Color(0xFFD97706);
     } else if (rank == 2) {
-      rankWidget = const Text('🥈', style: TextStyle(fontSize: 18));
+      rankBg = isDark ? const Color(0xFF1E2428) : const Color(0xFFF1F5F9);
+      rankTextColor = const Color(0xFF64748B);
     } else if (rank == 3) {
-      rankWidget = const Text('🥉', style: TextStyle(fontSize: 18));
+      rankBg = isDark ? const Color(0xFF2A1E17) : const Color(0xFFFFEDD5);
+      rankTextColor = const Color(0xFFB45309);
     } else {
-      rankWidget = Container(
-        width: 24,
-        alignment: Alignment.center,
+      rankBg = isDark ? const Color(0xFF1E2922) : const Color(0xFFF3F6F4);
+      rankTextColor = isDark ? Colors.white60 : const Color(0xFF4B5563);
+    }
+
+    rankWidget = Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: rankBg,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
         child: Text(
           _toBengaliDigits(rank.toString()),
           style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: rankTextColor,
+            fontFamily: 'Li Ador Noirrit',
           ),
         ),
-      );
-    }
+      ),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -598,11 +600,11 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   ),
                 ),
                 Text(
-                  '${_toBengaliDigits(score.toString())} XP',
-                  style: TextStyle(
+                  '${_toBengaliDigits(score.toString())} পয়েন্ট',
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: const Color(0xFF017A47),
+                    fontSize: 12.5,
+                    color: Color(0xFF017A47),
                     fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
