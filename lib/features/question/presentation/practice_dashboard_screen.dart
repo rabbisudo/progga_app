@@ -179,8 +179,8 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                           const SizedBox(width: 8),
                           Text(
                             profileAsync.maybeWhen(
-                              data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 1}'),
-                              orElse: () => '১',
+                              data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 0}'),
+                              orElse: () => '০',
                             ),
                             style: const TextStyle(
                               color: Color(0xFF017A47),
