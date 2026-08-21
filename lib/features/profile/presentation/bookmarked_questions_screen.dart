@@ -63,7 +63,6 @@ class BookmarkedQuestionsScreen extends ConsumerStatefulWidget {
 class _BookmarkedQuestionsScreenState
     extends ConsumerState<BookmarkedQuestionsScreen> {
   String _selectedSubject = 'ALL';
-  final Set<String> _expandedExplanationIds = {};
 
   String _toBengaliDigits(String input) {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -330,8 +329,6 @@ class _BookmarkedQuestionsScreenState
                       final String? latexFormula = q['latexFormula'];
                       final List<dynamic> options = q['options'] ?? [];
                       final List<dynamic> explanations = q['explanations'] ?? [];
-                      final isExpanded =
-                          _expandedExplanationIds.contains(qId);
 
                       // Badges
                       final subjectName = q['subject']?['name'];
@@ -686,127 +683,15 @@ class _BookmarkedQuestionsScreenState
                                 }),
                               ],
 
-                              // Explanation Collapsible Trigger
-                              if (explanations.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(12),
-                                  onTap: () {
-                                    setState(() {
-                                      if (isExpanded) {
-                                        _expandedExplanationIds.remove(qId);
-                                      } else {
-                                        _expandedExplanationIds.add(qId);
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0xFF017A47)
-                                              .withOpacity(0.12)
-                                          : const Color(0xFFE8F5E9),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: const Color(0xFF017A47)
-                                            .withOpacity(0.2),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.auto_awesome,
-                                          color: Color(0xFF017A47),
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          isExpanded
-                                              ? 'ব্যাখ্যা লুকান'
-                                              : 'ব্যাখ্যা দেখুন',
-                                          style: const TextStyle(
-                                            color: Color(0xFF017A47),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                            fontFamily: 'Li Ador Noirrit',
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Icon(
-                                          isExpanded
-                                              ? Icons.keyboard_arrow_up_rounded
-                                              : Icons.keyboard_arrow_down_rounded,
-                                          color: const Color(0xFF017A47),
-                                          size: 20,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                              // Explanation Collapsible Trigger (with daily limit)
+                              if (q['hasExplanation'] == true ||
+                                  explanations.isNotEmpty) ...[
+                                BookmarkedExplanationCard(
+                                  questionId: qId,
+                                  initialExplanations: explanations,
+                                  buildResultMathWidget: _buildResultMathWidget,
+                                  buildQuestionImage: _buildQuestionImage,
                                 ),
-
-                                if (isExpanded) ...[
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? const Color(0xFF242424)
-                                          : const Color(0xFFF1F8F5),
-                                      borderRadius: BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: const Color(0xFF017A47)
-                                            .withOpacity(0.15),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'বিস্তারিত ব্যাখ্যা:',
-                                          style: TextStyle(
-                                            color: Color(0xFF017A47),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12.5,
-                                            fontFamily: 'Li Ador Noirrit',
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        ...explanations.map((exp) {
-                                          final String expText =
-                                              exp['text'] ?? '';
-                                          final String? expImage =
-                                              exp['imageKey'];
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              _buildResultMathWidget(
-                                                expText,
-                                                textStyle: TextStyle(
-                                                  fontSize: 13.5,
-                                                  color: isDark
-                                                      ? Colors.white70
-                                                      : Colors.black87,
-                                                  height: 1.45,
-                                                  fontFamily: 'Li Ador Noirrit',
-                                                ),
-                                              ),
-                                              if (expImage != null &&
-                                                  expImage.isNotEmpty) ...[
-                                                const SizedBox(height: 6),
-                                                _buildQuestionImage(expImage),
-                                              ],
-                                            ],
-                                          );
-                                        }),
-                                      ],
-                                    ),
-                                  ),
-                                ],
                               ],
                             ],
                           ),
@@ -1382,3 +1267,228 @@ class _BookmarkedQuestionsScreenState
     );
   }
 }
+
+class BookmarkedExplanationCard extends ConsumerStatefulWidget {
+  final String questionId;
+  final List<dynamic> initialExplanations;
+  final Widget Function(String rawText, {TextStyle? textStyle, Color? mathColor, double fontSize}) buildResultMathWidget;
+  final Widget Function(String? imageKey) buildQuestionImage;
+
+  const BookmarkedExplanationCard({
+    super.key,
+    required this.questionId,
+    required this.initialExplanations,
+    required this.buildResultMathWidget,
+    required this.buildQuestionImage,
+  });
+
+  @override
+  ConsumerState<BookmarkedExplanationCard> createState() => _BookmarkedExplanationCardState();
+}
+
+class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanationCard> {
+  bool _isExpanded = false;
+  bool _isLoading = false;
+  bool _isUnlocked = false;
+  List<dynamic> _explanations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialExplanations.isNotEmpty) {
+      _explanations = widget.initialExplanations;
+      _isUnlocked = true;
+    }
+  }
+
+  Future<void> _handleTap() async {
+    if (_isUnlocked) {
+      setState(() {
+        _isExpanded = !_isExpanded;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final repo = ref.read(examRepositoryProvider);
+      final res = await repo.unlockExplanation(widget.questionId);
+
+      if (mounted) {
+        setState(() {
+          _explanations = res['explanations'] as List<dynamic>? ?? [];
+          _isUnlocked = true;
+          _isExpanded = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showLimitDialog(context);
+      }
+    }
+  }
+
+  void _showLimitDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF3E2D00) : const Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_clock_outlined, color: Color(0xFFF59E0B), size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'দৈনিক ব্যাখ্যা সীমা অতিক্রান্ত!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87, fontFamily: 'Li Ador Noirrit'),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'আপনি আজকের ১০টি দৈনিক ব্যাখ্যা দেখার সীমা সম্পূর্ণ করেছেন। আগামীকাল নতুন করে ১০টি ব্যাখ্যা আনলক করতে পারবেন।',
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey.shade600, height: 1.4, fontFamily: 'Li Ador Noirrit'),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'ঠিক আছে',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Li Ador Noirrit'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E3A24) : const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: _isLoading ? null : _handleTap,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ব্যাখ্যা',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF017A47),
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_isLoading)
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                    )
+                  else
+                    Icon(
+                      _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: const Color(0xFF017A47),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          if (_isExpanded && _explanations.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(color: Color(0xFFA7F3D0)),
+                  const SizedBox(height: 6),
+                  ..._explanations.map((expData) {
+                    final expMap = expData as Map<String, dynamic>;
+                    final expText = expMap['text'] as String? ?? '';
+                    final expImgKey = expMap['imageKey'] as String?;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        widget.buildResultMathWidget(
+                          expText,
+                          textStyle: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                        if (expImgKey != null && expImgKey.isNotEmpty)
+                          widget.buildQuestionImage(expImgKey),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
