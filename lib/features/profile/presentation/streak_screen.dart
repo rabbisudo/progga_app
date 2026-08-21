@@ -224,122 +224,6 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     );
   }
 
-  // --- Personal Tab Skeleton Loading View ---
-  Widget _buildPersonalTabSkeleton(bool isDark, Color borderColor) {
-    final cardBg = isDark ? const Color(0xFF141C17) : Colors.white;
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
-      child: Column(
-        children: [
-          // Hero Skeleton
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: borderColor),
-            ),
-            child: const Column(
-              children: [
-                _ShimmerBox(width: 68, height: 68, shape: BoxShape.circle),
-                SizedBox(height: 14),
-                _ShimmerBox(width: 140, height: 40, borderRadius: 8),
-                SizedBox(height: 14),
-                _ShimmerBox(width: 180, height: 28, borderRadius: 20),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Weekly Bar Skeleton
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: borderColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _ShimmerBox(width: 110, height: 14, borderRadius: 4),
-                    _ShimmerBox(width: 50, height: 14, borderRadius: 4),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate(
-                    7,
-                    (index) => const Column(
-                      children: [
-                        _ShimmerBox(width: 20, height: 10, borderRadius: 3),
-                        SizedBox(height: 8),
-                        _ShimmerBox(width: 32, height: 32, shape: BoxShape.circle),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Stats Skeleton
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ShimmerBox(width: 24, height: 24, borderRadius: 6),
-                      SizedBox(height: 10),
-                      _ShimmerBox(width: 70, height: 12, borderRadius: 4),
-                      SizedBox(height: 6),
-                      _ShimmerBox(width: 50, height: 18, borderRadius: 4),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cardBg,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: borderColor),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ShimmerBox(width: 24, height: 24, borderRadius: 6),
-                      SizedBox(height: 10),
-                      _ShimmerBox(width: 80, height: 12, borderRadius: 4),
-                      SizedBox(height: 6),
-                      _ShimmerBox(width: 60, height: 18, borderRadius: 4),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // --- Personal Tab Screen ---
   Widget _buildPersonalTab(
     BuildContext context, {
@@ -368,21 +252,22 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
       child: Column(
         children: [
-          // 1. HERO SECTION: Clean Breathing Spotlight
-          _buildHeroSection(currentStreak, isTodayCompleted, isDark, cardBg, borderColor),
+          // 1. HERO SPOTLIGHT: Fluid, organic display with breathing aura
+          _buildHeroSpotlight(currentStreak, isTodayCompleted, isDark, cardBg, borderColor),
           const SizedBox(height: 16),
 
-          // 2. 7-DAY WEEKLY TRACKER
-          _buildWeeklyBar(streakHistory, isDark, cardBg, borderColor),
+          // 2. 7-DAY WEEKLY HORIZON
+          _buildWeeklyHorizon(streakHistory, isDark, cardBg, borderColor),
           const SizedBox(height: 16),
 
-          // 3. CLEAN STAT TILES
+          // 3. ASYMMETRICAL BENTO STATS
           Row(
             children: [
               Expanded(
-                child: _buildCleanStatTile(
-                  icon: Icons.workspace_premium_outlined,
+                child: _buildBentoStatCard(
+                  icon: Icons.emoji_events_outlined,
                   iconColor: const Color(0xFFD97706),
+                  badgeText: 'ব্যক্তিগত রেকর্ড',
                   title: 'সর্বোচ্চ স্ট্রিক',
                   value: '${_toBengaliDigits(longestStreak.toString())} দিন',
                   isDark: isDark,
@@ -392,10 +277,11 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildCleanStatTile(
-                  icon: Icons.shield_outlined,
+                child: _buildBentoStatCard(
+                  icon: Icons.shield_moon_outlined,
                   iconColor: const Color(0xFF0284C7),
-                  title: 'স্ট্রিক ফ্রিজ শিল্ড',
+                  badgeText: 'সক্রিয় ব্যাকআপ',
+                  title: 'স্ট্রিক ফ্রিজ',
                   value: '${_toBengaliDigits(streakFreezes.toString())} টি বাকি',
                   isDark: isDark,
                   cardBg: cardBg,
@@ -406,7 +292,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           ),
           const SizedBox(height: 16),
 
-          // 4. MONTHLY CALENDAR MATRIX WITH SMOOTH TRANSITION
+          // 4. MONTHLY HEATMAP MATRIX
           _buildMonthlyCalendarCard(
             context: context,
             selectedMonth: selectedMonth,
@@ -426,8 +312,8 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     );
   }
 
-  // --- 1. Hero Spotlight Section ---
-  Widget _buildHeroSection(
+  // --- 1. Hero Spotlight (Master Design) ---
+  Widget _buildHeroSpotlight(
     int currentStreak,
     bool isTodayCompleted,
     bool isDark,
@@ -438,7 +324,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
@@ -446,11 +332,11 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
       ),
       child: Column(
         children: [
-          // Smooth Breathing Flame
+          // Breathing Flame Centerpiece
           const _BreathingFlameWidget(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Animated Numeric Counter
+          // Confident Large Bengali Counter
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -458,17 +344,17 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
             children: [
               TweenAnimationBuilder<int>(
                 tween: IntTween(begin: 0, end: currentStreak),
-                duration: const Duration(milliseconds: 700),
+                duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutCubic,
                 builder: (context, val, child) {
                   return Text(
                     _toBengaliDigits(val.toString()),
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 52,
                       fontWeight: FontWeight.w900,
                       color: isDark ? Colors.white : const Color(0xFF111D15),
                       fontFamily: 'Li Ador Noirrit',
-                      letterSpacing: -1,
+                      letterSpacing: -1.5,
                       height: 1,
                     ),
                   );
@@ -488,7 +374,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           ),
           const SizedBox(height: 14),
 
-          // Status Badge Pill
+          // Contextual Motivational Status Pill
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -513,7 +399,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isTodayCompleted ? 'আজকের পরীক্ষা সম্পন্ন হয়েছে' : 'আজ অন্তত ১টি পরীক্ষা দিয়ে স্ট্রিক রাখো',
+                  isTodayCompleted ? 'আজকের লক্ষ্য সম্পন্ন হয়েছে ✓' : 'আজ অন্তত ১টি পরীক্ষা সম্পন্ন করে স্ট্রিক রাখো',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -529,8 +415,8 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     );
   }
 
-  // --- 2. 7-Day Horizontal Weekly Tracker ---
-  Widget _buildWeeklyBar(
+  // --- 2. 7-Day Weekly Horizon ---
+  Widget _buildWeeklyHorizon(
     List<bool> streakHistory,
     bool isDark,
     Color cardBg,
@@ -540,6 +426,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     final now = DateTime.now();
     final currentDay = now.getDayBanglaIndex();
     const brandGreen = Color(0xFF017A47);
+    final completedCount = streakHistory.where((e) => e).length;
 
     return Container(
       width: double.infinity,
@@ -556,7 +443,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'এই সপ্তাহের অগ্রগতি',
+                'এই সপ্তাহের ধারাবাহিকতা',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -564,13 +451,20 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                   fontFamily: 'Li Ador Noirrit',
                 ),
               ),
-              Text(
-                '${_toBengaliDigits(streakHistory.where((e) => e).length.toString())}/৭ দিন',
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: brandGreen,
-                  fontFamily: 'Li Ador Noirrit',
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: brandGreen.withValues(alpha: isDark ? 0.15 : 0.08),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${_toBengaliDigits(completedCount.toString())}/৭ দিন',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: brandGreen,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
                 ),
               ),
             ],
@@ -591,20 +485,20 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                       fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
                       color: isToday
                           ? brandGreen
-                          : (isDark ? Colors.white30 : Colors.black38),
+                          : (isDark ? Colors.white38 : const Color(0xFF6B7280)),
                       fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 34,
+                    height: 34,
                     decoration: BoxDecoration(
                       color: isCompleted
                           ? brandGreen
                           : (isToday
-                              ? brandGreen.withValues(alpha: isDark ? 0.2 : 0.1)
-                              : (isDark ? const Color(0xFF1C2720) : const Color(0xFFF1F5F2))),
+                              ? brandGreen.withValues(alpha: isDark ? 0.18 : 0.1)
+                              : (isDark ? const Color(0xFF19231D) : const Color(0xFFF3F6F4))),
                       shape: BoxShape.circle,
                       border: isToday && !isCompleted
                           ? Border.all(color: brandGreen, width: 1.5)
@@ -634,10 +528,11 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     );
   }
 
-  // --- 3. Clean Stat Tile ---
-  Widget _buildCleanStatTile({
+  // --- 3. Asymmetrical Bento Stat Card ---
+  Widget _buildBentoStatCard({
     required IconData icon,
     required Color iconColor,
+    required String badgeText,
     required String title,
     required String value,
     required bool isDark,
@@ -654,8 +549,22 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 22),
-          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: iconColor, size: 20),
+              Text(
+                badgeText,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white38 : const Color(0xFF9CA3AF),
+                  fontFamily: 'Li Ador Noirrit',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
             title,
             style: TextStyle(
@@ -757,7 +666,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                     const SizedBox(height: 2),
                     Text(
                       thisMonthActiveCount > 0
-                          ? 'এই মাসে ${_toBengaliDigits(thisMonthActiveCount.toString())} দিন স্ট্রিক সক্রিয় 🔥'
+                          ? 'এই মাসে ${_toBengaliDigits(thisMonthActiveCount.toString())} দিন স্ট্রিক সক্রিয়'
                           : 'এই মাসে কোনো স্ট্রিক নেই',
                       style: TextStyle(
                         fontSize: 11.5,
@@ -1097,6 +1006,122 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
       borderColor: borderColor,
     );
   }
+
+  // --- Personal Tab Skeleton Loading View ---
+  Widget _buildPersonalTabSkeleton(bool isDark, Color borderColor) {
+    final cardBg = isDark ? const Color(0xFF141C17) : Colors.white;
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
+      child: Column(
+        children: [
+          // Hero Skeleton
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: borderColor),
+            ),
+            child: const Column(
+              children: [
+                _ShimmerBox(width: 68, height: 68, shape: BoxShape.circle),
+                SizedBox(height: 14),
+                _ShimmerBox(width: 140, height: 40, borderRadius: 8),
+                SizedBox(height: 14),
+                _ShimmerBox(width: 180, height: 28, borderRadius: 20),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Weekly Bar Skeleton
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            decoration: BoxDecoration(
+              color: cardBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _ShimmerBox(width: 110, height: 14, borderRadius: 4),
+                    _ShimmerBox(width: 50, height: 14, borderRadius: 4),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(
+                    7,
+                    (index) => const Column(
+                      children: [
+                        _ShimmerBox(width: 20, height: 10, borderRadius: 3),
+                        SizedBox(height: 8),
+                        _ShimmerBox(width: 32, height: 32, shape: BoxShape.circle),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Stats Skeleton
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ShimmerBox(width: 24, height: 24, borderRadius: 6),
+                      SizedBox(height: 10),
+                      _ShimmerBox(width: 70, height: 12, borderRadius: 4),
+                      SizedBox(height: 6),
+                      _ShimmerBox(width: 50, height: 18, borderRadius: 4),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: borderColor),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ShimmerBox(width: 24, height: 24, borderRadius: 6),
+                      SizedBox(height: 10),
+                      _ShimmerBox(width: 80, height: 12, borderRadius: 4),
+                      SizedBox(height: 6),
+                      _ShimmerBox(width: 60, height: 18, borderRadius: 4),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // --- Leaderboard Skeleton Loader Widget ---
@@ -1229,7 +1254,7 @@ class _BreathingFlameWidgetState extends State<_BreathingFlameWidget> with Singl
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
-    _scale = Tween<double>(begin: 0.95, end: 1.05).animate(
+    _scale = Tween<double>(begin: 0.94, end: 1.06).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
     );
   }
@@ -1251,17 +1276,17 @@ class _BreathingFlameWidgetState extends State<_BreathingFlameWidget> with Singl
         return Transform.scale(
           scale: _scale.value,
           child: Container(
-            width: 68,
-            height: 68,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: brandGreen.withValues(alpha: isDark ? 0.15 : 0.08),
+              color: brandGreen.withValues(alpha: isDark ? 0.16 : 0.08),
             ),
             child: Center(
               child: SvgPicture.string(
                 _heroFlameSvg,
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 colorFilter: const ColorFilter.mode(brandGreen, BlendMode.srcIn),
               ),
             ),
