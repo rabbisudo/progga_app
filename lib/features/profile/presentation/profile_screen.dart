@@ -309,6 +309,14 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     _buildFlatMenuTile(
                       theme: theme,
+                      color: const Color(0xFF00B4D8),
+                      icon: Icons.bookmark_rounded,
+                      title: 'বুকমার্ক করা প্রশ্নসমূহ',
+                      isDark: isDark,
+                      onTap: () => context.push('/bookmarked-questions'),
+                    ),
+                    _buildFlatMenuTile(
+                      theme: theme,
                       color: const Color(0xFFFF9F0A),
                       icon: Icons.history_rounded,
                       title: 'পরীক্ষার ইতিহাস',

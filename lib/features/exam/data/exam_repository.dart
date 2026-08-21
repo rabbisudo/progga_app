@@ -178,6 +178,15 @@ class ExamRepository {
       throw _apiClient.handleError(e);
     }
   }
+
+  Future<List<dynamic>> getBookmarkedQuestions() async {
+    try {
+      final response = await _apiClient.dio.get('/questions/bookmarks');
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw _apiClient.handleError(e);
+    }
+  }
 }
 
 final examRepositoryProvider = Provider<ExamRepository>((ref) {

@@ -25,6 +25,7 @@ import '../../features/question/presentation/views/qb/qb_exams_list_screen.dart'
 import '../../features/question/presentation/views/qb/qb_section_series_screen.dart';
 import '../../features/ai/presentation/progga_ai_screen.dart';
 import '../../features/profile/presentation/exam_history_screen.dart';
+import '../../features/profile/presentation/bookmarked_questions_screen.dart';
 
 class RouterTransitionNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -100,6 +101,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/my-reports',
         builder: (context, state) => const MyReportsScreen(),
+      ),
+      GoRoute(
+        path: '/bookmarked-questions',
+        builder: (context, state) => const BookmarkedQuestionsScreen(),
       ),
       GoRoute(
         path: '/streak',
