@@ -18,21 +18,32 @@ import 'spaced_repetition_notifier.dart';
 final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final hive = ref.read(hiveServiceProvider);
-  try {
-    final response = await client.dio.get('/banners');
+  final cached = hive.getCachedList('cached_active_banners');
+  List<Map<String, dynamic>>? cachedList;
+  if (cached != null && cached.isNotEmpty) {
+    try {
+      cachedList = cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (_) {}
+  }
+
+  // Background fetch for silent refresh
+  final fetchFuture = client.dio.get('/banners').then((response) async {
     if (response.statusCode == 200 && response.data != null) {
       final List<dynamic> list = response.data;
       final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
       await hive.cacheList('cached_active_banners', result);
       return result;
     }
-  } catch (_) {}
-  
-  final cached = hive.getCachedList('cached_active_banners');
-  if (cached != null) {
-    return cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return cachedList ?? <Map<String, dynamic>>[];
+  }).catchError((_) => cachedList ?? <Map<String, dynamic>>[]);
+
+  // 0ms immediate render from Hive cache if available
+  if (cachedList != null && cachedList.isNotEmpty) {
+    fetchFuture.ignore();
+    return cachedList;
   }
-  return [];
+
+  return fetchFuture;
 });
 
 class LeaderboardPlayer {
@@ -128,76 +139,82 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
           children: [
             const SizedBox(height: 8),
 
-            // 1. Promo Banners Carousel Slider with Skeleton shimmer
-            bannersAsync.when(
-              data: (banners) => banners.isNotEmpty
-                  ? BannerSliderWidget(banners: banners)
-                  : const SizedBox.shrink(),
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                child: ShimmerSkeleton(width: double.infinity, height: 160, borderRadius: 20),
+            // 1. Promo Banners Carousel Slider with RepaintBoundary for 120 FPS
+            RepaintBoundary(
+              child: bannersAsync.when(
+                data: (banners) => banners.isNotEmpty
+                    ? BannerSliderWidget(banners: banners)
+                    : const SizedBox.shrink(),
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                  child: ShimmerSkeleton(width: double.infinity, height: 160, borderRadius: 20),
+                ),
+                error: (_, __) => const SizedBox.shrink(),
               ),
-              error: (_, __) => const SizedBox.shrink(),
             ),
 
             // 2. Premium Grid Action Cards (Clean gradients + shadows + micro scales)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-              child: Row(
-                children: [
-                  _buildGridAction(
-                    iconWidget: _buildImageIconAsset('assets/icons/qsbank.png', Icons.inventory_2_outlined),
-                    label: 'প্রশ্নব্যাংক',
-                    onTap: () => widget.onTabSelected(1),
-                    context: context,
-                    gradientColors: isDark
-                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                        : [const Color(0xFFE0F2FE), const Color(0xFFBAE6FD)],
-                  ),
-                  _buildGridAction(
-                    iconWidget: _buildImageIconAsset('assets/icons/exam.png', Icons.edit_note_outlined),
-                    label: 'মক পরীক্ষা',
-                    onTap: () => widget.onTabSelected(2),
-                    context: context,
-                    gradientColors: isDark
-                        ? [const Color(0xFF065F46), const Color(0xFF064E3B)]
-                        : [const Color(0xFFDCFCE7), const Color(0xFFBBF7D0)],
-                  ),
-                  _buildGridAction(
-                    iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
-                    label: 'পরীক্ষার হিস্ট্রি',
-                    onTap: () => context.push('/exam-history'),
-                    context: context,
-                    gradientColors: isDark
-                        ? [const Color(0xFF7F1D1D), const Color(0xFF991B1B)]
-                        : [const Color(0xFFFEE2E2), const Color(0xFFFECACA)],
-                  ),
-                  _buildGridAction(
-                    iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
-                    label: 'প্রজ্ঞা এআই',
-                    onTap: () => context.push('/progga-ai'),
-                    context: context,
-                    gradientColors: isDark
-                        ? [const Color(0xFF581C87), const Color(0xFF4C1D95)]
-                        : [const Color(0xFFF3E8FF), const Color(0xFFE9D5FF)],
-                  ),
-                ],
+            RepaintBoundary(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                child: Row(
+                  children: [
+                    _buildGridAction(
+                      iconWidget: _buildImageIconAsset('assets/icons/qsbank.png', Icons.inventory_2_outlined),
+                      label: 'প্রশ্নব্যাংক',
+                      onTap: () => widget.onTabSelected(1),
+                      context: context,
+                      gradientColors: isDark
+                          ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                          : [const Color(0xFFE0F2FE), const Color(0xFFBAE6FD)],
+                    ),
+                    _buildGridAction(
+                      iconWidget: _buildImageIconAsset('assets/icons/exam.png', Icons.edit_note_outlined),
+                      label: 'মক পরীক্ষা',
+                      onTap: () => widget.onTabSelected(2),
+                      context: context,
+                      gradientColors: isDark
+                          ? [const Color(0xFF065F46), const Color(0xFF064E3B)]
+                          : [const Color(0xFFDCFCE7), const Color(0xFFBBF7D0)],
+                    ),
+                    _buildGridAction(
+                      iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
+                      label: 'পরীক্ষার হিস্ট্রি',
+                      onTap: () => context.push('/exam-history'),
+                      context: context,
+                      gradientColors: isDark
+                          ? [const Color(0xFF7F1D1D), const Color(0xFF991B1B)]
+                          : [const Color(0xFFFEE2E2), const Color(0xFFFECACA)],
+                    ),
+                    _buildGridAction(
+                      iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
+                      label: 'প্রজ্ঞা এআই',
+                      onTap: () => context.push('/progga-ai'),
+                      context: context,
+                      gradientColors: isDark
+                          ? [const Color(0xFF581C87), const Color(0xFF4C1D95)]
+                          : [const Color(0xFFF3E8FF), const Color(0xFFE9D5FF)],
+                    ),
+                  ],
+                ),
               ),
             ),
 
-            // Spaced Repetition Card Widget
-            spacedCardsAsync.when(
-              data: (cards) {
-                if (cards.isEmpty) return const SizedBox.shrink();
-                return SpacedRepetitionWidget(
-                  cards: cards,
-                  onFinished: () {
-                    ref.read(spacedRepetitionProvider.notifier).refresh();
-                  },
-                );
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (err, _) => const SizedBox.shrink(),
+            // Spaced Repetition Card Widget with RepaintBoundary
+            RepaintBoundary(
+              child: spacedCardsAsync.when(
+                data: (cards) {
+                  if (cards.isEmpty) return const SizedBox.shrink();
+                  return SpacedRepetitionWidget(
+                    cards: cards,
+                    onFinished: () {
+                      ref.read(spacedRepetitionProvider.notifier).refresh();
+                    },
+                  );
+                },
+                loading: () => const SizedBox.shrink(),
+                error: (err, _) => const SizedBox.shrink(),
+              ),
             ),
 
             // 3. Premium Redesigned Leaderboard Card

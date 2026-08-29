@@ -221,13 +221,10 @@ class ProfileScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          Hero(
-                            tag: 'user_avatar_hero',
-                            child: CustomAvatar(
-                              avatarUrl: profile.avatarKey,
-                              radius: 44,
-                              backgroundColor: brandTealColor.withOpacity(0.1),
-                            ),
+                          CustomAvatar(
+                            avatarUrl: profile.avatarKey,
+                            radius: 44,
+                            backgroundColor: brandTealColor.withOpacity(0.1),
                           ),
                           Positioned(
                             bottom: 0,

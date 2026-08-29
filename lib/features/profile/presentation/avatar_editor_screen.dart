@@ -495,13 +495,10 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                     ),
                   ),
                 ),
-                Hero(
-                  tag: 'user_avatar_hero',
-                  child: CustomAvatar(
-                    avatarUrl: _avatarUrl,
-                    radius: 80,
-                    backgroundColor: Colors.transparent,
-                  ),
+                CustomAvatar(
+                  avatarUrl: _avatarUrl,
+                  radius: 80,
+                  backgroundColor: Colors.transparent,
                 ),
                 if (_isSaving)
                   Container(

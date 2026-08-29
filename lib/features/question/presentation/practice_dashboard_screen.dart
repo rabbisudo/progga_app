@@ -11,7 +11,6 @@ import '../../profile/presentation/profile_screen.dart';
 
 // Local Widgets and Views
 import 'widgets/premium_bottom_nav_bar.dart';
-import 'widgets/micro_animations.dart';
 import 'views/home_dashboard_view.dart';
 import 'views/question_bank_view.dart';
 import 'views/mock_exam_list_view.dart';
@@ -148,87 +147,117 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               elevation: 0,
               scrolledUnderElevation: 0,
               surfaceTintColor: Colors.transparent,
-              leadingWidth: 100,
-              // Redesigned premium streak fire widget
-              leading: Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 12.0),
-                  child: InkWell(
-                    onTap: () => context.push('/streak'),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF017A47).withOpacity(0.15) : const Color(0xFFE0ECE6),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isDark ? const Color(0xFF017A47).withOpacity(0.3) : const Color(0xFFB9D8C9),
+              centerTitle: true,
+              leadingWidth: 88,
+              // Left: Balanced Sleek Streak Pill
+              leading: Padding(
+                padding: const EdgeInsets.only(left: 16.0),
+                child: Center(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => context.push('/streak'),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF064E3B).withValues(alpha: 0.35)
+                              : const Color(0xFFE6FCF5),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF0CA678).withValues(alpha: 0.4)
+                                : const Color(0xFF96F2D7),
+                            width: 1.2,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          PulseWidget(
-                            child: SvgPicture.string(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.string(
                               _streakFireSvg,
-                              width: 20,
-                              height: 20,
-                              colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+                              width: 16,
+                              height: 16,
+                              colorFilter: ColorFilter.mode(
+                                isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                BlendMode.srcIn,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            profileAsync.maybeWhen(
-                              data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 0}'),
-                              orElse: () => '০',
+                            const SizedBox(width: 5),
+                            Text(
+                              profileAsync.maybeWhen(
+                                data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 0}'),
+                                orElse: () => '০',
+                              ),
+                              style: TextStyle(
+                                color: isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
                             ),
-                            style: const TextStyle(
-                              color: Color(0xFF017A47),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
+              // Center: Clean Bengali Greeting
               title: displayName.isNotEmpty
                   ? Text(
                       '$greetingText, $displayName',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontFamily: 'Li Ador Noirrit',
+                        fontSize: 16.5,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        letterSpacing: 0.2,
                       ),
                     )
                   : const SizedBox.shrink(),
-              // Right: Profile Avatar with a glowing ring outline
+              // Right: Polished Avatar with symmetric 88px container width balance
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      context.push('/profile');
-                    },
-                    child: Hero(
-                      tag: 'user_avatar_hero',
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF017A47),
-                            width: 2,
-                          ),
-                        ),
-                        child: CustomAvatar(
-                          avatarUrl: profileAsync.value?.profile?.avatarKey,
-                          radius: 17,
-                          backgroundColor: const Color(0xFF017A47),
-                          fallbackWidget: const Text(
-                            '👨‍🎓',
-                            style: TextStyle(fontSize: 16),
+                SizedBox(
+                  width: 88,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () => context.push('/profile'),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF0CA678).withValues(alpha: 0.5)
+                                    : const Color(0xFF086057).withValues(alpha: 0.25),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isDark ? Colors.black : const Color(0xFF086057))
+                                      .withValues(alpha: 0.06),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: CustomAvatar(
+                              avatarUrl: profileAsync.value?.profile?.avatarKey,
+                              radius: 17,
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE6FCF5),
+                              fallbackWidget: const Text(
+                                '👨‍🎓',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
                           ),
                         ),
                       ),

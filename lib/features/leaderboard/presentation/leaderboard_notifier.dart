@@ -11,18 +11,27 @@ final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, S
 final myLeaderboardProvider = FutureProvider<List<LeaderboardEntryModel>>((ref) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  try {
-    final data = await repo.fetchLeaderboardAroundMe();
+  final cached = hive.getCachedList('cached_my_leaderboard');
+  List<LeaderboardEntryModel>? cachedList;
+  if (cached != null && cached.isNotEmpty) {
+    try {
+      cachedList = cached.map((e) => LeaderboardEntryModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (_) {}
+  }
+
+  // Background fetch
+  final fetchFuture = repo.fetchLeaderboardAroundMe().then((data) async {
     final jsonList = data.map((e) => e.toJson()).toList();
     await hive.cacheList('cached_my_leaderboard', jsonList);
     return data;
-  } catch (e) {
-    final cached = hive.getCachedList('cached_my_leaderboard');
-    if (cached != null) {
-      return cached.map((e) => LeaderboardEntryModel.fromJson(Map<String, dynamic>.from(e))).toList();
-    }
-    rethrow;
+  }).catchError((_) => cachedList ?? <LeaderboardEntryModel>[]);
+
+  if (cachedList != null && cachedList.isNotEmpty) {
+    fetchFuture.ignore();
+    return cachedList;
   }
+
+  return fetchFuture;
 });
 
 final leaguesConfigProvider = FutureProvider<List<LeagueConfigModel>>((ref) async {

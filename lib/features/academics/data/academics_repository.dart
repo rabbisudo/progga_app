@@ -65,22 +65,25 @@ final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
+  final cached = hive.getCachedList('cached_student_curriculum');
 
-  try {
-    final data = await repo.fetchStudentCurriculum(
-      classId: classId,
-      groupId: groupId,
-      userId: userId,
-    );
-    await hive.cacheList('cached_student_curriculum', data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList('cached_student_curriculum');
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  // Asynchronous background revalidation
+  final fetchFuture = repo.fetchStudentCurriculum(
+    classId: classId,
+    groupId: groupId,
+    userId: userId,
+  ).then((freshData) async {
+    await hive.cacheList('cached_student_curriculum', freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  // If cache exists, return immediately for 0ms instant UI rendering
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });
 
 final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
@@ -93,23 +96,26 @@ final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
+  final cached = hive.getCachedList('cached_student_qb_curriculum');
 
-  try {
-    final data = await repo.fetchStudentCurriculum(
-      classId: classId,
-      groupId: groupId,
-      userId: userId,
-      isQuestionBank: true,
-    );
-    await hive.cacheList('cached_student_qb_curriculum', data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList('cached_student_qb_curriculum');
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  // Asynchronous background revalidation
+  final fetchFuture = repo.fetchStudentCurriculum(
+    classId: classId,
+    groupId: groupId,
+    userId: userId,
+    isQuestionBank: true,
+  ).then((freshData) async {
+    await hive.cacheList('cached_student_qb_curriculum', freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  // If cache exists, return immediately for 0ms instant UI rendering
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });
 
 // Added Question Bank Series methods to AcademicsRepository
