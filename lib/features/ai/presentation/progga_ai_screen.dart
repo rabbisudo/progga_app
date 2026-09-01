@@ -246,10 +246,12 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     final String? currentImagePath = _attachedImagePath;
     final String currentSubject = _selectedSubject;
 
+    final String userMsgId = DateTime.now().millisecondsSinceEpoch.toString();
+
     setState(() {
       _messages.add(
         AiChatMessage(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: userMsgId,
           text: text.isNotEmpty ? text : 'ছবিটির সমাধান দিন',
           isUser: true,
           imagePath: currentImagePath,
@@ -266,7 +268,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     _scrollToBottom();
 
     final historyList = _messages
-        .where((m) => m.id != 'welcome_msg')
+        .where((m) => m.id != 'welcome_msg' && m.id != userMsgId)
         .map((m) => {'isUser': m.isUser, 'text': m.text})
         .toList();
     final String historyJson = jsonEncode(historyList);

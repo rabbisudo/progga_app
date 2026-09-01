@@ -94,14 +94,16 @@ class HmacSigningInterceptor extends Interceptor {
       
       String bodyStr = '';
       final contentType = options.contentType ?? options.headers['Content-Type'] ?? '';
+      final isMultipart = (options.data is FormData) ||
+          contentType.toString().toLowerCase().contains('multipart/form-data');
       
-      if (!contentType.toString().contains('multipart/form-data') && options.data != null) {
+      if (!isMultipart && options.data != null) {
         if (options.data is Map) {
           bodyStr = jsonEncode(sortMapKeys(Map<String, dynamic>.from(options.data)));
         } else if (options.data is List) {
           bodyStr = jsonEncode(options.data);
-        } else {
-          bodyStr = options.data.toString();
+        } else if (options.data is String) {
+          bodyStr = options.data as String;
         }
       }
 
