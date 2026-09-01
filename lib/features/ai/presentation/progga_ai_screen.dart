@@ -333,6 +333,16 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     }
   }
 
+  String _toBengaliDigit(dynamic input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bangla = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    String str = input.toString();
+    for (int i = 0; i < english.length; i++) {
+      str = str.replaceAll(english[i], bangla[i]);
+    }
+    return str;
+  }
+
   String _formatFullDateTime(Map<String, dynamic> item) {
     try {
       final raw = item['createdAt'] ?? item['date'];
@@ -817,16 +827,16 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
               ),
             ),
             child: Row(
-              children: const [
-                Icon(
+              children: [
+                const Icon(
                   Icons.bolt,
                   size: 13,
                   color: Color(0xFF017A47),
                 ),
-                SizedBox(width: 2),
+                const SizedBox(width: 2),
                 Text(
-                  '∞ আনলিমিটেড',
-                  style: TextStyle(
+                  '${_toBengaliDigit(_remainingTokens)}টি বাকি',
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF017A47),
