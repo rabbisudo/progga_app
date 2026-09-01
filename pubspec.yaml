@@ -1,7 +1,7 @@
 name: progga_mobile
 description: Enterprise MCQ Exam Platform Mobile Client
 publish_to: 'none'
-version: 1.0.4+6
+version: 1.0.5+7
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
