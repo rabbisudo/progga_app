@@ -16,6 +16,9 @@ class CustomAvatar extends StatelessWidget {
     this.fallbackWidget,
   });
 
+  static const String defaultAvatarUrl =
+      'https://api.dicebear.com/9.x/avataaars/svg?top=dreads02&topProbability=100&hairColor=2c1b18&hatColor=262e33&eyes=default&eyebrows=default&mouth=smile&skinColor=ffdbb4&clothing=shirtCrewNeck&clothesColor=3c4f76&accessoriesProbability=0&facialHairProbability=0&backgroundColor=b1c9ef';
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -25,7 +28,7 @@ class CustomAvatar extends StatelessWidget {
     final bg = backgroundColor ?? 
         (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE8F5E9));
 
-    // Fallback widget if url is null/empty
+    // Fallback widget if url fails
     final defaultFallback = fallbackWidget ?? 
         Icon(
           Icons.person_rounded, 
@@ -33,18 +36,12 @@ class CustomAvatar extends StatelessWidget {
           color: theme.primaryColor,
         );
 
-    if (avatarUrl == null || avatarUrl!.trim().isEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: bg,
-        child: defaultFallback,
-      );
-    }
-
-    final cleanedUrl = avatarUrl!.trim();
+    final effectiveUrl = (avatarUrl != null && avatarUrl!.trim().isNotEmpty)
+        ? avatarUrl!.trim()
+        : defaultAvatarUrl;
 
     // Check if it is an SVG from Dicebear or similar
-    if (cleanedUrl.toLowerCase().contains('.svg') || cleanedUrl.contains('api.dicebear.com')) {
+    if (effectiveUrl.toLowerCase().contains('.svg') || effectiveUrl.contains('api.dicebear.com')) {
       return Container(
         width: radius * 2,
         height: radius * 2,
@@ -54,14 +51,21 @@ class CustomAvatar extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: SvgPicture.network(
-          cleanedUrl,
+          effectiveUrl,
           width: radius * 2,
           height: radius * 2,
           fit: BoxFit.cover,
-          placeholderBuilder: (context) => SizedBox(
+          placeholderBuilder: (context) => Container(
             width: radius * 2,
             height: radius * 2,
-            child: const CircularProgressIndicator(strokeWidth: 2),
+            color: bg,
+            child: Center(
+              child: SizedBox(
+                width: radius * 0.8,
+                height: radius * 0.8,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           ),
           errorBuilder: (context, error, stackTrace) => defaultFallback,
         ),
