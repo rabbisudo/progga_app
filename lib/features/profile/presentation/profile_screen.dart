@@ -60,6 +60,14 @@ const String _reportSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em"
 	<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M5 22v-8m0 0l2.47-.494a8.7 8.7 0 0 1 4.925.452a8.68 8.68 0 0 0 5.327.361l.214-.053A1.404 1.404 0 0 0 19 12.904V5.537a1.2 1.2 0 0 0-1.49-1.164a8 8 0 0 1-4.911-.334l-.204-.081a8.7 8.7 0 0 0-4.924-.452L5 4m0 10v-3m0-7V2m0 2v3" />
 </svg>''';
 
+const String _bookmarkSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+	<path d="M0 0h24v24H0z" fill="none" />
+	<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5">
+		<path d="M3 11.0975V16.0909C3 19.1875 3 20.7358 3.73411 21.4123C4.08422 21.735 4.52615 21.9377 4.99692 21.9915C5.98402 22.1045 7.13675 21.0849 9.44216 19.0458C10.4612 18.1445 10.9708 17.6938 11.5603 17.5751C11.8506 17.5166 12.1494 17.5166 12.4397 17.5751C13.0292 17.6938 13.5388 18.1445 14.5578 19.0458C16.8633 21.0849 18.016 22.1045 19.0031 21.9915C19.4739 21.9377 19.9158 21.735 20.2659 21.4123C21 20.7358 21 19.1875 21 16.0909V11.0975C21 6.80891 21 4.6646 19.682 3.3323C18.364 2 16.2426 2 12 2C7.75736 2 5.63604 2 4.31802 3.3323C3.5108 4.14827 3.19796 5.26881 3.07672 7" />
+		<path d="M15 6H9" />
+	</g>
+</svg>''';
+
 const String _cameraSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 	<path d="M0 0h24v24H0z" fill="none" />
 	<g fill="none" stroke="currentColor" stroke-width="1.5">
@@ -307,7 +315,12 @@ class ProfileScreen extends ConsumerWidget {
                     _buildFlatMenuTile(
                       theme: theme,
                       color: const Color(0xFF00B4D8),
-                      icon: Icons.bookmark_rounded,
+                      customIcon: SvgPicture.string(
+                        _bookmarkSvg,
+                        width: 18,
+                        height: 18,
+                        colorFilter: const ColorFilter.mode(Color(0xFF00B4D8), BlendMode.srcIn),
+                      ),
                       title: 'বুকমার্ক করা প্রশ্নসমূহ',
                       isDark: isDark,
                       onTap: () => context.push('/bookmarked-questions'),
