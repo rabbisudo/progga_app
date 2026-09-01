@@ -18,9 +18,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
             final userData = UserData.fromJson(user);
             _cacheProfile(user);
             return userData;
-          } catch (e) {
-            debugPrint('Failed to parse UserData from auth state: $e. Fetching from API.');
-          }
+          } catch (_) {}
         }
         final cached = _loadCachedProfile();
         if (cached != null) {

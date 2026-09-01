@@ -339,8 +339,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       } catch (_) {}
 
                                       googleUser = await googleSignIn.signIn();
-                                    } catch (e) {
-                                      debugPrint('Native Google sign in prompt error: $e');
+                                    } catch (_) {
                                       throw 'গুগল সাইন-ইন প্রম্পট ওপেন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
                                     }
 

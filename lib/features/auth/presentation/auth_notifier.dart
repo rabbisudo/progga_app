@@ -139,8 +139,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on DioException catch (dioErr) {
       final networkErr = _apiClient.handleError(dioErr);
       state = AuthState.error(message: networkErr.message);
-    } catch (e) {
-      debugPrint('Login exception: $e');
+    } catch (_) {
       state = const AuthState.error(message: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   }
@@ -156,7 +155,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       String? fcmToken;
       try {
         fcmToken = await FirebaseMessaging.instance.getToken();
-      } catch (e) {
+      } catch (_) {
         // Fallback if token retrieval fails (e.g. during developer local simulators)
         fcmToken = null;
       }
@@ -192,8 +191,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on DioException catch (dioErr) {
       final networkErr = _apiClient.handleError(dioErr);
       state = AuthState.error(message: networkErr.message);
-    } catch (e) {
-      debugPrint('Login exception: $e');
+    } catch (_) {
       state = const AuthState.error(message: 'একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
   }

@@ -463,20 +463,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
       }
     }
 
-    curriculumAsync.when(
-      data: (subjectsList) {
-        debugPrint('DEBUG: subjectsList count=${subjectsList.length}');
-        for (var subject in subjectsList) {
-          final sId = subject['id'] as String? ?? '';
-          if (selectedSubjectIds.contains(sId)) {
-            debugPrint('DEBUG: Matched subject: ${subject['name']}, questionTypes: ${subject['questionTypes']}');
-          }
-        }
-      },
-      error: (err, stack) => debugPrint('DEBUG: curriculumAsync error=$err'),
-      loading: () => debugPrint('DEBUG: curriculumAsync loading'),
-    );
-
     curriculumAsync.whenData((subjectsList) {
       for (var subject in subjectsList) {
         final sId = subject['id'] as String? ?? '';
@@ -529,8 +515,6 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         }
       }
     });
-
-    debugPrint('DEBUG: availableTypes=$availableTypes');
 
     final isCurriculumLoading = curriculumAsync.isLoading;
     final typesToDisplay = isCurriculumLoading 

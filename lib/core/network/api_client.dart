@@ -51,9 +51,7 @@ void configureDioSslPinning(Dio dio) {
       final context = SecurityContext(withTrustedRoots: false);
       try {
         context.setTrustedCertificatesBytes(utf8.encode(_isrgRootX1PEM));
-      } catch (e) {
-        debugPrint('SSL Pinning context creation warning: $e');
-      }
+      } catch (_) {}
       final client = HttpClient(context: context);
       client.badCertificateCallback = (X509Certificate cert, String host, int port) {
         return false;

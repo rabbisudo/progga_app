@@ -422,9 +422,7 @@ class ProfileScreen extends ConsumerWidget {
                         final url = Uri.parse('https://docs.google.com/document/d/1oEjbo0TDtJGli0NFh5of3BWfltaHQe7CFxSd9b5OxDQ/edit?usp=sharing');
                         try {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
-                        } catch (e) {
-                          debugPrint('Error launching url: $e');
-                        }
+                        } catch (_) {}
                       },
                     ),
                     _buildFlatMenuTile(
@@ -442,9 +440,7 @@ class ProfileScreen extends ConsumerWidget {
                         final url = Uri.parse('https://docs.google.com/document/d/1DZv8vTIpetDxGPr--vpLTtuotA2ZrgkiSZyQjj1uu7Q/edit?usp=sharing');
                         try {
                           await launchUrl(url, mode: LaunchMode.externalApplication);
-                        } catch (e) {
-                          debugPrint('Error launching url: $e');
-                        }
+                        } catch (_) {}
                       },
                     ),
                     _buildFlatMenuTile(

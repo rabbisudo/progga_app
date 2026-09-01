@@ -1219,9 +1219,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       try {
         final Map<String, dynamic> decoded = jsonDecode(savedVal);
         _fitbAnswers[q.id] = decoded.map((k, v) => MapEntry(k, v.toString()));
-      } catch (e) {
-        debugPrint('Error decoding saved FITB answers: $e');
-      }
+      } catch (_) {}
     }
     
     List<String> clues = _extractClues(q.questionText);
@@ -1354,7 +1352,6 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Error picking image: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('ইমেজ আপলোড ব্যর্থ হয়েছে: $e')),
       );

@@ -43,9 +43,7 @@ void main() async {
         isDeviceSecure = false;
       }
     }
-  } catch (e) {
-    debugPrint('Security environments check warning: $e');
-  }
+  } catch (_) {}
   
   // Initialize Hive first to ensure the settings box is available for cached reads
   final hiveInitFuture = hiveService.init();
@@ -54,9 +52,7 @@ void main() async {
     Future(() async {
       try {
         await Firebase.initializeApp();
-      } catch (e) {
-        debugPrint('Firebase init error: $e');
-      }
+      } catch (_) {}
     }),
     hiveInitFuture,
     Future(() async {
@@ -96,14 +92,10 @@ void main() async {
                 initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
                 hiveService.getSettingsBox().put('cached_user_profile', response.data);
               }
-            } catch (e) {
-              debugPrint('API fetch profile error: $e');
-            }
+            } catch (_) {}
           }
         }
-      } catch (e) {
-        debugPrint('Session check error: $e');
-      }
+      } catch (_) {}
     }),
   ]);
 
