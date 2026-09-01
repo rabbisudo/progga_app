@@ -76,7 +76,7 @@ class CustomAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: bg,
-      backgroundImage: CachedNetworkImageProvider(cleanedUrl),
+      backgroundImage: CachedNetworkImageProvider(effectiveUrl),
       onBackgroundImageError: (exception, stackTrace) {
         // Handled internally by Flutter, falls back to child
       },
