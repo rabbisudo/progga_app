@@ -220,7 +220,17 @@ class ApiClient {
         message = 'সংযোগের সময়সীমা পার হয়ে গেছে। অনুগ্রহ করে ইন্টারনেট সংযোগটি পরীক্ষা করুন।';
         break;
       case DioExceptionType.badResponse:
-        if (code == 401) {
+        if (responseData?['message'] != null) {
+          final serverMsg = responseData!['message'].toString();
+          if (serverMsg.toLowerCase().contains('invalid email or password') ||
+              serverMsg.toLowerCase().contains('invalid credentials')) {
+            message = 'ভুল ইমেইল অথবা পাসওয়ার্ড। অনুগ্রহ করে সঠিক তথ্য দিয়ে আবার চেষ্টা করুন।';
+          } else if (serverMsg.toLowerCase().contains('user account is deactivated')) {
+            message = 'অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।';
+          } else {
+            message = serverMsg;
+          }
+        } else if (code == 401) {
           message = 'লগইন সেশন শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন।';
         } else if (code == 403) {
           message = 'প্রবেশাধিকার সংরক্ষিত। প্রয়োজনীয় পারমিশন নেই।';

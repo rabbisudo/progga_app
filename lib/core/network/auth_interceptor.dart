@@ -36,8 +36,13 @@ class AuthInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // Intercept only 401 Unauthorized errors
-    if (err.response?.statusCode == 401) {
+    // Intercept 401 Unauthorized errors only on authenticated endpoints (ignore /auth/*)
+    final path = err.requestOptions.path;
+    final isPublicAuthEndpoint = path.contains('/auth/login') ||
+        path.contains('/auth/register') ||
+        path.contains('/auth/forgot-password');
+
+    if (err.response?.statusCode == 401 && !isPublicAuthEndpoint) {
       await _storageService.clearTokens();
       onUnauthenticated?.call();
     }
