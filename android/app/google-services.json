@@ -38,6 +38,14 @@
           }
         },
         {
+          "client_id": "781610946731-pbr3iabc57e9cnpen54u2l9tbmt0o9rj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.progga.app",
+            "certificate_hash": "964ef5d8d2b32a64994f764b3c6ce197af10ecde"
+          }
+        },
+        {
           "client_id": "781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com",
           "client_type": 3
         }

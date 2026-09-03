@@ -73,6 +73,12 @@ class HiveService {
     return null;
   }
 
+  Future<void> cacheList(String key, List<dynamic> list) async {
+    try {
+      await getSettingsBox().put(key, list);
+    } catch (_) {}
+  }
+
   Map<String, dynamic>? getCachedMap(String key) {
     try {
       final data = getSettingsBox().get(key);
