@@ -25,6 +25,8 @@
 # Google Sign In
 -keep class com.google.android.gms.auth.api.signin.** { *; }
 -keep class com.google.android.gms.common.api.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
 
 # Secure Storage / Crypto / Net
 -dontwarn javax.crypto.**

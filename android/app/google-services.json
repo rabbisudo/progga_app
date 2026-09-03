@@ -14,14 +14,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "781610946731-bpo3u6ue6bf0191j25upijo77avq4oev.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.progga.app",
-            "certificate_hash": "a4291d67fc4c9fbb63fd2afb270e657c1317bea7"
-          }
-        },
-        {
           "client_id": "781610946731-db7igoi8811n99p9d8v4fup6ni0159dg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
