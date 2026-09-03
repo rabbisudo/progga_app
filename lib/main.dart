@@ -31,17 +31,12 @@ void main() async {
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
-  // Run security checks (Root, Jailbreak, Emulator)
+  // Run security checks (Root, Jailbreak logging)
   bool isDeviceSecure = true;
   try {
     final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
-    final isRealDevice = await SafeDevice.isRealDevice;
-    final isMockLocation = await SafeDevice.isMockLocation;
-
-    if (kReleaseMode) {
-      if (jailbroken || !isRealDevice || isMockLocation) {
-        isDeviceSecure = false;
-      }
+    if (kReleaseMode && jailbroken) {
+      debugPrint('Security notice: Root/Jailbreak detected on device.');
     }
   } catch (_) {}
   

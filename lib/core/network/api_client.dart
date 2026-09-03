@@ -48,14 +48,11 @@ void configureDioSslPinning(Dio dio) {
   
   if (dio.httpClientAdapter is IOHttpClientAdapter) {
     (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      final context = SecurityContext(withTrustedRoots: false);
+      final context = SecurityContext(withTrustedRoots: true);
       try {
         context.setTrustedCertificatesBytes(utf8.encode(_isrgRootX1PEM));
       } catch (_) {}
       final client = HttpClient(context: context);
-      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-        return false;
-      };
       return client;
     };
   }
@@ -150,16 +147,9 @@ class SecurityInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!SecurityConfig.isDeviceSecure) {
-      handler.reject(
-        DioException(
-          requestOptions: options,
-          error: 'নিরাপত্তা ঝুঁকি রয়েছে: অনুগ্রহ করে রুট বা জেলব্রেক ডিভাইস পরিবর্তন করুন।',
-          type: DioExceptionType.cancel,
-        ),
-      );
-    } else {
-      handler.next(options);
+      debugPrint('Security warning on device environment.');
     }
+    handler.next(options);
   }
 }
 
@@ -241,7 +231,9 @@ class ApiClient {
         }
         break;
       case DioExceptionType.cancel:
-        message = 'অনুরোধ বাতিল করা হয়েছে।';
+        message = (error.error != null && error.error.toString().isNotEmpty)
+            ? error.error.toString()
+            : 'অনুরোধ বাতিল করা হয়েছে।';
         break;
       case DioExceptionType.connectionError:
         message = 'নেটওয়ার্ক সংযোগ ব্যর্থ হয়েছে। আপনার ইন্টারনেট চেক করুন।';

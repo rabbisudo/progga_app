@@ -328,40 +328,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               OutlinedButton.icon(
                                 onPressed: () async {
                                   try {
-                                    GoogleSignInAccount? googleUser;
+                                    final GoogleSignIn googleSignIn = GoogleSignIn(
+                                      serverClientId: '781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com',
+                                      scopes: ['email', 'profile'],
+                                    );
                                     try {
-                                      final GoogleSignIn googleSignIn = GoogleSignIn(
-                                        serverClientId: '781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com',
-                                        scopes: ['email', 'profile'],
-                                      );
-                                      try {
-                                        await googleSignIn.signOut();
-                                      } catch (_) {}
+                                      await googleSignIn.signOut();
+                                    } catch (_) {}
 
-                                      googleUser = await googleSignIn.signIn();
-                                    } catch (_) {
-                                      throw 'গুগল সাইন-ইন প্রম্পট ওপেন করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+                                    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+                                    // If user dismissed the bottom sheet, safely exit without error
+                                    if (googleUser == null) {
+                                      return;
                                     }
 
-                                    if (googleUser != null) {
-                                      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-                                      final String? idToken = googleAuth.idToken;
-                                      if (idToken != null) {
-                                        ref.invalidate(userProfileProvider);
-                                        ref.invalidate(myLeaderboardProvider);
-                                        ref.invalidate(leaderboardProvider);
-                                        await ref.read(authProvider.notifier).loginWithGoogle(idToken);
-                                        return;
-                                      } else {
-                                        throw 'গুগল আইডি টোকেন পাওয়া যায়নি।';
-                                      }
+                                    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+                                    final String? idToken = googleAuth.idToken;
+                                    if (idToken != null) {
+                                      ref.invalidate(userProfileProvider);
+                                      ref.invalidate(myLeaderboardProvider);
+                                      ref.invalidate(leaderboardProvider);
+                                      await ref.read(authProvider.notifier).loginWithGoogle(idToken);
+                                      return;
+                                    } else {
+                                      throw 'গুগল আইডি টোকেন পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
                                     }
                                   } catch (e) {
+                                    debugPrint('Google Sign-In Error: $e');
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            e.toString().replaceAll('Exception:', '').trim(),
+                                            e.toString().contains('ApiException: 10')
+                                                ? 'Google Play App Signing SHA-1 কনফিগারেশন সমস্যা। Firebase-এ SHA-1 যোগ করুন।'
+                                                : e.toString().replaceAll('Exception:', '').trim(),
                                             style: const TextStyle(fontFamily: 'Li Ador Noirrit'),
                                           ),
                                           backgroundColor: Colors.red,
