@@ -335,6 +335,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     try {
                                       await googleSignIn.signOut();
                                     } catch (_) {}
+                                    try {
+                                      await googleSignIn.disconnect();
+                                    } catch (_) {}
 
                                     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
