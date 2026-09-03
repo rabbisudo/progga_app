@@ -34,11 +34,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-          systemNavigationBarIconBrightness: Brightness.dark,
-        ),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       textTheme: _applyFontSettings(
         baseTextTheme.copyWith(
@@ -79,11 +75,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-          systemNavigationBarIconBrightness: Brightness.light,
-        ),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       textTheme: _applyFontSettings(
         baseTextTheme.copyWith(
