@@ -7,6 +7,7 @@ import '../../exam/data/exam_repository.dart';
 import '../../exam/presentation/exam_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/custom_back_button.dart';
+import '../../../core/storage/hive_service.dart';
 
 // Fetch full exam session result data
 final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, sessionId) async {
@@ -14,78 +15,92 @@ final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((
   return repo.fetchExamResult(sessionId);
 });
 
-// Fetch and format exam questions for previewing
+// Fetch and format exam questions for previewing with encrypted offline caching
 final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, examId) async {
   final repo = ref.watch(examRepositoryProvider);
-  final exam = await repo.fetchExamDetails(examId);
+  final hive = ref.read(hiveServiceProvider);
+  final cacheKey = 'cached_exam_details_$examId';
 
-  final List<Map<String, dynamic>> mappedQuestions = exam.questions.map((eq) {
-    return {
-      'id': eq.id,
-      'examId': eq.examId,
-      'questionId': eq.questionId,
-      'sortOrder': eq.sortOrder,
-      'question': {
-        'id': eq.question.id,
-        'subjectId': eq.question.subjectId,
-        'chapterId': eq.question.chapterId,
-        'topicId': eq.question.topicId,
-        'questionText': eq.question.questionText,
-        'imageKey': eq.question.imageKey,
-        'latexFormula': eq.question.latexFormula,
-        'type': eq.question.type,
-        'marks': eq.question.marks,
-        'tags': eq.question.tags,
-        'hasExplanation': eq.question.hasExplanation ?? false,
-        'options': eq.question.options.map((opt) => opt.toJson()).toList(),
-        'explanations': eq.question.explanations?.map((exp) => exp.toJson()).toList() ?? [],
-        'subQuestions': eq.question.subQuestions?.map((subQ) => {
-          'id': subQ.id,
-          'subjectId': subQ.subjectId,
-          'chapterId': subQ.chapterId,
-          'topicId': subQ.topicId,
-          'questionText': subQ.questionText,
-          'imageKey': subQ.imageKey,
-          'latexFormula': subQ.latexFormula,
-          'type': subQ.type,
-          'marks': subQ.marks,
-          'tags': subQ.tags,
-          'hasExplanation': subQ.hasExplanation ?? false,
-          'options': subQ.options.map((opt) => opt.toJson()).toList(),
-          'explanations': subQ.explanations?.map((exp) => exp.toJson()).toList() ?? [],
-        }).toList(),
-      },
-    };
-  }).toList();
+  try {
+    final exam = await repo.fetchExamDetails(examId);
 
-  int totalQuestionsCount = 0;
-  for (final eq in exam.questions) {
-    final q = eq.question;
-    if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
-      totalQuestionsCount += q.subQuestions!.length;
-    } else {
-      totalQuestionsCount += 1;
+    final List<Map<String, dynamic>> mappedQuestions = exam.questions.map((eq) {
+      return {
+        'id': eq.id,
+        'examId': eq.examId,
+        'questionId': eq.questionId,
+        'sortOrder': eq.sortOrder,
+        'question': {
+          'id': eq.question.id,
+          'subjectId': eq.question.subjectId,
+          'chapterId': eq.question.chapterId,
+          'topicId': eq.question.topicId,
+          'questionText': eq.question.questionText,
+          'imageKey': eq.question.imageKey,
+          'latexFormula': eq.question.latexFormula,
+          'type': eq.question.type,
+          'marks': eq.question.marks,
+          'tags': eq.question.tags,
+          'hasExplanation': eq.question.hasExplanation ?? false,
+          'options': eq.question.options.map((opt) => opt.toJson()).toList(),
+          'explanations': eq.question.explanations?.map((exp) => exp.toJson()).toList() ?? [],
+          'subQuestions': eq.question.subQuestions?.map((subQ) => {
+            'id': subQ.id,
+            'subjectId': subQ.subjectId,
+            'chapterId': subQ.chapterId,
+            'topicId': subQ.topicId,
+            'questionText': subQ.questionText,
+            'imageKey': subQ.imageKey,
+            'latexFormula': subQ.latexFormula,
+            'type': subQ.type,
+            'marks': subQ.marks,
+            'tags': subQ.tags,
+            'hasExplanation': subQ.hasExplanation ?? false,
+            'options': subQ.options.map((opt) => opt.toJson()).toList(),
+            'explanations': subQ.explanations?.map((exp) => exp.toJson()).toList() ?? [],
+          }).toList(),
+        },
+      };
+    }).toList();
+
+    int totalQuestionsCount = 0;
+    for (final eq in exam.questions) {
+      final q = eq.question;
+      if (q.subQuestions != null && q.subQuestions!.isNotEmpty) {
+        totalQuestionsCount += q.subQuestions!.length;
+      } else {
+        totalQuestionsCount += 1;
+      }
     }
-  }
 
-  return {
-    'exam': {
-      'id': exam.id,
-      'title': exam.title,
-      'description': exam.description,
-      'duration': exam.duration,
-      'totalMarks': exam.totalMarks,
-      'passMarks': exam.passMarks,
-      'questions': mappedQuestions,
-    },
-    'totalQuestions': totalQuestionsCount,
-    'correctCount': 0,
-    'wrongCount': 0,
-    'skippedCount': totalQuestionsCount,
-    'score': 0.0,
-    'timeTaken': 0,
-    'answers': [],
-  };
+    final formattedData = {
+      'exam': {
+        'id': exam.id,
+        'title': exam.title,
+        'description': exam.description,
+        'duration': exam.duration,
+        'totalMarks': exam.totalMarks,
+        'passMarks': exam.passMarks,
+        'questions': mappedQuestions,
+      },
+      'totalQuestions': totalQuestionsCount,
+      'correctCount': 0,
+      'wrongCount': 0,
+      'skippedCount': totalQuestionsCount,
+      'score': 0.0,
+      'timeTaken': 0,
+      'answers': [],
+    };
+
+    await hive.cacheMap(cacheKey, formattedData);
+    return formattedData;
+  } catch (e) {
+    final cached = hive.getCachedMap(cacheKey);
+    if (cached != null) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 // Fetch user's actual daily explanation quota
