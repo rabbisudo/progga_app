@@ -53,7 +53,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
     });
   }
 
-  void _toggleTopic(String topicId, String chapterId, List<dynamic> chapterTopics) {
+  void _toggleTopic(String topicId, String? chapterId, List<dynamic> chapterTopics) {
     setState(() {
       if (_selectedTopicIds.contains(topicId)) {
         _selectedTopicIds.remove(topicId);
@@ -61,11 +61,13 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
         _selectedTopicIds.add(topicId);
       }
 
-      final allTopicIds = chapterTopics.map((t) => t['id'] as String).toSet();
-      if (allTopicIds.isNotEmpty && allTopicIds.every((id) => _selectedTopicIds.contains(id))) {
-        _selectedChapterIds.add(chapterId);
-      } else {
-        _selectedChapterIds.remove(chapterId);
+      if (chapterId != null) {
+        final allTopicIds = chapterTopics.map((t) => t['id'] as String).toSet();
+        if (allTopicIds.isNotEmpty && allTopicIds.every((id) => _selectedTopicIds.contains(id))) {
+          _selectedChapterIds.add(chapterId);
+        } else {
+          _selectedChapterIds.remove(chapterId);
+        }
       }
     });
   }
@@ -158,6 +160,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
           orElse: () => subjects.isNotEmpty ? subjects.first : <String, dynamic>{},
         );
         final singleSubjectChapters = (currentSubject['chapters'] as List<dynamic>?) ?? [];
+        final directSubjectTopics = (currentSubject['topics'] as List<dynamic>?) ?? [];
 
         final theme = Theme.of(context);
         final isDark = theme.brightness == Brightness.dark;
@@ -355,8 +358,27 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                             ...activeSubjects.map((s) => _buildMultiSubjectSummaryBlock(s)),
                           ],
                         ] else ...[
-                          // Direct Single Subject Detailed View matching Screenshot 2
+                          // Direct Single Subject Detailed View
+                          if (directSubjectTopics.isNotEmpty) ...[
+                            _buildDirectTopicsBlock(directSubjectTopics),
+                          ],
                           ...singleSubjectChapters.map((c) => _buildChapterBlock(c)),
+                          if (directSubjectTopics.isEmpty && singleSubjectChapters.isEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 16.0),
+                              child: Center(
+                                child: Text(
+                                  'এই বিষয়ে এখনও কোনো অধ্যায় বা টপিক যুক্ত করা হয়নি।',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white54 : Colors.grey.shade600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ],
                     ),
@@ -580,7 +602,18 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                           return '$count';
                                         }
 
-                                        solvedTextStr = '$solvedCount/${formatCount(totalQ)} টি প্রশ্ন সলভ করা হয়েছে';
+                                        final directTopics = (sItem['topics'] as List<dynamic>?) ?? [];
+                                        for (var tp in directTopics) {
+                                          if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
+                                            final name = tp['name'] as String? ?? 'টপিক';
+                                            final stds = (tp['standards'] as List<dynamic>?)?.cast<String>() ?? [];
+                                            if (stds.isNotEmpty) {
+                                              topicNames.add('$name (${stds.join(", ")})');
+                                            } else {
+                                              topicNames.add(name);
+                                            }
+                                          }
+                                        }
 
                                         for (var ch in chapters) {
                                           if (ch is Map<String, dynamic>) {
@@ -829,6 +862,14 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                     child: Builder(
                       builder: (context) {
                         final List<Map<String, dynamic>> filteredChapters = [];
+                        final directTopicsList = (subject['topics'] as List<dynamic>?) ?? [];
+                        final List<dynamic> selDirectTopics = directTopicsList.where((t) => _selectedTopicIds.contains(t['id'] as String)).toList();
+                        if (selDirectTopics.isNotEmpty) {
+                          filteredChapters.add({
+                            'name': 'সরাসরি টপিক',
+                            'topics': selDirectTopics,
+                          });
+                        }
                         for (var c in chapters) {
                           if (c is! Map<String, dynamic>) continue;
                           final cId = c['id'] as String;
@@ -912,6 +953,110 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDirectTopicsBlock(List<dynamic> topics) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1);
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: topics.map((t) {
+          final topicMap = t as Map<String, dynamic>;
+          final topicId = topicMap['id'] as String;
+          final topicName = topicMap['name'] ?? 'টপিক';
+          final isTopicSelected = _selectedTopicIds.contains(topicId);
+          final solvedTopicQuestions = topicMap['solvedQuestions'] ?? 0;
+          final totalTopicQuestions = topicMap['totalQuestions'] ?? (topicMap['questionCount'] ?? 0);
+
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isTopicSelected 
+                  ? const Color(0xFF017A47).withOpacity(0.03) 
+                  : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isTopicSelected 
+                    ? const Color(0xFF017A47).withOpacity(0.2) 
+                    : borderColor,
+                width: isTopicSelected ? 1.2 : 1.0,
+              ),
+              boxShadow: isTopicSelected
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF017A47).withOpacity(0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      )
+                    ]
+                  : null,
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              splashColor: const Color(0xFF017A47).withOpacity(0.12),
+              highlightColor: const Color(0xFF017A47).withOpacity(0.05),
+              onTap: () => _toggleTopic(topicId, null, topics),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 11.0),
+                child: Row(
+                  children: [
+                    _buildCheckboxWidget(isTopicSelected),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            topicName,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isTopicSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isTopicSelected ? const Color(0xFF017A47) : textColor,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (topicMap['standards'] != null && (topicMap['standards'] as List).isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              (topicMap['standards'] as List).join(', '),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: isTopicSelected
+                                    ? const Color(0xFF017A47).withOpacity(0.7)
+                                    : subTextColor.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$solvedTopicQuestions/$totalTopicQuestions',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: isTopicSelected ? const Color(0xFF017A47) : subTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
