@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../../core/widgets/custom_back_button.dart';
+import '../../../core/widgets/app_math_text.dart';
 import '../../result/presentation/result_screen.dart';
 import '../../question/presentation/widgets/shimmer_skeleton.dart';
 import '../data/exam_repository.dart';
@@ -60,118 +61,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
   }
 
   // Strip html formatting tags
-  String _stripHtml(String htmlString) {
-    if (htmlString.isEmpty) return htmlString;
-    String result = htmlString;
-    result = result.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n');
-    result = result.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
-    result = result.replaceAll(RegExp(r'</li>\s*<li>', caseSensitive: false), '\n');
-    result = result.replaceAll('&nbsp;', ' ');
-    result = result.replaceAll('&amp;', '&');
-    result = result.replaceAll('&lt;', '<');
-    result = result.replaceAll('&gt;', '>');
-    result = result.replaceAll('&quot;', '"');
-    result = result.replaceAll('&#39;', "'");
-    result = result.replaceAll(RegExp(r'<[^>]*>'), '');
-    return result.trim();
-  }
+  String _stripHtml(String htmlString) => stripHtmlTags(htmlString);
 
   // Restore LaTeX symbols and control sequences
-  String _fixBrokenLatex(String text) {
-    if (text.isEmpty) return text;
-    String cleaned = text
-        .replaceAll('\x0C', r'\f')
-        .replaceAll('\f', r'\f')
-        .replaceAll('\x09', r'\t')
-        .replaceAll('\t', r'\t');
-
-    cleaned = cleaned
-        .replaceAll(RegExp(r'(?<!\\)\brac\{'), r'\frac{')
-        .replaceAll(RegExp(r'(?<!\\)\bext\{'), r'\text{')
-        .replaceAll(RegExp(r'(?<!\\)\bimes\b'), r'\times')
-        .replaceAll(RegExp(r'(?<!\\)\bsqrt\{'), r'\sqrt{')
-        .replaceAll(RegExp(r'(?<!\\)\balpha\b'), r'\alpha')
-        .replaceAll(RegExp(r'(?<!\\)\bbeta\b'), r'\beta')
-        .replaceAll(RegExp(r'(?<!\\)\btheta\b'), r'\theta')
-        .replaceAll(RegExp(r'(?<!\\)\bpi\b'), r'\pi');
-
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(?<!\$)\b([a-zA-Z])_\{([^\}]+)\}(?!\$)'),
-      (m) => '\$${m.group(1)}_${m.group(2)}\$',
-    );
-
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(?<!\$)\b([a-zA-Z0-9]+)\^\{?([a-zA-Z0-9\+\-]+)\}?(?!\$)'),
-      (m) => '\$${m.group(1)}^${m.group(2)}\$',
-    );
-
-    final sb = StringBuffer();
-    int i = 0;
-    while (i < cleaned.length) {
-      if (cleaned[i] == '\$') {
-        int nextDollar = cleaned.indexOf('\$', i + 1);
-        if (nextDollar != -1) {
-          sb.write(cleaned.substring(i, nextDollar + 1));
-          i = nextDollar + 1;
-          continue;
-        }
-      }
-
-      if (cleaned.startsWith(r'\frac', i) || cleaned.startsWith(r'\sqrt', i)) {
-        int start = i;
-        int cmdLen = 5;
-        i += cmdLen;
-
-        int openBraces = 0;
-        bool foundAnyBrace = false;
-
-        while (i < cleaned.length) {
-          if (cleaned[i] == '{') {
-            openBraces++;
-            foundAnyBrace = true;
-          } else if (cleaned[i] == '}') {
-            openBraces--;
-          }
-          i++;
-
-          if (foundAnyBrace && openBraces == 0) {
-            int tempPeek = i;
-            while (tempPeek < cleaned.length && cleaned[tempPeek].trim().isEmpty) {
-              tempPeek++;
-            }
-            if (tempPeek < cleaned.length && cleaned[tempPeek] == '{') {
-              i = tempPeek;
-              continue;
-            }
-            break;
-          }
-        }
-
-        String texExpr = cleaned.substring(start, i);
-        sb.write('\$$texExpr\$');
-      } else {
-        sb.write(cleaned[i]);
-        i++;
-      }
-    }
-
-    cleaned = sb.toString();
-
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(?<!\$)\\times(?!\$)'),
-      (m) => '×',
-    );
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(?<!\$)\\div(?!\$)'),
-      (m) => '÷',
-    );
-    cleaned = cleaned.replaceAllMapped(
-      RegExp(r'(?<!\$)\\pm(?!\$)'),
-      (m) => '±',
-    );
-
-    return cleaned;
-  }
+  String _fixBrokenLatex(String text) => cleanAndNormalizeMath(text);
 
   // Math Widget Builder supporting mixed inline TeX & Bengali text
   Widget _buildMathWidget(
@@ -180,154 +73,12 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     Color? mathColor,
     double fontSize = 14,
   }) {
-    if (rawText.isEmpty) return const SizedBox.shrink();
-    final imgConverted = rawText.replaceAllMapped(
-      RegExp(r'''<img[^>]+src=["']([^"']+)["'][^>]*>''', caseSensitive: false),
-      (match) => '[IMAGE: ${match.group(1)}]',
-    );
-    final text = _fixBrokenLatex(_stripHtml(imgConverted));
-
-    // Handle embedded image tags
-    final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
-    if (imageRegex.hasMatch(text)) {
-      final List<Widget> widgets = [];
-      int lastIndex = 0;
-
-      for (final Match match in imageRegex.allMatches(text)) {
-        if (match.start > lastIndex) {
-          final textPart = text.substring(lastIndex, match.start).trim();
-          if (textPart.isNotEmpty) {
-            widgets.add(_buildMathWidget(
-              textPart,
-              textStyle: textStyle,
-              mathColor: mathColor,
-              fontSize: fontSize,
-            ));
-          }
-        }
-
-        final imageUrl = match.group(1)!.trim();
-        widgets.add(_buildQuestionImage(imageUrl));
-        lastIndex = match.end;
-      }
-
-      if (lastIndex < text.length) {
-        final remainingText = text.substring(lastIndex).trim();
-        if (remainingText.isNotEmpty) {
-          widgets.add(_buildMathWidget(
-            remainingText,
-            textStyle: textStyle,
-            mathColor: mathColor,
-            fontSize: fontSize,
-          ));
-        }
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: widgets,
-      );
-    }
-
-    // Handle multiline layout
-    if (text.contains('\n')) {
-      final lines = text.split('\n');
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines.map((line) {
-          if (line.trim().isEmpty) return const SizedBox(height: 4);
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 4.0),
-            child: _buildMathWidget(
-              line,
-              textStyle: textStyle,
-              mathColor: mathColor,
-              fontSize: fontSize,
-            ),
-          );
-        }).toList(),
-      );
-    }
-
-    // Delimiter normalization
-    String normalizedText = text
-        .replaceAll(RegExp(r'\$\$(.*?)\$\$', dotAll: true), r'$ $1 $')
-        .replaceAll(RegExp(r'\\\((.*?)\\\)', dotAll: true), r'$ $1 $')
-        .replaceAll(RegExp(r'\\\[(.*?)\\\]', dotAll: true), r'$ $1 $');
-
-    final activeColor = mathColor ?? textStyle?.color ?? Colors.black87;
-    final defaultStyle = textStyle ?? TextStyle(fontSize: fontSize, color: Colors.black87, fontWeight: FontWeight.w600, height: 1.4);
-
-    if (normalizedText.contains('\$')) {
-      final List<InlineSpan> spans = [];
-      final RegExp regex = RegExp(r'\$([^\$]+)\$');
-      int lastMatchEnd = 0;
-
-      for (final Match match in regex.allMatches(normalizedText)) {
-        if (match.start > lastMatchEnd) {
-          spans.add(TextSpan(
-            text: normalizedText.substring(lastMatchEnd, match.start),
-            style: defaultStyle,
-          ));
-        }
-
-        final latexStr = match.group(1)!.trim();
-        spans.add(WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Math.tex(
-                latexStr,
-                textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
-                onErrorFallback: (err) => Text(
-                  latexStr,
-                  style: TextStyle(fontSize: fontSize, color: activeColor, fontStyle: FontStyle.italic),
-                ),
-              ),
-            ),
-          ),
-        ));
-
-        lastMatchEnd = match.end;
-      }
-
-      if (lastMatchEnd < normalizedText.length) {
-        spans.add(TextSpan(
-          text: normalizedText.substring(lastMatchEnd),
-          style: defaultStyle,
-        ));
-      }
-
-      return RichText(
-        softWrap: true,
-        text: TextSpan(children: spans),
-      );
-    }
-
-    // Non-bengali LaTeX lines validation
-    if (normalizedText.trim().startsWith('\\') ||
-        normalizedText.contains(RegExp(r'\\(frac|sqrt|sum|int|lim|alpha|beta|theta|pi|infty|vec|times|div|pm|degree)')) ||
-        normalizedText.contains(RegExp(r'^[a-zA-Z0-9\s=\+\-\*/\^_\(\)\{\}\\]+$'))) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Math.tex(
-          normalizedText.trim(),
-          textStyle: TextStyle(fontSize: fontSize + 1, color: activeColor),
-          onErrorFallback: (err) => Text(
-            normalizedText,
-            style: defaultStyle,
-          ),
-        ),
-      );
-    }
-
-    return Text(
-      normalizedText,
-      style: defaultStyle,
+    return AppMathText(
+      text: rawText,
+      textStyle: textStyle,
+      mathColor: mathColor,
+      fontSize: fontSize,
+      customImageBuilder: (url) => _buildQuestionImage(url),
     );
   }
 
