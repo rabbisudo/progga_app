@@ -8,6 +8,8 @@ import '../../exam/presentation/exam_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/custom_back_button.dart';
 import '../../../core/storage/hive_service.dart';
+import '../../profile/presentation/profile_notifier.dart';
+import '../../leaderboard/presentation/leaderboard_notifier.dart';
 
 // Fetch full exam session result data
 final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, sessionId) async {
@@ -780,7 +782,93 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
   }
 }
 
-class ResultScreen extends ConsumerWidget {
+enum ResultQuestionFilter { all, correct, wrong, skipped }
+
+String _computeQuestionStatus({
+  required Map<String, dynamic> qData,
+  required Map<String, Map<String, dynamic>> answersMap,
+  required String qId,
+}) {
+  final userAns = answersMap[qId];
+  final selectedOptionId = (userAns?['selectedOptionId'] ?? userAns?['qbSelectedOptionId']) as String?;
+  final textAnswer = userAns?['textAnswer'] as String?;
+  final rawStatus = userAns?['status'] as String?;
+  final qType = qData['type'] as String?;
+
+  // Passage sub-questions check
+  final subQuestions = (qData['subQuestions'] as List<dynamic>?) ?? [];
+  if (subQuestions.isNotEmpty) {
+    bool hasAnyAnswer = false;
+    bool allCorrect = true;
+    bool anyWrong = false;
+
+    for (final subQ in subQuestions) {
+      if (subQ is Map<String, dynamic>) {
+        final subQId = (subQ['id'] ?? '') as String;
+        final subAns = answersMap[subQId];
+        final subSel = (subAns?['selectedOptionId'] ?? subAns?['qbSelectedOptionId']) as String?;
+        final subStatus = subAns?['status'] as String?;
+
+        if (subStatus == 'CORRECT') {
+          hasAnyAnswer = true;
+        } else if (subStatus == 'WRONG') {
+          hasAnyAnswer = true;
+          anyWrong = true;
+          allCorrect = false;
+        } else if (subSel != null && subSel.isNotEmpty) {
+          hasAnyAnswer = true;
+          final subOpts = (subQ['options'] as List<dynamic>?) ?? [];
+          final isSelCorrect = subOpts.any((o) => o['id'] == subSel && o['isCorrect'] == true);
+          if (isSelCorrect) {
+            // sub-question correct
+          } else {
+            anyWrong = true;
+            allCorrect = false;
+          }
+        } else {
+          allCorrect = false;
+        }
+      }
+    }
+
+    if (!hasAnyAnswer) return 'SKIPPED';
+    if (anyWrong) return 'WRONG';
+    if (allCorrect) return 'CORRECT';
+    return 'WRONG';
+  }
+
+  if (rawStatus == 'CORRECT') return 'CORRECT';
+  if (rawStatus == 'WRONG') return 'WRONG';
+  if (rawStatus == 'SKIPPED') return 'SKIPPED';
+
+  final isFitb = qType == 'FILL_IN_THE_GAP' ||
+      qType == 'FILL_IN_THE_GAPS' ||
+      qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES';
+  if (isFitb) {
+    final rawAns = textAnswer ?? selectedOptionId;
+    if (rawAns == null || rawAns.trim().isEmpty || rawAns == '{}') {
+      return 'SKIPPED';
+    }
+    return rawStatus ?? 'WRONG';
+  }
+
+  if (selectedOptionId == null || selectedOptionId.isEmpty) {
+    return 'SKIPPED';
+  }
+
+  final optionsList = (qData['options'] as List<dynamic>?) ?? [];
+  final selectedOpt = optionsList.firstWhere(
+    (o) => o['id'] == selectedOptionId,
+    orElse: () => null,
+  );
+  if (selectedOpt != null && selectedOpt['isCorrect'] == true) {
+    return 'CORRECT';
+  }
+
+  return 'WRONG';
+}
+
+class ResultScreen extends ConsumerStatefulWidget {
   final String? sessionId;
   final String? examId;
   final bool isPreview;
@@ -793,10 +881,27 @@ class ResultScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final resultAsync = isPreview
-        ? ref.watch(examDetailsProvider(examId ?? ''))
-        : ref.watch(examResultProvider(sessionId ?? ''));
+  ConsumerState<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends ConsumerState<ResultScreen> {
+  ResultQuestionFilter _selectedFilter = ResultQuestionFilter.all;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(userProfileProvider);
+      ref.invalidate(leaderboardProvider);
+      ref.invalidate(myLeaderboardProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final resultAsync = widget.isPreview
+        ? ref.watch(examDetailsProvider(widget.examId ?? ''))
+        : ref.watch(examResultProvider(widget.sessionId ?? ''));
 
     ref.listen<AsyncValue<Map<String, dynamic>>>(explanationQuotaProvider, (previous, next) {
       next.whenOrNull(
@@ -852,15 +957,15 @@ class ResultScreen extends ConsumerWidget {
           });
         }
 
-        // Points earned (XP coins calculation)
-        final points = correctCount * 10;
+        // Points earned (1 point per correct answer)
+        final points = correctCount;
 
         // Answers sheet map
         final answersList = (data['answers'] as List<dynamic>?) ?? [];
         final answersMap = <String, Map<String, dynamic>>{};
         for (final ans in answersList) {
           if (ans is Map<String, dynamic>) {
-            final qId = ans['questionId'] as String?;
+            final qId = (ans['questionId'] ?? ans['qbQuestionId']) as String?;
             if (qId != null) {
               answersMap[qId] = ans;
             }
@@ -869,6 +974,31 @@ class ResultScreen extends ConsumerWidget {
 
         // Exam questions list
         final examQuestionsList = (examData?['questions'] as List<dynamic>?) ?? [];
+
+        // Build filtered questions list
+        final List<Map<String, dynamic>> filteredItems = [];
+        for (int i = 0; i < examQuestionsList.length; i++) {
+          final eqItem = examQuestionsList[i] as Map<String, dynamic>;
+          final qData = (eqItem['question'] as Map<String, dynamic>?) ?? {};
+          final qId = (qData['id'] ?? eqItem['questionId']) as String? ?? '';
+          final status = _computeQuestionStatus(qData: qData, answersMap: answersMap, qId: qId);
+
+          bool include = true;
+          if (_selectedFilter == ResultQuestionFilter.correct) {
+            include = status == 'CORRECT';
+          } else if (_selectedFilter == ResultQuestionFilter.wrong) {
+            include = status == 'WRONG';
+          } else if (_selectedFilter == ResultQuestionFilter.skipped) {
+            include = status == 'SKIPPED';
+          }
+
+          if (include) {
+            filteredItems.add({
+              'eqItem': eqItem,
+              'originalIndex': i,
+            });
+          }
+        }
 
         final theme = Theme.of(context);
         final isDark = theme.brightness == Brightness.dark;
@@ -898,7 +1028,7 @@ class ResultScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  isPreview
+                  widget.isPreview
                       ? 'প্রশ্নপত্র (${_toBengaliDigit(examQuestionsList.length)}টি প্রশ্ন)'
                       : 'সময়: ${_toBengaliDigit(durationMinutes)} মিনিট',
                   style: TextStyle(
@@ -916,326 +1046,403 @@ class ResultScreen extends ConsumerWidget {
             cacheExtent: 500,
             slivers: [
               // Top Stats Cards & Status Pills Header
-              if (!isPreview)
+              if (!widget.isPreview)
                 SliverPadding(
-                padding: const EdgeInsets.all(16.0),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      // 3 Top Stats Cards (Vibrant EdTech Style)
-                      Row(
-                        children: [
-                          // Card 1: পয়েন্ট
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2B2516) : const Color(0xFFFFFBEB),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: isDark ? const Color(0xFF5D4A16) : const Color(0xFFFDE68A), width: 1.2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.2 : 0.06),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 6),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFF59E0B),
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                  padding: const EdgeInsets.all(16.0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        // 3 Top Stats Cards (Vibrant EdTech Style)
+                        Row(
+                          children: [
+                            // Card 1: পয়েন্ট
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF2B2516) : const Color(0xFFFFFBEB),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: isDark ? const Color(0xFF5D4A16) : const Color(0xFFFDE68A), width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFF59E0B).withOpacity(isDark ? 0.2 : 0.06),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
-                                    child: const Text(
-                                      'পয়েন্ট',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFF59E0B),
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                                      ),
+                                      child: const Text(
+                                        'পয়েন্ট',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 22),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _toBengaliDigit(points),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF78350F),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 22),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _toBengaliDigit(points),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF78350F),
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-
-                          // Card 2: মার্কস
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF162E24) : const Color(0xFFECFDF5),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: isDark ? const Color(0xFF1D5A3F) : const Color(0xFFA7F3D0), width: 1.2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF017A47).withOpacity(isDark ? 0.2 : 0.06),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 6),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF017A47),
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
-                                    ),
-                                    child: const Text(
-                                      'মার্কস',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.check_circle_rounded, color: Color(0xFF017A47), size: 20),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${_toBengaliDigit(score.toInt())} / ${_toBengaliDigit(totalQuestions)}',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF064E3B),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
+                            const SizedBox(width: 10),
 
-                          // Card 3: সময়
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF162D3D) : const Color(0xFFF0F9FF),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: isDark ? const Color(0xFF1D5273) : const Color(0xFFBAE6FD), width: 1.2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF0EA5E9).withOpacity(isDark ? 0.2 : 0.06),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 6),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF0EA5E9),
-                                      borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                            // Card 2: মার্কস
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF162E24) : const Color(0xFFECFDF5),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: isDark ? const Color(0xFF1D5A3F) : const Color(0xFFA7F3D0), width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF017A47).withOpacity(isDark ? 0.2 : 0.06),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
-                                    child: const Text(
-                                      'সময়',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF017A47),
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                                      ),
+                                      child: const Text(
+                                        'মার্কস',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.timer_outlined, color: Color(0xFF0284C7), size: 20),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${_toBengaliDigit(timeTakenMinutes)} মি.',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.check_circle_rounded, color: Color(0xFF017A47), size: 20),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${_toBengaliDigit(score.toInt() == score ? score.toInt() : score)} / ${_toBengaliDigit(totalQuestions)}',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF064E3B),
+                                            ),
                                           ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+
+                            // Card 3: সময়
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF162D3D) : const Color(0xFFF0F9FF),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: isDark ? const Color(0xFF1D5273) : const Color(0xFFBAE6FD), width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF0EA5E9).withOpacity(isDark ? 0.2 : 0.06),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 6),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF0EA5E9),
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                                      ),
+                                      child: const Text(
+                                        'সময়',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.timer_outlined, color: Color(0xFF0284C7), size: 20),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${_toBengaliDigit(timeTakenMinutes)} মি.',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
 
-                      // 3 Filled Status Count Pills
-                      Row(
-                        children: [
-                          // Pill 1: সঠিক
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF00381C) : const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFF86EFAC), width: 1.2),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF16A34A),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${_toBengaliDigit(correctCount)} সঠিক',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF15803D),
-                                    ),
-                                  ),
-                                ],
+                        // 4 Interactive Filter Tabs Bar (সব, সঠিক, ভুল, স্কিপ)
+                        Row(
+                          children: [
+                            // 1. সব (All)
+                            Expanded(
+                              child: _buildFilterTab(
+                                label: 'সব (${_toBengaliDigit(examQuestionsList.length)})',
+                                isSelected: _selectedFilter == ResultQuestionFilter.all,
+                                activeColor: const Color(0xFF017A47),
+                                activeBgColor: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
+                                activeBorderColor: const Color(0xFF017A47),
+                                dotColor: const Color(0xFF017A47),
+                                isDark: isDark,
+                                onTap: () => setState(() => _selectedFilter = ResultQuestionFilter.all),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
+                            const SizedBox(width: 6),
 
-                          // Pill 2: ভুল
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF3D1616) : const Color(0xFFFEE2E2),
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: isDark ? const Color(0xFF731D1D) : const Color(0xFFFECACA), width: 1.2),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFDC2626),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${_toBengaliDigit(wrongCount)} ভুল',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
-                                    ),
-                                  ),
-                                ],
+                            // 2. সঠিক (Correct)
+                            Expanded(
+                              child: _buildFilterTab(
+                                label: '${_toBengaliDigit(correctCount)} সঠিক',
+                                isSelected: _selectedFilter == ResultQuestionFilter.correct,
+                                activeColor: const Color(0xFF16A34A),
+                                activeBgColor: isDark ? const Color(0xFF00381C) : const Color(0xFFDCFCE7),
+                                activeBorderColor: const Color(0xFF16A34A),
+                                dotColor: const Color(0xFF16A34A),
+                                isDark: isDark,
+                                onTap: () => setState(() => _selectedFilter = _selectedFilter == ResultQuestionFilter.correct ? ResultQuestionFilter.all : ResultQuestionFilter.correct),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
+                            const SizedBox(width: 6),
 
-                          // Pill 3: স্কিপ
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF3F4F6),
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: isDark ? const Color(0xFF3C3C3C) : const Color(0xFFE5E7EB), width: 1.2),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF6B7280),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${_toBengaliDigit(skippedCount)} স্কিপ',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.white70 : Colors.black87,
-                                    ),
-                                  ),
-                                ],
+                            // 3. ভুল (Wrong)
+                            Expanded(
+                              child: _buildFilterTab(
+                                label: '${_toBengaliDigit(wrongCount)} ভুল',
+                                isSelected: _selectedFilter == ResultQuestionFilter.wrong,
+                                activeColor: const Color(0xFFDC2626),
+                                activeBgColor: isDark ? const Color(0xFF3D1616) : const Color(0xFFFEE2E2),
+                                activeBorderColor: const Color(0xFFDC2626),
+                                dotColor: const Color(0xFFDC2626),
+                                isDark: isDark,
+                                onTap: () => setState(() => _selectedFilter = _selectedFilter == ResultQuestionFilter.wrong ? ResultQuestionFilter.all : ResultQuestionFilter.wrong),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 6),
+
+                            // 4. স্কিপ (Skipped)
+                            Expanded(
+                              child: _buildFilterTab(
+                                label: '${_toBengaliDigit(skippedCount)} স্কিপ',
+                                isSelected: _selectedFilter == ResultQuestionFilter.skipped,
+                                activeColor: const Color(0xFFD97706),
+                                activeBgColor: isDark ? const Color(0xFF2B2516) : const Color(0xFFFEF3C7),
+                                activeBorderColor: const Color(0xFFD97706),
+                                dotColor: const Color(0xFFD97706),
+                                isDark: isDark,
+                                onTap: () => setState(() => _selectedFilter = _selectedFilter == ResultQuestionFilter.skipped ? ResultQuestionFilter.all : ResultQuestionFilter.skipped),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Question items sliver list
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                sliver: SliverList.builder(
-                  itemCount: examQuestionsList.length,
-                  addAutomaticKeepAlives: false,
-                  addRepaintBoundaries: true,
-                  itemBuilder: (context, index) {
-                    final eqItem = examQuestionsList[index] as Map<String, dynamic>;
-                    return _QuestionReviewCard(
-                      eqItem: eqItem,
-                      index: index,
-                      answersMap: answersMap,
-                      remainingQuota: ref.watch(dailyQuotaProvider),
-                    );
-                  },
+              // Question items sliver list or Empty State
+              if (filteredItems.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _selectedFilter == ResultQuestionFilter.wrong
+                                  ? Icons.check_circle_rounded
+                                  : (_selectedFilter == ResultQuestionFilter.skipped
+                                      ? Icons.task_alt_rounded
+                                      : Icons.info_outline_rounded),
+                              size: 48,
+                              color: _selectedFilter == ResultQuestionFilter.wrong
+                                  ? const Color(0xFF16A34A)
+                                  : (_selectedFilter == ResultQuestionFilter.skipped
+                                      ? const Color(0xFF017A47)
+                                      : Colors.grey),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _selectedFilter == ResultQuestionFilter.wrong
+                                ? 'দারুণ! আপনার কোনো ভুল উত্তর নেই 🎉'
+                                : (_selectedFilter == ResultQuestionFilter.skipped
+                                    ? 'আপনি সব প্রশ্নের উত্তর দিয়েছেন!'
+                                    : 'কোনো প্রশ্ন পাওয়া যায়নি।'),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  sliver: SliverList.builder(
+                    itemCount: filteredItems.length,
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                    itemBuilder: (context, index) {
+                      final item = filteredItems[index];
+                      final eqItem = item['eqItem'] as Map<String, dynamic>;
+                      final originalIndex = item['originalIndex'] as int;
+                      return _QuestionReviewCard(
+                        eqItem: eqItem,
+                        index: originalIndex,
+                        answersMap: answersMap,
+                        remainingQuota: ref.watch(dailyQuotaProvider),
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFilterTab({
+    required String label,
+    required bool isSelected,
+    required Color activeColor,
+    required Color activeBgColor,
+    required Color activeBorderColor,
+    required Color dotColor,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(25),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 2),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? activeBgColor
+                : (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF3F4F6)),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: isSelected
+                  ? activeBorderColor
+                  : (isDark ? Colors.white10 : const Color(0xFFE5E7EB)),
+              width: isSelected ? 1.8 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: activeColor.withOpacity(0.18),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: isSelected ? dotColor : (isDark ? Colors.white38 : Colors.grey.shade400),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected
+                        ? activeColor
+                        : (isDark ? Colors.white70 : Colors.black87),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2244,7 +2451,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
   @override
   Widget build(BuildContext context) {
     final qData = (widget.eqItem['question'] as Map<String, dynamic>?) ?? {};
-    final qId = qData['id'] as String? ?? '';
+    final qId = (qData['id'] ?? widget.eqItem['questionId']) as String? ?? '';
     final questionText = qData['questionText'] as String? ?? '';
     final imageKey = qData['imageKey'] as String?;
     final latexFormula = qData['latexFormula'] as String?;
@@ -2252,7 +2459,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     final qMarks = (qData['marks'] as num?)?.toDouble() ?? 1.0;
 
     final userAns = widget.answersMap[qId];
-    final selectedOptionId = userAns?['selectedOptionId'] as String?;
+    final selectedOptionId = (userAns?['selectedOptionId'] ?? userAns?['qbSelectedOptionId']) as String?;
 
     final optionsList = (qData['options'] as List<dynamic>?) ?? [];
     final List<String> localPaths = globalCqUploadedImages[qId] ?? [];
@@ -2333,28 +2540,28 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
             ...subList.asMap().entries.map((subEntry) {
               final subIdx = subEntry.key;
               final subQ = subEntry.value as Map<String, dynamic>;
-              final subQId = subQ['id'] as String? ?? '';
+              final subQId = (subQ['id'] ?? '') as String? ?? '';
               final rawSubQText = subQ['questionText'] as String? ?? '';
-              final subMarks = subQ['marks'] ?? subQ['point'];
+              final subMarks = (subQ['marks'] ?? subQ['point'] as num?)?.toDouble() ?? 1.0;
               final marksStr = _formatMarks(subMarks);
               String subQText = rawSubQText;
               if (marksStr.isNotEmpty) {
                 if (subQText.endsWith('</p>')) {
-                  subQText = subQText.substring(0, subQText.length - 4) + marksStr + '</p>';
+                  subQText = '${subQText.substring(0, subQText.length - 4)}$marksStr</p>';
                 } else {
-                  subQText = subQText + marksStr;
+                  subQText = '$subQText$marksStr';
                 }
               }
               final subQImageKey = subQ['imageKey'] as String?;
               final subQType = subQ['type'] as String? ?? 'MCQ';
 
               final subUserAns = widget.answersMap[subQId];
-              final subSelectedOptionId = subUserAns?['selectedOptionId'] as String?;
+              final subSelectedOptionId = (subUserAns?['selectedOptionId'] ?? subUserAns?['qbSelectedOptionId']) as String?;
 
               final subOptionsList = (subQ['options'] as List<dynamic>?) ?? [];
 
               final subLabel = isCQ
-                  ? '${subIdx == 0 ? "ক" : subIdx == 1 ? "খ" : subIdx == 2 ? "গ" : subIdx == 3 ? "ঘ" : "ঙ"}'
+                  ? (subIdx == 0 ? "ক" : subIdx == 1 ? "খ" : subIdx == 2 ? "গ" : subIdx == 3 ? "ঘ" : "ঙ")
                   : '${widget.index + 1}.${subIdx + 1}';
 
               final isSubWritten = subQType == 'WRITTEN';
@@ -2396,8 +2603,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                     ],
                     const SizedBox(height: 10),
 
-                    // If not written, render option choices
-                    if (!isSubWritten) ...[
+                    // Sub-question MCQ Options
+                    if (!isSubWritten && subOptionsList.isNotEmpty) ...[
                       ...subOptionsList.asMap().entries.map((optEntry) {
                         final optIdx = optEntry.key;
                         final optData = optEntry.value as Map<String, dynamic>;
@@ -2405,25 +2612,37 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                         final optionText = optData['optionText'] as String? ?? '';
                         final optImageKey = optData['imageKey'] as String?;
                         final isCorrect = optData['isCorrect'] as bool? ?? false;
-                        final isUserSelected = subSelectedOptionId == optId;
+                        final isUserSelected = subSelectedOptionId != null && subSelectedOptionId == optId;
 
                         final optLabel = _getOptionLabel(optIdx);
 
-                        Color bgColor = isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA);
-                        Color labelBgColor = isDark ? Colors.white10 : Colors.white;
-                        Color labelTextColor = isDark ? Colors.white60 : Colors.black54;
-                        Border? labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.5);
+                        Color bgColor;
+                        Color borderColor;
+                        Color labelBgColor;
+                        Color labelTextColor;
+                        Border? labelBorder;
 
-                        if (isCorrect) {
-                          bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
+                        if (isUserSelected && !isCorrect) {
+                          // Wrong selected option -> Soft Red
+                          bgColor = isDark ? const Color(0xFF2E1313) : const Color(0xFFFFECEB);
+                          borderColor = const Color(0xFFEF4444);
+                          labelBgColor = const Color(0xFFEF4444);
+                          labelTextColor = Colors.white;
+                          labelBorder = null;
+                        } else if (isCorrect) {
+                          // Correct option -> Soft Green
+                          bgColor = isDark ? const Color(0xFF042817) : const Color(0xFFE8F5E9);
+                          borderColor = const Color(0xFF10B981);
                           labelBgColor = const Color(0xFF017A47);
                           labelTextColor = Colors.white;
                           labelBorder = null;
-                        } else if (isUserSelected) {
-                          bgColor = isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE);
-                          labelBgColor = Colors.redAccent;
-                          labelTextColor = Colors.white;
-                          labelBorder = null;
+                        } else {
+                          // Neutral option
+                          bgColor = isDark ? Colors.white.withValues(alpha: 0.02) : const Color(0xFFFAFAFA);
+                          borderColor = isDark ? Colors.white12 : const Color(0xFFECEFF1);
+                          labelBgColor = isDark ? Colors.white10 : const Color(0xFFF3F4F6);
+                          labelTextColor = isDark ? Colors.white60 : Colors.black54;
+                          labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.2);
                         }
 
                         return Padding(
@@ -2433,6 +2652,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                             decoration: BoxDecoration(
                               color: bgColor,
                               borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: borderColor, width: 1.2),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2440,8 +2660,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                 Row(
                                   children: [
                                     Container(
-                                      width: 24,
-                                      height: 24,
+                                      width: 26,
+                                      height: 26,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: labelBgColor,
@@ -2467,9 +2687,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                                           fontSize: 13.5,
                                           fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
                                           color: isCorrect
-                                              ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                              ? (isDark ? const Color(0xFF34D399) : const Color(0xFF017A47))
                                               : (isUserSelected
-                                                  ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
+                                                  ? (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))
                                                   : (isDark ? Colors.white70 : Colors.black87)),
                                           fontFamily: 'Li Ador Noirrit',
                                         ),
@@ -2510,7 +2730,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             // Render general tags for the parent CQ / MCQ_N question
             Row(
@@ -2568,7 +2788,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Question Header Row (Title)
+          // Question Header Row (Title & Status Badge)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2811,25 +3031,37 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
               final optionText = optData['optionText'] as String? ?? '';
               final optImageKey = optData['imageKey'] as String?;
               final isCorrect = optData['isCorrect'] as bool? ?? false;
-              final isUserSelected = selectedOptionId == optId;
+              final isUserSelected = selectedOptionId != null && selectedOptionId == optId;
 
               final label = _getOptionLabel(optIdx);
 
-              Color bgColor = isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFFAFAFA);
-              Color labelBgColor = isDark ? Colors.white10 : Colors.white;
-              Color labelTextColor = isDark ? Colors.white60 : Colors.black54;
-              Border? labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.5);
+              Color bgColor;
+              Color borderColor;
+              Color labelBgColor;
+              Color labelTextColor;
+              Border? labelBorder;
 
-              if (isCorrect) {
-                bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
+              if (isUserSelected && !isCorrect) {
+                // Wrong selected option -> Soft Red
+                bgColor = isDark ? const Color(0xFF2E1313) : const Color(0xFFFFECEB);
+                borderColor = const Color(0xFFEF4444);
+                labelBgColor = const Color(0xFFEF4444);
+                labelTextColor = Colors.white;
+                labelBorder = null;
+              } else if (isCorrect) {
+                // Correct option -> Soft Green
+                bgColor = isDark ? const Color(0xFF042817) : const Color(0xFFE8F5E9);
+                borderColor = const Color(0xFF10B981);
                 labelBgColor = const Color(0xFF017A47);
                 labelTextColor = Colors.white;
                 labelBorder = null;
-              } else if (isUserSelected) {
-                bgColor = isDark ? const Color(0xFF3D1616) : const Color(0xFFFFEBEE);
-                labelBgColor = Colors.redAccent;
-                labelTextColor = Colors.white;
-                labelBorder = null;
+              } else {
+                // Neutral unselected option
+                bgColor = isDark ? Colors.white.withValues(alpha: 0.02) : const Color(0xFFFAFAFA);
+                borderColor = isDark ? Colors.white12 : const Color(0xFFECEFF1);
+                labelBgColor = isDark ? Colors.white10 : const Color(0xFFF3F4F6);
+                labelTextColor = isDark ? Colors.white60 : Colors.black54;
+                labelBorder = Border.all(color: isDark ? Colors.white30 : const Color(0xFFCFD8DC), width: 1.2);
               }
 
               return Padding(
@@ -2838,16 +3070,18 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: bgColor,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: borderColor, width: 1.2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
-                            width: 26,
-                            height: 26,
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: labelBgColor,
@@ -2857,7 +3091,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                               child: Text(
                                 label,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 12.5,
                                   fontWeight: FontWeight.bold,
                                   color: labelTextColor,
                                   fontFamily: 'Li Ador Noirrit',
@@ -2870,12 +3104,12 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                             child: _buildResultMathWidget(
                               optionText,
                               textStyle: TextStyle(
-                                fontSize: 13.5,
+                                fontSize: 14,
                                 fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
                                 color: isCorrect
-                                    ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                    ? (isDark ? const Color(0xFF34D399) : const Color(0xFF017A47))
                                     : (isUserSelected
-                                        ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
+                                        ? (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))
                                         : (isDark ? Colors.white70 : Colors.black87)),
                                 fontFamily: 'Li Ador Noirrit',
                               ),

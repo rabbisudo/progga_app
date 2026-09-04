@@ -10,6 +10,8 @@ import '../domain/exam_model.dart';
 import 'exam_runner_notifier.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/widgets/custom_back_button.dart';
+import '../../profile/presentation/profile_notifier.dart';
+import '../../leaderboard/presentation/leaderboard_notifier.dart';
 
 final Map<String, List<String>> globalCqUploadedImages = {};
 
@@ -445,6 +447,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     if (confirm == true && context.mounted) {
       final submitResult = await ref.read(examRunnerProvider.notifier).submitExam();
       if (submitResult != null && context.mounted) {
+        ref.invalidate(userProfileProvider);
+        ref.invalidate(leaderboardProvider);
+        ref.invalidate(myLeaderboardProvider);
         context.pushReplacement('/result/${submitResult.id}');
       }
     }
@@ -1710,6 +1715,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         final shouldPop = await _onWillPop();
         if (shouldPop && context.mounted) {
           ref.read(examRunnerProvider.notifier).submitExam();
+          ref.invalidate(userProfileProvider);
+          ref.invalidate(leaderboardProvider);
+          ref.invalidate(myLeaderboardProvider);
           context.go('/home');
         }
       },
@@ -1735,6 +1743,9 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
               final shouldPop = await _onWillPop();
               if (shouldPop && context.mounted) {
                 ref.read(examRunnerProvider.notifier).submitExam();
+                ref.invalidate(userProfileProvider);
+                ref.invalidate(leaderboardProvider);
+                ref.invalidate(myLeaderboardProvider);
                 context.go('/home');
               }
             },
