@@ -90,7 +90,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final myUserId = profileAsync.value?.id;
 
     // Read league name dynamically
-    String leagueName = 'আয়রন লীগ';
+    String leagueName = 'ব্রোঞ্জ লীগ';
     if (profile != null) {
       leagueName = _getLeagueBengaliName(profile.league);
     }
@@ -106,7 +106,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
           xp: currentXp,
           level: profile?.level ?? 1,
           solvedQuestionsCount: 0,
-          league: profile?.league ?? 'IRON',
+          league: profile?.league ?? 'BRONZE',
           currentStreak: profile?.currentStreak ?? 0,
         ),
       );
@@ -644,7 +644,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
   }
 
   String _getLeagueBengaliName(String? leagueKey) {
-    if (leagueKey == null) return 'আয়রন লীগ';
+    if (leagueKey == null) return 'ব্রোঞ্জ লীগ';
     switch (leagueKey.trim().toLowerCase()) {
       case 'bronze':
         return 'ব্রোঞ্জ লীগ';
@@ -652,13 +652,34 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
         return 'সিলভার লীগ';
       case 'gold':
         return 'গোল্ড লীগ';
-      case 'diamond':
-        return 'ডায়মন্ড লীগ';
-      case 'infinity':
-        return 'ইনফিনিটি লীগ';
-      case 'iron':
+      case 'crystal':
+        return 'ক্রিস্টাল লীগ';
+      case 'elite':
+        return 'এলিট লীগ';
+      case 'legend':
+        return 'লিজেন্ড লীগ';
       default:
-        return 'আয়রন লীগ';
+        return 'ব্রোঞ্জ লীগ';
+    }
+  }
+
+  String _getLeagueAsset(String? leagueKey) {
+    if (leagueKey == null) return 'assets/legue/bronze.webp';
+    switch (leagueKey.trim().toLowerCase()) {
+      case 'bronze':
+        return 'assets/legue/bronze.webp';
+      case 'silver':
+        return 'assets/legue/silver.webp';
+      case 'gold':
+        return 'assets/legue/gold.webp';
+      case 'crystal':
+        return 'assets/legue/crydtsl.webp';
+      case 'elite':
+        return 'assets/legue/elite.webp';
+      case 'legend':
+        return 'assets/legue/legend.webp';
+      default:
+        return 'assets/legue/bronze.webp';
     }
   }
 

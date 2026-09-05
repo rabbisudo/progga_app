@@ -83,12 +83,12 @@ class LeaderboardRepository {
 }
 
 const List<LeagueConfigModel> defaultLeagues = [
-  LeagueConfigModel(id: 'iron', name: 'আয়রন লীগ'),
-  LeagueConfigModel(id: 'bronze', name: 'ব্রোঞ্জ লীগ'),
-  LeagueConfigModel(id: 'silver', name: 'সিলভার লীগ'),
-  LeagueConfigModel(id: 'gold', name: 'গোল্ড লীগ'),
-  LeagueConfigModel(id: 'diamond', name: 'ডায়মন্ড লীগ'),
-  LeagueConfigModel(id: 'infinity', name: 'ইনফিনিটি লীগ'),
+  LeagueConfigModel(id: 'BRONZE', name: 'ব্রোঞ্জ লীগ'),
+  LeagueConfigModel(id: 'SILVER', name: 'সিলভার লীগ'),
+  LeagueConfigModel(id: 'GOLD', name: 'গোল্ড লীগ'),
+  LeagueConfigModel(id: 'CRYSTAL', name: 'ক্রিস্টাল লীগ'),
+  LeagueConfigModel(id: 'ELITE', name: 'এলিট লীগ'),
+  LeagueConfigModel(id: 'LEGEND', name: 'লিজেন্ড লীগ'),
 ];
 
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>((ref) {

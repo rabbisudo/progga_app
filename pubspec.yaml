@@ -79,6 +79,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/legue/
   fonts:
     - family: Li Ador Noirrit
       fonts:
