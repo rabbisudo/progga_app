@@ -38,9 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _controller.setVolume(0.0);
         _controller.play();
       }
-    }).catchError((e) {
-      debugPrint('VideoPlayer init error: $e');
-    });
+    }).catchError((_) {});
   }
 
   @override
@@ -364,7 +362,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       throw 'গুগল আইডি টোকেন পাওয়া যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
                                     }
                                   } catch (e) {
-                                    debugPrint('Google Sign-In Error: $e');
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(

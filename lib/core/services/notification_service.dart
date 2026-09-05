@@ -1,7 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_core/firebase_core';
+import 'package:firebase_messaging/firebase_messaging';
 import '../network/api_client.dart';
 import '../storage/secure_storage_service.dart';
 
@@ -10,9 +9,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
   } catch (_) {}
-  if (kDebugMode) {
-    debugPrint('FCM background message received: ${message.messageId}');
-  }
 }
 
 class NotificationService {
@@ -35,11 +31,7 @@ class NotificationService {
     // Listen to incoming foreground messages
     try {
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        if (kDebugMode) {
-          debugPrint('Handling a foreground message: ${message.messageId}');
-          debugPrint('Notification title: ${message.notification?.title}');
-          debugPrint('Notification body: ${message.notification?.body}');
-        }
+        // Foreground message handling
       });
     } catch (_) {}
 
@@ -57,9 +49,6 @@ class NotificationService {
           'deviceUuid': deviceUuid,
           'deviceOs': deviceOs,
         });
-        if (kDebugMode) {
-          debugPrint('Successfully synced FCM device token with backend.');
-        }
       }
     } catch (_) {}
 
@@ -100,11 +89,7 @@ class NotificationService {
           sound: true,
         );
       }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Notification permission error: $e');
-      }
-    }
+    } catch (_) {}
   }
 
   Future<void> scheduleStreakReminder() async {

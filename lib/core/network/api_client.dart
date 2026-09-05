@@ -149,9 +149,6 @@ class SecurityConfig {
 class SecurityInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (!SecurityConfig.isDeviceSecure) {
-      debugPrint('Security warning on device environment.');
-    }
     handler.next(options);
   }
 }

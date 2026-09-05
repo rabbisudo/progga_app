@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -39,8 +38,8 @@ void main() async {
     bool isDeviceSecure = true;
     try {
       final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
-      if (kReleaseMode && jailbroken) {
-        debugPrint('Security notice: Root/Jailbreak detected on device.');
+      if (jailbroken) {
+        // Root/Jailbreak detected
       }
     } catch (_) {}
     
@@ -98,8 +97,8 @@ void main() async {
         } catch (_) {}
       }),
     ]);
-  } catch (e) {
-    debugPrint('Initialization error: $e');
+  } catch (_) {
+    // Suppress initialization error in release
   } finally {
     // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
     ErrorWidget.builder = (FlutterErrorDetails details) {
