@@ -174,7 +174,7 @@ extension AcademicsRepositoryQBExtensions on AcademicsRepository {
 }
 
 // Providers for Series, Sections and Exams
-final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, subjectId) async {
+final qbSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, subjectId) async {
   final profile = ref.watch(userProfileProvider).value?.profile;
   if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
     return [];
@@ -183,64 +183,70 @@ final qbSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String
   final hive = ref.read(hiveServiceProvider);
   final cacheKey = 'cached_qb_series_sub_${profile.classId}_$subjectId';
 
-  try {
-    final data = await repo.fetchQuestionBankSeries(
-      classId: profile.classId!,
-      subjectId: subjectId,
-    );
-    await hive.cacheList(cacheKey, data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  final cached = hive.getCachedList(cacheKey);
+
+  final fetchFuture = repo.fetchQuestionBankSeries(
+    classId: profile.classId!,
+    subjectId: subjectId,
+  ).then((freshData) async {
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });
 
-final qbExamsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, idsStr) async {
+final qbExamsProvider = FutureProvider.family<List<dynamic>, String>((ref, idsStr) async {
   if (idsStr.isEmpty) return [];
   final ids = idsStr.split(',').where((id) => id.trim().isNotEmpty).toList();
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
   final cacheKey = 'cached_qb_exams_${idsStr.hashCode}';
 
-  try {
-    final data = await repo.fetchExamsByIds(ids);
-    await hive.cacheList(cacheKey, data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  final cached = hive.getCachedList(cacheKey);
+
+  final fetchFuture = repo.fetchExamsByIds(ids).then((freshData) async {
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });
 
-final qbClassSeriesProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
+final qbClassSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, classId) async {
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
   final cacheKey = 'cached_qb_series_$classId';
 
-  try {
-    final data = await repo.fetchQuestionBankSeries(
-      classId: classId,
-      subjectId: '',
-    );
-    await hive.cacheList(cacheKey, data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  final cached = hive.getCachedList(cacheKey);
+
+  final fetchFuture = repo.fetchQuestionBankSeries(
+    classId: classId,
+    subjectId: '',
+  ).then((freshData) async {
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });
 
-final qbClassSectionsProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, classId) async {
+final qbClassSectionsProvider = FutureProvider.family<List<dynamic>, String>((ref, classId) async {
   final profile = ref.watch(userProfileProvider).value?.profile;
   final groupId = profile?.groupId;
   final batchId = profile?.batchId;
@@ -248,19 +254,21 @@ final qbClassSectionsProvider = FutureProvider.family.autoDispose<List<dynamic>,
   final hive = ref.read(hiveServiceProvider);
   final cacheKey = 'cached_qb_sections_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
 
-  try {
-    final data = await repo.fetchQuestionBankSections(
-      classId: classId,
-      groupId: groupId,
-      batchId: batchId,
-    );
-    await hive.cacheList(cacheKey, data);
-    return data;
-  } catch (e) {
-    final cached = hive.getCachedList(cacheKey);
-    if (cached != null) {
-      return cached;
-    }
-    rethrow;
+  final cached = hive.getCachedList(cacheKey);
+
+  final fetchFuture = repo.fetchQuestionBankSections(
+    classId: classId,
+    groupId: groupId,
+    batchId: batchId,
+  ).then((freshData) async {
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  }).catchError((_) => cached ?? <dynamic>[]);
+
+  if (cached != null && cached.isNotEmpty) {
+    fetchFuture.ignore();
+    return cached;
   }
+
+  return fetchFuture;
 });

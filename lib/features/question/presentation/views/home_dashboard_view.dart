@@ -89,6 +89,11 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
 
+    if (profile?.classId != null && profile!.classId!.isNotEmpty) {
+      ref.watch(qbClassSectionsProvider(profile.classId!));
+      ref.watch(qbClassSeriesProvider(profile.classId!));
+    }
+
     // Read league name dynamically
     String leagueName = 'ব্রোঞ্জ লীগ';
     if (profile != null) {
@@ -121,13 +126,18 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       color: const Color(0xFF017A47),
       onRefresh: () async {
         try {
-          await Future.wait([
+          final futures = [
             ref.refresh(userProfileProvider.future),
             ref.refresh(myLeaderboardProvider.future),
             ref.refresh(activeBannersProvider.future),
             ref.refresh(studentCurriculumProvider.future),
             ref.refresh(studentQbCurriculumProvider.future),
-          ]);
+          ];
+          if (profile?.classId != null && profile!.classId!.isNotEmpty) {
+            futures.add(ref.refresh(qbClassSectionsProvider(profile.classId!).future));
+            futures.add(ref.refresh(qbClassSeriesProvider(profile.classId!).future));
+          }
+          await Future.wait(futures);
         } catch (_) {}
       },
       child: SingleChildScrollView(
