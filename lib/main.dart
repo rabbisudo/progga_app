@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
@@ -18,10 +19,10 @@ import 'core/services/notification_service.dart';
 import 'app.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // Defer first frame to keep native splash screen visible while initializing
-  WidgetsBinding.instance.deferFirstFrame();
+  // Keep native splash screen visible while background async initialization runs
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   final hiveService = HiveService();
   final secureStorage = SecureStorageService(const FlutterSecureStorage(
@@ -116,8 +117,8 @@ void main() async {
       ),
     );
 
-    // Allow first frame to draw the resolved starting screen background cleanly
-    WidgetsBinding.instance.allowFirstFrame();
+    // Remove splash screen smoothly once the first frame is ready
+    FlutterNativeSplash.remove();
   }
 }
 

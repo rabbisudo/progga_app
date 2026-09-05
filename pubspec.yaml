@@ -64,10 +64,14 @@ dependencies:
   safe_device: ^1.1.4
   crypto: ^3.0.3
 
+  # Splash Screen
+  flutter_native_splash: ^2.4.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.4
 
   # Code Generation
   build_runner: ^2.4.8
@@ -101,3 +105,16 @@ flutter_launcher_icons:
   adaptive_icon_background: "#ffffff"
   adaptive_icon_foreground: "assets/images/logo.png"
   min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/images/logo.png"
+  color_dark: "#0F172A"
+  image_dark: "assets/images/logo.png"
+  android_12:
+    image: "assets/images/logo.png"
+    color: "#ffffff"
+    color_dark: "#0F172A"
+  ios: true
+  android: true
+  web: false
