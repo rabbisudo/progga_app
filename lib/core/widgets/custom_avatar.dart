@@ -26,7 +26,7 @@ class CustomAvatar extends StatelessWidget {
     
     // Default fallback color if not specified
     final bg = backgroundColor ?? 
-        (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE8F5E9));
+        (isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE8F5E9));
 
     // Fallback widget if url fails
     final defaultFallback = fallbackWidget ?? 
@@ -72,11 +72,16 @@ class CustomAvatar extends StatelessWidget {
       );
     }
 
-    // Standard Image URL
+    // Standard Image URL (Scaled to avatar dimensions to prevent memory bloat)
+    final imagePixelDimension = (radius * 4).round();
     return CircleAvatar(
       radius: radius,
       backgroundColor: bg,
-      backgroundImage: CachedNetworkImageProvider(effectiveUrl),
+      backgroundImage: CachedNetworkImageProvider(
+        effectiveUrl,
+        maxHeight: imagePixelDimension,
+        maxWidth: imagePixelDimension,
+      ),
       onBackgroundImageError: (exception, stackTrace) {
         // Handled internally by Flutter, falls back to child
       },

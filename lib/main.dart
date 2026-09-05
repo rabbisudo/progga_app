@@ -21,6 +21,10 @@ import 'app.dart';
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
+  // Configure high-performance image cache to eliminate re-decoding lag during fast list scrolling
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 120 << 20; // 120 MB
+  PaintingBinding.instance.imageCache.maximumSize = 1000;
+
   // Keep native splash screen visible while background async initialization runs
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 

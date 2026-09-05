@@ -48,9 +48,16 @@ bool _isInsideDollar(String text, int pos) {
   return count % 2 == 1;
 }
 
+final Map<String, String> _mathCache = {};
+const int _maxMathCacheEntries = 1000;
+
 /// Normalizes math delimiters, cleans escaped control characters, and prepares clean LaTeX string
 String cleanAndNormalizeMath(String rawText) {
   if (rawText.isEmpty) return rawText;
+
+  // Check in-memory memoization cache first (Instant O(1) return during scrolling)
+  final cached = _mathCache[rawText];
+  if (cached != null) return cached;
 
   // 1. Convert <img ...> to [IMAGE: url]
   String text = rawText.replaceAllMapped(
@@ -183,7 +190,13 @@ String cleanAndNormalizeMath(String rawText) {
   // 9. Normalize excessive backslashes inside LaTeX row breaks
   text = text.replaceAll(r'\\\\', r'\\');
 
-  return text.trim();
+  final normalized = text.trim();
+  if (_mathCache.length >= _maxMathCacheEntries) {
+    _mathCache.remove(_mathCache.keys.first);
+  }
+  _mathCache[rawText] = normalized;
+
+  return normalized;
 }
 
 /// Splits multiline text by \n while preserving LaTeX math blocks (matrices, environments) intact
@@ -369,9 +382,11 @@ class AppMathText extends StatelessWidget {
         ));
       }
 
-      return RichText(
-        softWrap: true,
-        text: TextSpan(children: spans),
+      return RepaintBoundary(
+        child: RichText(
+          softWrap: true,
+          text: TextSpan(children: spans),
+        ),
       );
     }
 
@@ -380,19 +395,21 @@ class AppMathText extends StatelessWidget {
     if (!hasBengali &&
         (cleanedText.contains(RegExp(r'[=+\-*/^_{}\\]')) || cleanedText.startsWith('\\')) &&
         cleanedText.trim().length > 1) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Math.tex(
-          cleanedText.trim(),
-          textStyle: TextStyle(
-            fontSize: fontSize + 1,
-            color: activeColor,
-            fontWeight: textStyle?.fontWeight ?? FontWeight.normal,
-          ),
-          onErrorFallback: (err) => Text(
-            cleanedText,
-            style: defaultStyle,
+      return RepaintBoundary(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Math.tex(
+            cleanedText.trim(),
+            textStyle: TextStyle(
+              fontSize: fontSize + 1,
+              color: activeColor,
+              fontWeight: textStyle?.fontWeight ?? FontWeight.normal,
+            ),
+            onErrorFallback: (err) => Text(
+              cleanedText,
+              style: defaultStyle,
+            ),
           ),
         ),
       );
@@ -422,6 +439,8 @@ class AppMathText extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: CachedNetworkImage(
           imageUrl: imageUrl,
+          memCacheWidth: 800,
+          maxWidthDiskCache: 1200,
           fit: BoxFit.contain,
           placeholder: (context, url) => Container(
             height: 120,
