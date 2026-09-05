@@ -7,15 +7,67 @@ import 'package:dio/dio.dart';
 
 class AcademicsRepository {
   final ApiClient _apiClient;
+  final HiveService? _hiveService;
 
-  AcademicsRepository(this._apiClient);
+  AcademicsRepository(this._apiClient, [this._hiveService]);
 
-  Future<List<AcademicClassModel>> fetchActiveClasses() async {
+  Map<String, dynamic> _recursivelyCastMap(Map<dynamic, dynamic> source) {
+    return source.map((key, value) {
+      if (value is Map) {
+        return MapEntry(key.toString(), _recursivelyCastMap(value));
+      } else if (value is List) {
+        return MapEntry(
+          key.toString(),
+          value.map((item) {
+            if (item is Map) {
+              return _recursivelyCastMap(item);
+            }
+            return item;
+          }).toList(),
+        );
+      }
+      return MapEntry(key.toString(), value);
+    });
+  }
+
+  Future<List<AcademicClassModel>> fetchActiveClasses({bool forceRefresh = false}) async {
+    // 1. Check local Hive cache first for instant (0ms) return
+    if (!forceRefresh && _hiveService != null) {
+      try {
+        final cached = _hiveService!.getSettingsBox().get('cached_active_classes');
+        if (cached != null && cached is List && cached.isNotEmpty) {
+          return cached
+              .map((e) => AcademicClassModel.fromJson(_recursivelyCastMap(e as Map)))
+              .toList();
+        }
+      } catch (_) {}
+    }
+
+    // 2. Fetch from backend API
     try {
       final response = await _apiClient.dio.get('/academics/classes');
       final rawList = response.data as List<dynamic>;
+
+      // 3. Persist into Hive cache for offline / instant future access
+      if (_hiveService != null) {
+        try {
+          _hiveService!.getSettingsBox().put('cached_active_classes', rawList);
+        } catch (_) {}
+      }
+
       return rawList.map((e) => AcademicClassModel.fromJson(e)).toList();
     } on DioException catch (e) {
+      // If offline or network error, fallback to cache if available
+      if (_hiveService != null) {
+        try {
+          final cached = _hiveService!.getSettingsBox().get('cached_active_classes');
+          if (cached != null && cached is List && cached.isNotEmpty) {
+            return cached
+                .map((e) => AcademicClassModel.fromJson(_recursivelyCastMap(e as Map)))
+                .toList();
+          }
+        } catch (_) {}
+      }
       throw _apiClient.handleError(e);
     }
   }
@@ -47,7 +99,8 @@ class AcademicsRepository {
 
 final academicsRepositoryProvider = Provider<AcademicsRepository>((ref) {
   final client = ref.watch(apiClientProvider);
-  return AcademicsRepository(client);
+  final hiveService = ref.watch(hiveServiceProvider);
+  return AcademicsRepository(client, hiveService);
 });
 
 final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) async {

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/profile_repository.dart';
 import '../domain/profile_model.dart';
@@ -11,6 +10,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   FutureOr<UserData> build() async {
     final repository = ref.read(profileRepositoryProvider);
     final authState = ref.watch(authProvider);
+
     return authState.maybeWhen(
       authenticated: (user, token) {
         if (user.isNotEmpty) {
@@ -29,11 +29,28 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
           return data;
         });
       },
-      orElse: () => repository.fetchMyProfile().then((data) {
-        _cacheProfile(_toMap(data));
-        return data;
-      }),
+      orElse: () {
+        final cached = _loadCachedProfile();
+        if (cached != null) {
+          return cached;
+        }
+        return repository.fetchMyProfile().then((data) {
+          _cacheProfile(_toMap(data));
+          return data;
+        });
+      },
     );
+  }
+
+  /// Manually refresh profile from backend (e.g. pull-to-refresh)
+  Future<void> refreshProfile() async {
+    final repository = ref.read(profileRepositoryProvider);
+    try {
+      final fresh = await repository.fetchMyProfile();
+      _cacheProfile(_toMap(fresh));
+      ref.read(authProvider.notifier).updateUserData(_toMap(fresh));
+      state = AsyncData(fresh);
+    } catch (_) {}
   }
 
   void _cacheProfile(Map<String, dynamic> json) {
@@ -87,7 +104,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   Future<void> updateSettings(Map<String, dynamic> settings) async {
     final repository = ref.read(profileRepositoryProvider);
     final currentData = state.value;
-    state = AsyncLoading<UserData>().copyWithPrevious(state);
+    state = const AsyncLoading<UserData>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       final updatedProfile = await repository.updateSettings(settings);
       final data = currentData == null
@@ -105,7 +122,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   Future<void> updateProfileDetails(Map<String, dynamic> data) async {
     final repository = ref.read(profileRepositoryProvider);
     final currentData = state.value;
-    state = AsyncLoading<UserData>().copyWithPrevious(state);
+    state = const AsyncLoading<UserData>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       final updatedProfile = await repository.updateProfile(data);
       final resData = currentData == null
@@ -122,7 +139,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
 
   Future<void> setPassword({String? oldPassword, required String newPassword}) async {
     final repository = ref.read(profileRepositoryProvider);
-    state = AsyncLoading<UserData>().copyWithPrevious(state);
+    state = const AsyncLoading<UserData>().copyWithPrevious(state);
     state = await AsyncValue.guard(() async {
       await repository.setPassword(oldPassword: oldPassword, newPassword: newPassword);
       
