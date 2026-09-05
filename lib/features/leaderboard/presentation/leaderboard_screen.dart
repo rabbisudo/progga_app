@@ -328,7 +328,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               itemBuilder: (context, index) {
                 final league = defaultLeagues[index];
                 final isSelected = index == _selectedLeagueIndex;
-                final itemColor = Color(league.colorValue);
 
                 return GestureDetector(
                   onTap: () => _onSelectLeagueIndex(index),
@@ -341,34 +340,17 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
                         opacity: isSelected ? 1.0 : 0.38,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Clean Pedestal Framing Ring for Active Badge
-                            if (isSelected)
-                              Container(
-                                width: 84,
-                                height: 84,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: itemColor.withValues(alpha: isDark ? 0.14 : 0.08),
-                                  border: Border.all(
-                                    color: itemColor.withValues(alpha: isDark ? 0.32 : 0.20),
-                                    width: 1.2,
-                                  ),
-                                ),
-                              ),
-                            Image.asset(
-                              league.asset,
-                              width: 74,
-                              height: 74,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Text(
-                                league.icon,
-                                style: TextStyle(fontSize: isSelected ? 36 : 22),
-                              ),
+                        child: Center(
+                          child: Image.asset(
+                            league.asset,
+                            width: 76,
+                            height: 76,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Text(
+                              league.icon,
+                              style: TextStyle(fontSize: isSelected ? 36 : 22),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -451,7 +433,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     );
   }
 
-  // --- Active League Progress Slider Bar (Animated) ---
+  // --- Active League Progress Slider Bar (Smooth & Rounded) ---
   Widget _buildActiveLeagueProgressBar({
     required LeagueConfigModel selectedLeague,
     required int userXp,
@@ -496,17 +478,17 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           ],
         ),
 
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
 
-        // Animated Slider Track with Floating Indicator Pill
+        // Animated Smooth Rounded Slider Track with Floating Indicator Pill
         LayoutBuilder(
           builder: (context, constraints) {
             final trackWidth = constraints.maxWidth;
-            const markerWidth = 66.0;
+            const markerWidth = 72.0;
 
             return TweenAnimationBuilder<double>(
               tween: Tween<double>(begin: 0.0, end: targetProgress),
-              duration: const Duration(milliseconds: 600),
+              duration: const Duration(milliseconds: 650),
               curve: Curves.easeOutCubic,
               builder: (context, animProgress, child) {
                 final double leftOffset = ((trackWidth - markerWidth) * animProgress).clamp(0.0, trackWidth - markerWidth);
@@ -516,44 +498,49 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   children: [
                     // Base background track
                     Container(
-                      height: 7,
+                      height: 8,
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF262933) : const Color(0xFFE5E7EB),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
 
-                    // Filled progress track
+                    // Filled progress track (Rounded Capsule)
                     Positioned(
                       left: 0,
                       top: 8,
                       child: Container(
-                        height: 7,
-                        width: trackWidth * animProgress,
+                        height: 8,
+                        width: (trackWidth * animProgress).clamp(animProgress > 0 ? 8.0 : 0.0, trackWidth),
                         decoration: BoxDecoration(
-                          color: leagueColor,
-                          borderRadius: BorderRadius.circular(4),
+                          gradient: LinearGradient(
+                            colors: [
+                              Color.alphaBlend(Colors.white.withValues(alpha: 0.15), leagueColor),
+                              leagueColor,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
 
-                    // Floating user points marker badge
+                    // Floating user points marker badge (Smooth Pill)
                     Positioned(
                       left: leftOffset,
                       top: 0,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E212B) : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
+                          color: isDark ? const Color(0xFF1B1E28) : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: leagueColor, width: 1.5),
                         ),
                         child: Text(
                           '${_toBengaliDigits(userXp.toString())} পয়েন্ট',
                           style: TextStyle(
                             color: leagueColor,
-                            fontSize: 10,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w900,
                             fontFamily: 'Li Ador Noirrit',
                           ),
@@ -571,10 +558,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         if (selectedLeague.maxXp != null && remaining > 0) ...[
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF181B22) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
                 width: 0.8,
@@ -600,10 +587,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         ] else if (selectedLeague.maxXp == null) ...[
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF181B22) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
                 width: 0.8,
