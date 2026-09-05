@@ -1,0 +1,68 @@
+name: iOS Build & Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'lib/**'
+      - 'ios/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - '.github/workflows/ios.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  build-ios:
+    name: Build iOS (No-Codesign / Artifact)
+    runs-on: macos-latest
+
+    steps:
+      # 1. Checkout Repository
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Flutter
+      - name: 💙 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'
+
+      # 3. Cache CocoaPods
+      - name: 📦 Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      # 4. Install Dependencies
+      - name: 🚀 Install Flutter Dependencies
+        run: |
+          flutter pub get
+
+      # 5. Build iOS App (Release, No Code Signing for CI)
+      - name: 🔨 Build iOS Release
+        run: |
+          flutter build ios --release --no-codesign
+
+      # 6. Package Payload to Unsigned IPA
+      - name: 📦 Package into Unsigned IPA / Zip
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r Progga-iOS-Unsigned.ipa Payload
+          cd ../../..
+
+      # 7. Upload Artifact
+      - name: 📤 Upload iOS Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Progga-iOS-Release-${{ github.run_number }}
+          path: build/ios/iphoneos/Progga-iOS-Unsigned.ipa
+          retention-days: 14
