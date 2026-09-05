@@ -23,7 +23,7 @@ class AppUpdateDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: !isForceUpdate,
-      barrierColor: Colors.black.withValues(alpha: 0.75),
+      barrierColor: Colors.black.withValues(alpha: 0.80),
       builder: (context) => AppUpdateDialog(
         updateInfo: updateInfo,
         isForceUpdate: isForceUpdate,
@@ -52,8 +52,11 @@ class AppUpdateDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? const Color(0xFF141A17) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF233228) : const Color(0xFFE2EBE5);
+    final cardBgColor = isDark ? const Color(0xFF131B16) : Colors.white;
+    final cardBorderColor = isDark ? const Color(0xFF22382C) : const Color(0xFFE2EBE5);
+    final messageBoxBg = isDark ? const Color(0xFF19251E) : const Color(0xFFF2FBF6);
+    final messageBoxBorder = isDark ? const Color(0xFF254131) : const Color(0xFFD6EFE1);
+
     const brandGreen = Color(0xFF017A47);
     const brandTeal = Color(0xFF0D9488);
 
@@ -63,168 +66,305 @@ class AppUpdateDialog extends StatelessWidget {
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Container(
+          constraints: const BoxConstraints(maxWidth: 380),
           decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: borderColor, width: 1.2),
+            color: cardBgColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: cardBorderColor, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.15),
+                color: Colors.black.withValues(alpha: isDark ? 0.7 : 0.20),
+                blurRadius: 40,
+                offset: const Offset(0, 16),
+              ),
+              BoxShadow(
+                color: brandGreen.withValues(alpha: isDark ? 0.15 : 0.08),
                 blurRadius: 30,
-                offset: const Offset(0, 10),
+                offset: const Offset(0, -4),
               ),
             ],
           ),
-          padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top 3D / Gradient Rocket Icon with Glow
-              Center(
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [brandGreen, brandTeal],
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: brandGreen.withValues(alpha: 0.35),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
+              // 1. Top Curved Hero Header with Glowing Rocket Illustration
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF015A34),
+                      Color(0xFF017A47),
+                      Color(0xFF0D9488),
                     ],
                   ),
-                  child: const Center(
-                    child: Text(
-                      '🚀',
-                      style: TextStyle(fontSize: 34),
-                    ),
-                  ),
                 ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Version Badge Pill
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: brandGreen.withValues(alpha: isDark ? 0.20 : 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: brandGreen.withValues(alpha: isDark ? 0.40 : 0.25),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.verified_rounded,
-                        size: 13,
-                        color: isDark ? const Color(0xFF34D399) : brandGreen,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        'ভার্সন ${_toBengaliDigits(updateInfo.latestVersion)} উপলব্ধ',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFF34D399) : brandGreen,
-                          fontFamily: 'Li Ador Noirrit',
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Decorative Background Sparkle Dots
+                    Positioned(
+                      top: 4,
+                      left: 30,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          shape: BoxShape.circle,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Title
-              Text(
-                updateInfo.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF111827),
-                  fontFamily: 'Li Ador Noirrit',
-                  letterSpacing: 0.2,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              // Subtitle / Description Message
-              Text(
-                updateInfo.message,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: isDark ? Colors.white70 : const Color(0xFF4B5563),
-                  fontFamily: 'Li Ador Noirrit',
-                  height: 1.4,
-                ),
-              ),
-
-              const SizedBox(height: 22),
-
-              // Primary "Update Now" Action Button
-              ElevatedButton(
-                onPressed: () => _launchUpdateUrl(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: brandGreen,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'এখনই আপডেট করুন',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        fontFamily: 'Li Ador Noirrit',
+                    ),
+                    Positioned(
+                      top: 24,
+                      right: 40,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward_rounded, size: 18),
+                    Positioned(
+                      bottom: 8,
+                      left: 50,
+                      child: Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+
+                    // Central Glowing Rocket Shield Visual
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 86,
+                          height: 86,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withValues(alpha: 0.15),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                              BoxShadow(
+                                color: const Color(0xFF34D399).withValues(alpha: 0.40),
+                                blurRadius: 30,
+                                spreadRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 68,
+                              height: 68,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF10B981),
+                                    Color(0xFF047857),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '🚀',
+                                  style: TextStyle(fontSize: 36),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // Shimmering Version Badge Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.30),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.30),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('✨', style: TextStyle(fontSize: 12)),
+                              const SizedBox(width: 6),
+                              Text(
+                                'নতুন সংস্করণ v${_toBengaliDigits(updateInfo.latestVersion)}',
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: 0.3,
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
 
-              // Optional "Update Later" button if not force update
-              if (!isForceUpdate) ...[
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: isDark ? Colors.white54 : const Color(0xFF6B7280),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                  ),
-                  child: const Text(
-                    'পরে আপডেট করব',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Li Ador Noirrit',
+              // 2. Card Body Content
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Title
+                    Text(
+                      updateInfo.title,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontFamily: 'Li Ador Noirrit',
+                        letterSpacing: 0.1,
+                      ),
                     ),
-                  ),
+
+                    const SizedBox(height: 12),
+
+                    // Information Box for Message
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: messageBoxBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: messageBoxBorder, width: 1.2),
+                      ),
+                      child: Text(
+                        updateInfo.message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? const Color(0xFFD1E7DD) : const Color(0xFF2D5A43),
+                          fontFamily: 'Li Ador Noirrit',
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 3. Primary "Update Now" Action Button with Glowing Gradient
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF00A86B),
+                            brandGreen,
+                            brandTeal,
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: brandGreen.withValues(alpha: 0.40),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => _launchUpdateUrl(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'এখনই আপডেট করুন',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                fontFamily: 'Li Ador Noirrit',
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward_rounded, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Optional "Update Later" button if not force update
+                    if (!isForceUpdate) ...[
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          foregroundColor: isDark ? Colors.white54 : const Color(0xFF6B7280),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                        child: const Text(
+                          'পরে আপডেট করব',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -232,3 +372,4 @@ class AppUpdateDialog extends StatelessWidget {
     );
   }
 }
+
