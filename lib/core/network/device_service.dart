@@ -43,26 +43,38 @@ class DeviceService {
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
         osVersion = 'Android ${androidInfo.version.release} (SDK ${androidInfo.version.sdkInt})';
-        deviceModel = androidInfo.model;
-        manufacturer = androidInfo.manufacturer;
+        deviceModel = _sanitizeHeader(androidInfo.model);
+        manufacturer = _sanitizeHeader(androidInfo.manufacturer);
       } else if (Platform.isIOS) {
         final iosInfo = await _deviceInfo.iosInfo;
         osVersion = 'iOS ${iosInfo.systemVersion}';
-        deviceModel = iosInfo.name;
+        deviceModel = _sanitizeHeader(iosInfo.utsname.machine.isNotEmpty ? iosInfo.utsname.machine : iosInfo.model);
         manufacturer = 'Apple';
       }
     } catch (_) {}
 
-    final userAgent = 'ProggaMobile/$appVersion ($osName $osVersion; $deviceModel; $manufacturer)';
+    final cleanOsName = _sanitizeHeader(osName);
+    final cleanOsVersion = _sanitizeHeader(osVersion);
+    final cleanDeviceModel = _sanitizeHeader(deviceModel.isNotEmpty ? deviceModel : 'Mobile');
+    final cleanManufacturer = _sanitizeHeader(manufacturer.isNotEmpty ? manufacturer : 'Generic');
+    final cleanAppVersion = _sanitizeHeader(appVersion);
+    final cleanBuildNumber = _sanitizeHeader(buildNumber);
+
+    final userAgent = 'ProggaMobile/$cleanAppVersion ($cleanOsName $cleanOsVersion; $cleanDeviceModel; $cleanManufacturer)';
 
     return DeviceMetadata(
-      appVersion: appVersion,
-      buildNumber: buildNumber,
-      osName: osName,
-      osVersion: osVersion,
-      deviceModel: deviceModel,
-      manufacturer: manufacturer,
+      appVersion: cleanAppVersion,
+      buildNumber: cleanBuildNumber,
+      osName: cleanOsName,
+      osVersion: cleanOsVersion,
+      deviceModel: cleanDeviceModel,
+      manufacturer: cleanManufacturer,
       userAgent: userAgent,
     );
+  }
+
+  static String _sanitizeHeader(String input) {
+    if (input.isEmpty) return '';
+    return input.replaceAll(RegExp(r'[^\x20-\x7E]'), '').trim();
   }
 }
