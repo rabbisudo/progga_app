@@ -285,13 +285,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5E7EB),
           width: 1.2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
       child: Column(
@@ -510,13 +503,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       color: isDark ? const Color(0xFF1E212B) : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: leagueColor, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
                     ),
                     child: Text(
                       '${_toBengaliDigits(userXp.toString())} পয়েন্ট',
@@ -691,13 +677,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: borderColor, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
