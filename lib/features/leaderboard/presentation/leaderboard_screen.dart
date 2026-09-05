@@ -261,7 +261,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   // ===========================================================================
-  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Clean & Crisp Modern Card)
+  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Smooth & Interactive UI/UX)
   // ===========================================================================
   Widget _buildLeagueShowcaseCard({
     required LeagueConfigModel selectedLeague,
@@ -286,11 +286,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           width: 1.2,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
+      padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Horizontal Badge Carousel (Clean & Crisp, No Muddy Shadows)
+          // Horizontal Badge Carousel
           SizedBox(
             height: 94,
             child: PageView.builder(
@@ -313,19 +313,18 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   onTap: () => _onSelectLeagueIndex(index),
                   behavior: HitTestBehavior.opaque,
                   child: Center(
-                    child: AnimatedContainer(
+                    child: AnimatedScale(
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
-                      width: isSelected ? 76 : 46,
-                      height: isSelected ? 76 : 46,
+                      scale: isSelected ? 1.0 : 0.70,
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
-                        opacity: isSelected ? 1.0 : 0.40,
+                        opacity: isSelected ? 1.0 : 0.38,
                         child: Center(
                           child: Image.asset(
                             league.asset,
-                            width: isSelected ? 74 : 44,
-                            height: isSelected ? 74 : 44,
+                            width: 76,
+                            height: 76,
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => Text(
                               league.icon,
@@ -347,10 +346,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6),
+              color: leagueColor.withValues(alpha: isDark ? 0.18 : 0.08),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
+                color: leagueColor.withValues(alpha: isDark ? 0.35 : 0.25),
                 width: 1,
               ),
             ),
@@ -412,7 +411,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     );
   }
 
-  // --- Active League Progress Slider Bar ---
+  // --- Active League Progress Slider Bar (Animated) ---
   Widget _buildActiveLeagueProgressBar({
     required LeagueConfigModel selectedLeague,
     required int userXp,
@@ -422,7 +421,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final minXp = selectedLeague.minXp;
     final maxXp = selectedLeague.maxXp ?? (minXp + 5000);
     final totalRange = (maxXp - minXp).toDouble();
-    final double progress = totalRange > 0
+    final double targetProgress = totalRange > 0
         ? ((userXp - minXp) / totalRange).clamp(0.0, 1.0)
         : 1.0;
 
@@ -459,90 +458,132 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
         const SizedBox(height: 6),
 
-        // Custom Slider Track with Floating Indicator Pill
+        // Animated Slider Track with Floating Indicator Pill
         LayoutBuilder(
           builder: (context, constraints) {
             final trackWidth = constraints.maxWidth;
             const markerWidth = 66.0;
-            final double leftOffset = ((trackWidth - markerWidth) * progress).clamp(0.0, trackWidth - markerWidth);
 
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Base background track
-                Container(
-                  height: 7,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF262933) : const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
+            return TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: targetProgress),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, animProgress, child) {
+                final double leftOffset = ((trackWidth - markerWidth) * animProgress).clamp(0.0, trackWidth - markerWidth);
 
-                // Filled progress track
-                Positioned(
-                  left: 0,
-                  top: 8,
-                  child: Container(
-                    height: 7,
-                    width: trackWidth * progress,
-                    decoration: BoxDecoration(
-                      color: leagueColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-
-                // Floating user points marker badge
-                Positioned(
-                  left: leftOffset,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E212B) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: leagueColor, width: 1.5),
-                    ),
-                    child: Text(
-                      '${_toBengaliDigits(userXp.toString())} পয়েন্ট',
-                      style: TextStyle(
-                        color: leagueColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: 'Li Ador Noirrit',
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Base background track
+                    Container(
+                      height: 7,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF262933) : const Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                  ),
-                ),
-              ],
+
+                    // Filled progress track
+                    Positioned(
+                      left: 0,
+                      top: 8,
+                      child: Container(
+                        height: 7,
+                        width: trackWidth * animProgress,
+                        decoration: BoxDecoration(
+                          color: leagueColor,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+
+                    // Floating user points marker badge
+                    Positioned(
+                      left: leftOffset,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E212B) : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: leagueColor, width: 1.5),
+                        ),
+                        child: Text(
+                          '${_toBengaliDigits(userXp.toString())} পয়েন্ট',
+                          style: TextStyle(
+                            color: leagueColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
 
-        // Helper text below progress bar
+        // Helper text below progress bar in a clean subtle badge
         if (selectedLeague.maxXp != null && remaining > 0) ...[
-          const SizedBox(height: 8),
-          Text(
-            'পরবর্তী লিগে পৌঁছাতে আর মাত্র ${_toBengaliDigits(remaining.toString())} পয়েন্ট প্রয়োজন 🚀',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isDark ? Colors.white54 : const Color(0xFF6B7280),
-              fontSize: 11.5,
-              fontFamily: 'Li Ador Noirrit',
-              fontWeight: FontWeight.w500,
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF181B22) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🚀', style: TextStyle(fontSize: 13)),
+                const SizedBox(width: 6),
+                Text(
+                  'পরবর্তী লিগে পৌঁছাতে আর মাত্র ${_toBengaliDigits(remaining.toString())} পয়েন্ট প্রয়োজন',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    fontSize: 11.5,
+                    fontFamily: 'Li Ador Noirrit',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ] else if (selectedLeague.maxXp == null) ...[
-          const SizedBox(height: 8),
-          Text(
-            'আপনি সর্বোচ্চ লিগে অবস্থান করছেন! 🏆',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isDark ? Colors.amberAccent : const Color(0xFFD97706),
-              fontSize: 12,
-              fontFamily: 'Li Ador Noirrit',
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF181B22) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                width: 0.8,
+              ),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('🏆', style: TextStyle(fontSize: 13)),
+                SizedBox(width: 6),
+                Text(
+                  'আপনি সর্বোচ্চ লিগে অবস্থান করছেন!',
+                  style: TextStyle(
+                    color: Color(0xFFD97706),
+                    fontSize: 12,
+                    fontFamily: 'Li Ador Noirrit',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
