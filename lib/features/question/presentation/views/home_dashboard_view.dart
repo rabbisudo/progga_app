@@ -423,18 +423,27 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                           final top3Players = allPlayers.take(3).toList();
 
                           return Column(
-                            children: List.generate(top3Players.length, (i) {
-                              final player = top3Players[i];
-                              return _buildLeaderboardRow(
-                                name: player.name,
-                                score: player.score,
-                                avatarText: player.avatarText,
-                                avatarBg: player.avatarBg,
-                                isCurrentUser: player.isCurrentUser,
-                                rank: i + 1,
-                                context: context,
-                              );
-                            }),
+                            children: [
+                              for (int i = 0; i < top3Players.length; i++) ...[
+                                if (i > 0)
+                                  Divider(
+                                    height: 1,
+                                    thickness: 0.8,
+                                    color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5ECE8),
+                                    indent: 70,
+                                    endIndent: 18,
+                                  ),
+                                _buildLeaderboardRow(
+                                  name: top3Players[i].name,
+                                  score: top3Players[i].score,
+                                  avatarText: top3Players[i].avatarText,
+                                  avatarBg: top3Players[i].avatarBg,
+                                  isCurrentUser: top3Players[i].isCurrentUser,
+                                  rank: i + 1,
+                                  context: context,
+                                ),
+                              ],
+                            ],
                           );
                         }
                       ),
@@ -532,138 +541,124 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     required BuildContext context,
   }) {
     final bool isUrl = avatarText.startsWith('http') || avatarText.startsWith('https');
-    final bool isSingleChar = avatarText.length == 1;
+    final bool isSingleChar = avatarText.length <= 2;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    Widget rankWidget;
-    Color rankBg;
-    Color rankTextColor;
-    if (rank == 1) {
-      rankBg = isDark ? const Color(0xFF2A2315) : const Color(0xFFFEF3C7);
-      rankTextColor = const Color(0xFFD97706);
-    } else if (rank == 2) {
-      rankBg = isDark ? const Color(0xFF1E2428) : const Color(0xFFF1F5F9);
-      rankTextColor = const Color(0xFF64748B);
-    } else if (rank == 3) {
-      rankBg = isDark ? const Color(0xFF2A1E17) : const Color(0xFFFFEDD5);
-      rankTextColor = const Color(0xFFB45309);
-    } else {
-      rankBg = isDark ? const Color(0xFF1E2922) : const Color(0xFFF3F6F4);
-      rankTextColor = isDark ? Colors.white60 : const Color(0xFF4B5563);
-    }
-
-    rankWidget = Container(
-      width: 26,
-      height: 26,
-      decoration: BoxDecoration(
-        color: rankBg,
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          _toBengaliDigits(rank.toString()),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: rankTextColor,
-            fontFamily: 'Li Ador Noirrit',
-          ),
-        ),
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+    return InkWell(
+      onTap: () => context.push('/leaderboard'),
       child: Container(
-        decoration: BoxDecoration(
-          color: isCurrentUser
-              ? (isDark ? const Color(0xFF017A47).withOpacity(0.12) : const Color(0xFF017A47).withOpacity(0.06))
-              : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF8F9FA)),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isCurrentUser
-                ? (isDark ? const Color(0xFF017A47).withOpacity(0.4) : const Color(0xFF017A47).withOpacity(0.25))
-                : (isDark ? Colors.white.withOpacity(0.04) : const Color(0xFFECEFF1)),
-            width: 1.2,
-          ),
-        ),
-        child: InkWell(
-          onTap: () => context.push('/leaderboard'),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                rankWidget,
-                const SizedBox(width: 10),
-                isUrl
-                    ? Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: isCurrentUser
-                              ? Border.all(
-                                  color: const Color(0xFF017A47),
-                                  width: 2,
-                                )
-                              : null,
-                        ),
-                        child: CustomAvatar(
-                          avatarUrl: avatarText,
-                          radius: 18,
-                          backgroundColor: avatarBg,
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: isCurrentUser
-                              ? Border.all(
-                                  color: const Color(0xFF017A47),
-                                  width: 2,
-                                )
-                              : null,
-                        ),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: avatarBg,
-                          child: Text(
-                            isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+        color: isCurrentUser
+            ? const Color(0xFF017A47).withValues(alpha: isDark ? 0.12 : 0.06)
+            : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: Row(
+          children: [
+            // Left: Circular Avatar
+            isUrl
+                ? CustomAvatar(
+                    avatarUrl: avatarText,
+                    radius: 19,
+                    backgroundColor: avatarBg,
+                    fallbackWidget: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: avatarBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        isSingleChar ? avatarText : (name.isNotEmpty ? name[0].toUpperCase() : '?'),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: isCurrentUser ? FontWeight.bold : FontWeight.w500,
-                      fontSize: 14,
-                      color: isCurrentUser 
-                          ? const Color(0xFF017A47) 
-                          : (isDark ? Colors.white : Colors.black87),
-                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
+            const SizedBox(width: 14),
+
+            // Middle: User Name & 'তুমি' tag
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w700,
+                        fontSize: 14,
+                        color: isDark ? Colors.white : const Color(0xFF111827),
+                        fontFamily: 'Li Ador Noirrit',
+                      ),
+                    ),
+                  ),
+                  if (isCurrentUser) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF017A47),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'তুমি',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // Right: Rank Number on top & points underneath (Matching the exact screenshot)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  rank.toString(),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: rank == 1
+                        ? const Color(0xFFD97706)
+                        : (isDark ? Colors.white : const Color(0xFF111827)),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
                 ),
+                const SizedBox(height: 1),
                 Text(
                   '${_toBengaliDigits(score.toString())} পয়েন্ট',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12.5,
-                    color: Color(0xFF017A47),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white54 : const Color(0xFF6B7280),
                     fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
