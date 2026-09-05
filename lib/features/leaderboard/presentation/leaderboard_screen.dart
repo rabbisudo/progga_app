@@ -43,6 +43,16 @@ String _getInitials(String name) {
   return name.trim().characters.first.toUpperCase();
 }
 
+class _LeagueState {
+  final List<LeaderboardEntryModel> entries = [];
+  int offset = 0;
+  bool hasMore = true;
+  bool isLoading = false;
+  bool isLoadingMore = false;
+  Object? error;
+  DateTime? lastFetched;
+}
+
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
@@ -55,16 +65,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
   final ScrollController _scrollController = ScrollController();
   late final PageController _pageController;
-  final List<LeaderboardEntryModel> _entries = [];
+  final Map<String, _LeagueState> _leagueStates = {};
 
   int _selectedLeagueIndex = 0;
-  int _fetchVersion = 0;
-  bool _isLoading = false;
-  bool _isLoadingMore = false;
-  bool _hasMore = true;
-  int _offset = 0;
-  Object? _error;
   bool _hasInitializedUserLeague = false;
+
+  _LeagueState _getState(String leagueId) {
+    return _leagueStates.putIfAbsent(leagueId, () => _LeagueState());
+  }
 
   @override
   void initState() {
@@ -75,7 +83,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       initialPage: _selectedLeagueIndex,
     );
     _scrollController.addListener(_onScroll);
-    _fetchPage(reset: true);
+    _fetchPageForLeague(leagueId: _selectedLeagueId, reset: true);
   }
 
   @override
@@ -87,33 +95,39 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
-    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final leagueId = _selectedLeagueId;
+    final state = _getState(leagueId);
+    if (state.isLoading || state.isLoadingMore || !state.hasMore) return;
     final max = _scrollController.position.maxScrollExtent;
     if (max > 100 && _scrollController.position.pixels >= max - 150) {
-      _fetchPage();
+      _fetchPageForLeague(leagueId: leagueId, reset: false);
     }
   }
 
   String get _selectedLeagueId => defaultLeagues[_selectedLeagueIndex].id;
 
-  Future<void> _fetchPage({bool reset = false}) async {
-    if (reset) {
-      _fetchVersion++;
-      setState(() {
-        _isLoading = true;
-        _error = null;
-        _entries.clear();
-        _offset = 0;
-        _hasMore = true;
-        _isLoadingMore = false;
-      });
-    } else {
-      if (_isLoading || _isLoadingMore || !_hasMore) return;
-      setState(() => _isLoadingMore = true);
-    }
+  Future<void> _fetchPageForLeague({
+    required String leagueId,
+    bool reset = false,
+    bool forceRefresh = false,
+    bool silent = false,
+  }) async {
+    final state = _getState(leagueId);
 
-    final currentVersion = _fetchVersion;
-    final leagueId = _selectedLeagueId;
+    if (reset) {
+      if (!silent) {
+        setState(() {
+          state.isLoading = state.entries.isEmpty;
+          state.error = null;
+        });
+      }
+      state.offset = 0;
+      state.hasMore = true;
+      state.isLoadingMore = false;
+    } else {
+      if (state.isLoading || state.isLoadingMore || !state.hasMore) return;
+      setState(() => state.isLoadingMore = true);
+    }
 
     try {
       final repo = ref.read(leaderboardRepositoryProvider);
@@ -121,54 +135,67 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         scope: 'global',
         league: leagueId,
         limit: _pageSize,
-        offset: reset ? 0 : _offset,
+        offset: reset ? 0 : state.offset,
+        forceRefresh: forceRefresh,
       );
 
-      if (!mounted || currentVersion != _fetchVersion) return;
+      if (!mounted) return;
 
       setState(() {
         if (reset) {
-          _entries.clear();
-          _entries.addAll(newEntries);
-          _offset = newEntries.length;
+          state.entries.clear();
+          state.entries.addAll(newEntries);
+          state.offset = newEntries.length;
         } else {
-          // Strict deduplication by userId
-          final existingIds = _entries.map((e) => e.userId).toSet();
+          final existingIds = state.entries.map((e) => e.userId).toSet();
           for (final item in newEntries) {
             if (!existingIds.contains(item.userId)) {
-              _entries.add(item);
+              state.entries.add(item);
               existingIds.add(item.userId);
             }
           }
-          _offset += newEntries.length;
+          state.offset += newEntries.length;
         }
-        _hasMore = newEntries.length >= _pageSize;
-        _isLoading = false;
-        _isLoadingMore = false;
+        state.hasMore = newEntries.length >= _pageSize;
+        state.isLoading = false;
+        state.isLoadingMore = false;
+        state.error = null;
+        state.lastFetched = DateTime.now();
       });
     } catch (e) {
-      if (!mounted || currentVersion != _fetchVersion) return;
+      if (!mounted) return;
       setState(() {
-        _error = e;
-        _isLoading = false;
-        _isLoadingMore = false;
+        state.error = e;
+        state.isLoading = false;
+        state.isLoadingMore = false;
       });
     }
   }
 
-  void _onSelectLeagueIndex(int index) {
-    if (_selectedLeagueIndex == index) return;
+  void _onSelectLeagueIndex(int index, {bool animatePage = true}) {
+    if (_selectedLeagueIndex == index && animatePage) return;
     setState(() {
       _selectedLeagueIndex = index;
     });
-    if (_pageController.hasClients) {
+    if (animatePage && _pageController.hasClients) {
       _pageController.animateToPage(
         index,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     }
-    _fetchPage(reset: true);
+
+    final leagueId = defaultLeagues[index].id;
+    final state = _getState(leagueId);
+
+    if (state.entries.isEmpty && !state.isLoading) {
+      _fetchPageForLeague(leagueId: leagueId, reset: true);
+    } else if (state.entries.isNotEmpty) {
+      if (state.lastFetched == null ||
+          DateTime.now().difference(state.lastFetched!) > const Duration(minutes: 5)) {
+        _fetchPageForLeague(leagueId: leagueId, reset: true, silent: true);
+      }
+    }
   }
 
   @override
@@ -226,7 +253,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       ),
       body: RefreshIndicator(
         color: brandGreen,
-        onRefresh: () => _fetchPage(reset: true),
+        onRefresh: () => _fetchPageForLeague(
+          leagueId: selectedLeague.id,
+          reset: true,
+          forceRefresh: true,
+        ),
         child: SingleChildScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
@@ -319,10 +350,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               physics: const BouncingScrollPhysics(),
               onPageChanged: (index) {
                 if (_selectedLeagueIndex != index) {
-                  setState(() {
-                    _selectedLeagueIndex = index;
-                  });
-                  _fetchPage(reset: true);
+                  _onSelectLeagueIndex(index, animatePage: false);
                 }
               },
               itemBuilder: (context, index) {
@@ -330,7 +358,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 final isSelected = index == _selectedLeagueIndex;
 
                 return GestureDetector(
-                  onTap: () => _onSelectLeagueIndex(index),
+                  onTap: () => _onSelectLeagueIndex(index, animatePage: true),
                   behavior: HitTestBehavior.opaque,
                   child: Center(
                     child: AnimatedScale(
@@ -740,6 +768,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     required Color cardBg,
     required Color borderColor,
   }) {
+    final state = _getState(selectedLeague.id);
+
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -766,9 +796,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           Divider(height: 1, thickness: 1, color: borderColor),
 
           // Content: Loading Skeleton, Error State, Empty State, or Ranked Members
-          if (_isLoading)
+          if (state.isLoading && state.entries.isEmpty)
             _buildListSkeleton(isDark)
-          else if (_error != null && _entries.isEmpty)
+          else if (state.error != null && state.entries.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
               child: Column(
@@ -786,7 +816,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    onPressed: () => _fetchPage(reset: true),
+                    onPressed: () => _fetchPageForLeague(
+                      leagueId: selectedLeague.id,
+                      reset: true,
+                      forceRefresh: true,
+                    ),
                     style: TextButton.styleFrom(
                       backgroundColor: const Color(0xFF017A47).withValues(alpha: 0.1),
                       foregroundColor: const Color(0xFF017A47),
@@ -796,7 +830,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 ],
               ),
             )
-          else if (_entries.isEmpty)
+          else if (state.entries.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
               child: Center(
@@ -826,7 +860,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _entries.length + (_isLoadingMore ? 1 : 0),
+              itemCount: state.entries.length + (state.isLoadingMore ? 1 : 0),
               separatorBuilder: (context, index) => Divider(
                 height: 1,
                 thickness: 0.8,
@@ -835,7 +869,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 endIndent: 16,
               ),
               itemBuilder: (context, index) {
-                if (index == _entries.length) {
+                if (index == state.entries.length) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(
@@ -844,7 +878,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   );
                 }
 
-                final entry = _entries[index];
+                final entry = state.entries[index];
                 final isMe = entry.userId == myUserId;
 
                 return _buildMemberTile(

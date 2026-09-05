@@ -1353,7 +1353,8 @@ class GlobalStreakLeaderboardView extends ConsumerStatefulWidget {
   ConsumerState<GlobalStreakLeaderboardView> createState() => _GlobalStreakLeaderboardViewState();
 }
 
-class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeaderboardView> {
+class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeaderboardView>
+    with AutomaticKeepAliveClientMixin {
   final List<LeaderboardEntryModel> _entries = [];
   bool _isLoadingInitial = true;
   bool _isLoadingMore = false;
@@ -1362,6 +1363,9 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
   int _offset = 0;
   static const int _limit = 30;
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -1431,6 +1435,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     const brandGreen = Color(0xFF017A47);
 
     if (_isLoadingInitial) {

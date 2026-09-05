@@ -139,17 +139,47 @@ int calculateXpNeededForNextLeague(int xp) {
   return 500 - xp;
 }
 
+class LeaderboardCacheItem {
+  final List<LeaderboardEntryModel> entries;
+  final DateTime timestamp;
+
+  LeaderboardCacheItem(this.entries, this.timestamp);
+
+  bool isExpired([Duration ttl = const Duration(minutes: 5)]) {
+    return DateTime.now().difference(timestamp) > ttl;
+  }
+}
+
 class LeaderboardRepository {
   final ApiClient _apiClient;
+  final Map<String, LeaderboardCacheItem> _cache = {};
 
   LeaderboardRepository(this._apiClient);
+
+  void invalidateCache({String? league}) {
+    if (league != null && league.isNotEmpty) {
+      _cache.removeWhere((key, _) => key.contains(league));
+    } else {
+      _cache.clear();
+    }
+  }
 
   Future<List<LeaderboardEntryModel>> fetchLeaderboard({
     String scope = 'global',
     String league = '',
     int limit = 50,
     int offset = 0,
+    bool forceRefresh = false,
   }) async {
+    final cacheKey = '$scope-$league-$limit-$offset';
+
+    if (!forceRefresh && offset == 0 && _cache.containsKey(cacheKey)) {
+      final cached = _cache[cacheKey]!;
+      if (!cached.isExpired()) {
+        return cached.entries;
+      }
+    }
+
     try {
       final Map<String, dynamic> params = {
         'scope': scope,
@@ -169,8 +199,17 @@ class LeaderboardRepository {
       } else if (response.data is Map && response.data['rankings'] is List) {
         rawList = response.data['rankings'] as List<dynamic>;
       }
-      return rawList.map((e) => LeaderboardEntryModel.fromJson(e)).toList();
+      final result = rawList.map((e) => LeaderboardEntryModel.fromJson(e)).toList();
+
+      if (offset == 0) {
+        _cache[cacheKey] = LeaderboardCacheItem(result, DateTime.now());
+      }
+
+      return result;
     } on DioException catch (e) {
+      if (_cache.containsKey(cacheKey)) {
+        return _cache[cacheKey]!.entries;
+      }
       throw _apiClient.handleError(e);
     }
   }
