@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -176,13 +175,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
       
-      final response = await _apiClient.dio.post('/auth/login', data: {
-        'email': email,
+      final Map<String, dynamic> payload = {
+        'email': email.trim(),
         'password': password,
         'deviceUuid': deviceUuid,
         'deviceOs': deviceOs,
-        'deviceToken': fcmToken,
-      });
+      };
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        payload['deviceToken'] = fcmToken;
+      }
+
+      final response = await _apiClient.dio.post('/auth/login', data: payload);
 
       if (response.statusCode == 200) {
         final data = response.data;
