@@ -178,6 +178,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br',
       },
     );
     configureDioSslPinning(dio);
@@ -190,9 +191,7 @@ class ApiClient {
     ));
   }
 
-  /**
-   * Helper that evaluates and normalizes client exception types.
-   */
+  /// Helper that evaluates and normalizes client exception types.
   NetworkException handleError(DioException error) {
     String message = 'একটি অপ্রত্যাশিত নেটওয়ার্ক সমস্যা ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
     int? code = error.response?.statusCode;
