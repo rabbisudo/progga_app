@@ -749,48 +749,17 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Bar: [👥 ব্রোঞ্জ লীগ সদস্যরা] ------- [১৬৪ জন]
+          // Header Bar: [ব্রোঞ্জ লীগ সদস্যরা]
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.people_alt_rounded,
-                      size: 18,
-                      color: isDark ? Colors.white70 : const Color(0xFF1F2937),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${selectedLeague.name} সদস্যরা',
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
-                        fontFamily: 'Li Ador Noirrit',
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2A2315) : const Color(0xFFFEF3C7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${_toBengaliDigits(_entries.length.toString())} জন',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFD97706),
-                      fontFamily: 'Li Ador Noirrit',
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              '${selectedLeague.name} সদস্যরা',
+              style: TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : const Color(0xFF111827),
+                fontFamily: 'Li Ador Noirrit',
+              ),
             ),
           ),
 

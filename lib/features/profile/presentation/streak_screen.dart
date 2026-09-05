@@ -1526,45 +1526,14 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
               // Header
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.local_fire_department_rounded,
-                          size: 18,
-                          color: widget.isDark ? Colors.white70 : const Color(0xFF1F2937),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'গ্লোবাল স্ট্রিক লিডারবোর্ড',
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
-                            color: widget.isDark ? Colors.white : const Color(0xFF111827),
-                            fontFamily: 'Li Ador Noirrit',
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: widget.isDark ? const Color(0xFF2A2315) : const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_toBengaliDigits(reRanked.length.toString())} জন',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFD97706),
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'গ্লোবাল স্ট্রিক লিডারবোর্ড',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: widget.isDark ? Colors.white : const Color(0xFF111827),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
                 ),
               ),
 
