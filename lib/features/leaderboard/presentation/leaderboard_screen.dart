@@ -234,10 +234,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 1. TOP DARK HEXAGON LEAGUE SHOWCASE CAROUSEL
-              _buildTopDarkLeagueCard(
+              // 1. TOP LEAGUE SHOWCASE CAROUSEL (Dynamic Ambient Glow & Adaptive Theme)
+              _buildLeagueShowcaseCard(
                 selectedLeague: selectedLeague,
                 userXp: userXp,
+                isDark: isDark,
+                cardBg: cardBg,
+                borderColor: borderColor,
               ),
 
               const SizedBox(height: 16),
@@ -258,41 +261,73 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   // ===========================================================================
-  // 1. TOP DARK LEAGUE CAROUSEL SHOWCASE (Matching Image 1 & Image 2)
+  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Dynamic Ambient Glow & Theme Adaptive)
   // ===========================================================================
-  Widget _buildTopDarkLeagueCard({
+  Widget _buildLeagueShowcaseCard({
     required LeagueConfigModel selectedLeague,
     required int userXp,
+    required bool isDark,
+    required Color cardBg,
+    required Color borderColor,
   }) {
     final userCurrentLeague = getLeagueConfigByXp(userXp);
     final userLeagueIdx = defaultLeagues.indexWhere((l) => l.id == userCurrentLeague.id);
     final isCurrentActiveLeague = _selectedLeagueIndex == userLeagueIdx;
     final isLockedLeague = userXp < selectedLeague.minXp;
     final isCompletedLeague = userXp > (selectedLeague.maxXp ?? 99999999);
+    final leagueColor = Color(selectedLeague.colorValue);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: const Color(0xFF131418),
+        color: cardBg,
         borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF191B22),
+                  const Color(0xFF121419),
+                  leagueColor.withValues(alpha: 0.12),
+                ]
+              : [
+                  Colors.white,
+                  const Color(0xFFFCFDFC),
+                  leagueColor.withValues(alpha: 0.07),
+                ],
+          stops: const [0.0, 0.65, 1.0],
+        ),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: isDark
+              ? leagueColor.withValues(alpha: 0.32)
+              : leagueColor.withValues(alpha: 0.22),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: leagueColor.withValues(alpha: isDark ? 0.20 : 0.10),
+            blurRadius: 22,
+            offset: const Offset(0, 8),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(16, 22, 16, 18),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Horizontal Badge Carousel
+          // Horizontal Badge Carousel with Glowing Aura
           SizedBox(
-            height: 90,
+            height: 94,
             child: PageView.builder(
               controller: _pageController,
               itemCount: defaultLeagues.length,
@@ -308,41 +343,49 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               itemBuilder: (context, index) {
                 final league = defaultLeagues[index];
                 final isSelected = index == _selectedLeagueIndex;
+                final itemColor = Color(league.colorValue);
 
                 return GestureDetector(
                   onTap: () => _onSelectLeagueIndex(index),
                   behavior: HitTestBehavior.opaque,
                   child: Center(
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOutBack,
-                      width: isSelected ? 72 : 46,
-                      height: isSelected ? 72 : 46,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      width: isSelected ? 76 : 46,
+                      height: isSelected ? 76 : 46,
                       child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: isSelected ? 1.0 : 0.40,
+                        duration: const Duration(milliseconds: 250),
+                        opacity: isSelected ? 1.0 : 0.42,
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            if (isSelected)
+                            if (isSelected) ...[
+                              // Outer ambient glow
                               Container(
-                                width: 72,
-                                height: 72,
+                                width: 76,
+                                height: 76,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Color(league.colorValue).withValues(alpha: 0.35),
-                                      blurRadius: 18,
-                                      spreadRadius: 2,
+                                      color: itemColor.withValues(alpha: isDark ? 0.50 : 0.32),
+                                      blurRadius: 26,
+                                      spreadRadius: 3,
+                                    ),
+                                    BoxShadow(
+                                      color: itemColor.withValues(alpha: isDark ? 0.30 : 0.18),
+                                      blurRadius: 12,
+                                      spreadRadius: 1,
                                     ),
                                   ],
                                 ),
                               ),
+                            ],
                             Image.asset(
                               league.asset,
-                              width: isSelected ? 70 : 44,
-                              height: isSelected ? 70 : 44,
+                              width: isSelected ? 72 : 44,
+                              height: isSelected ? 72 : 44,
                               fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => Text(
                                 league.icon,
@@ -361,58 +404,81 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
           const SizedBox(height: 12),
 
-          // Mini Hexagon Icon + Bengali League Name
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                selectedLeague.asset,
-                width: 17,
-                height: 17,
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Text('⬡', style: TextStyle(color: Colors.white, fontSize: 13)),
+          // League Title Badge Pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
+            decoration: BoxDecoration(
+              color: leagueColor.withValues(alpha: isDark ? 0.18 : 0.10),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: leagueColor.withValues(alpha: isDark ? 0.40 : 0.28),
+                width: 1,
               ),
-              const SizedBox(width: 7),
-              Text(
-                selectedLeague.name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  fontFamily: 'Li Ador Noirrit',
-                  letterSpacing: 0.2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  selectedLeague.asset,
+                  width: 17,
+                  height: 17,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Icon(
+                    Icons.shield_rounded,
+                    size: 14,
+                    color: leagueColor,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 7),
+                Text(
+                  selectedLeague.name,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15.5,
+                    fontFamily: 'Li Ador Noirrit',
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 16),
 
-          // Dynamic Status / Progress Bar (Image 1 vs Image 2)
+          // Dynamic Status / Progress Bar
           if (isCurrentActiveLeague) ...[
-            // Current Active League Progress Slider Bar (Image 2)
+            // Current Active League Progress Slider Bar
             _buildActiveLeagueProgressBar(
               selectedLeague: selectedLeague,
               userXp: userXp,
+              isDark: isDark,
+              leagueColor: leagueColor,
             ),
           ] else if (isLockedLeague) ...[
-            // Locked League State (Image 1)
+            // Locked League State
             _buildLockedLeagueStatus(
               selectedLeague: selectedLeague,
+              isDark: isDark,
+              leagueColor: leagueColor,
             ),
           ] else if (isCompletedLeague) ...[
             // Completed League State
-            _buildCompletedLeagueStatus(),
+            _buildCompletedLeagueStatus(
+              isDark: isDark,
+            ),
           ],
         ],
       ),
     );
   }
 
-  // --- Active League Progress Slider Bar (Image 2) ---
+  // --- Active League Progress Slider Bar ---
   Widget _buildActiveLeagueProgressBar({
     required LeagueConfigModel selectedLeague,
     required int userXp,
+    required bool isDark,
+    required Color leagueColor,
   }) {
     final minXp = selectedLeague.minXp;
     final maxXp = selectedLeague.maxXp ?? (minXp + 5000);
@@ -421,7 +487,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         ? ((userXp - minXp) / totalRange).clamp(0.0, 1.0)
         : 1.0;
 
-    final leagueColor = Color(selectedLeague.colorValue);
+    final remaining = selectedLeague.maxXp != null
+        ? ((selectedLeague.maxXp! + 1) - userXp).clamp(0, 99999999)
+        : 0;
 
     return Column(
       children: [
@@ -432,19 +500,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             Text(
               '${_toBengaliDigits(minXp.toString())} পয়েন্ট',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.45),
-                fontSize: 11,
+                color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                fontSize: 11.5,
                 fontFamily: 'Li Ador Noirrit',
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
             Text(
               '${selectedLeague.maxXp != null ? _toBengaliDigits(selectedLeague.maxXp.toString()) : '∞'} পয়েন্ট',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.45),
-                fontSize: 11,
+                color: isDark ? Colors.white60 : const Color(0xFF6B7280),
+                fontSize: 11.5,
                 fontFamily: 'Li Ador Noirrit',
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -456,7 +524,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         LayoutBuilder(
           builder: (context, constraints) {
             final trackWidth = constraints.maxWidth;
-            const markerWidth = 64.0;
+            const markerWidth = 66.0;
             final double leftOffset = ((trackWidth - markerWidth) * progress).clamp(0.0, trackWidth - markerWidth);
 
             return Stack(
@@ -464,11 +532,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               children: [
                 // Base background track
                 Container(
-                  height: 6,
+                  height: 7,
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF27282F),
-                    borderRadius: BorderRadius.circular(3),
+                    color: isDark ? const Color(0xFF262933) : const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
 
@@ -477,35 +545,41 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   left: 0,
                   top: 8,
                   child: Container(
-                    height: 6,
+                    height: 7,
                     width: trackWidth * progress,
                     decoration: BoxDecoration(
-                      color: leagueColor,
-                      borderRadius: BorderRadius.circular(3),
+                      gradient: LinearGradient(
+                        colors: [
+                          leagueColor.withValues(alpha: 0.8),
+                          leagueColor,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
                       boxShadow: [
                         BoxShadow(
-                          color: leagueColor.withValues(alpha: 0.4),
-                          blurRadius: 6,
+                          color: leagueColor.withValues(alpha: 0.45),
+                          blurRadius: 8,
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                // Floating user points marker badge (Like Image 2)
+                // Floating user points marker badge
                 Positioned(
                   left: leftOffset,
                   top: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E212B) : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: leagueColor, width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
-                          blurRadius: 4,
+                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
+                          blurRadius: 5,
                           offset: const Offset(0, 2),
                         ),
                       ],
@@ -514,7 +588,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       '${_toBengaliDigits(userXp.toString())} পয়েন্ট',
                       style: TextStyle(
                         color: leagueColor,
-                        fontSize: 9.5,
+                        fontSize: 10,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Li Ador Noirrit',
                       ),
@@ -525,50 +599,88 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             );
           },
         ),
+
+        // Helper text below progress bar
+        if (selectedLeague.maxXp != null && remaining > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            'পরবর্তী লিগে পৌঁছাতে আর মাত্র ${_toBengaliDigits(remaining.toString())} পয়েন্ট প্রয়োজন 🚀',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isDark ? Colors.white54 : const Color(0xFF6B7280),
+              fontSize: 11.5,
+              fontFamily: 'Li Ador Noirrit',
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ] else if (selectedLeague.maxXp == null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'আপনি সর্বোচ্চ লিগে অবস্থান করছেন! 🏆',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isDark ? Colors.amberAccent : const Color(0xFFD97706),
+              fontSize: 12,
+              fontFamily: 'Li Ador Noirrit',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  // --- Locked League Status Bar (Image 1) ---
+  // --- Locked League Status Bar ---
   Widget _buildLockedLeagueStatus({
     required LeagueConfigModel selectedLeague,
+    required bool isDark,
+    required Color leagueColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF1B1C22),
-        borderRadius: BorderRadius.circular(12),
+        color: isDark
+            ? const Color(0xFF1C1E26).withValues(alpha: 0.8)
+            : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
           width: 1,
         ),
       ),
       child: Row(
         children: [
           Icon(
-            Icons.lock_outline_rounded,
-            size: 15,
-            color: Colors.white.withValues(alpha: 0.4),
+            Icons.lock_rounded,
+            size: 16,
+            color: isDark ? Colors.white54 : const Color(0xFF64748B),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'এই লীগে প্রবেশ করতে আরো পয়েন্ট অর্জন করো',
+              'এই লীগে প্রবেশ করতে পয়েন্ট অর্জন করো',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55),
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : const Color(0xFF475569),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ),
-          Text(
-            '${_toBengaliDigits(selectedLeague.minXp.toString())} পয়েন্ট দরকার',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 12,
-              fontFamily: 'Li Ador Noirrit',
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: leagueColor.withValues(alpha: isDark ? 0.20 : 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${_toBengaliDigits(selectedLeague.minXp.toString())} পয়েন্ট দরকার',
+              style: TextStyle(
+                color: leagueColor,
+                fontWeight: FontWeight.w800,
+                fontSize: 11.5,
+                fontFamily: 'Li Ador Noirrit',
+              ),
             ),
           ),
         ],
@@ -577,43 +689,52 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   // --- Completed League Status Bar ---
-  Widget _buildCompletedLeagueStatus() {
+  Widget _buildCompletedLeagueStatus({
+    required bool isDark,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.15 : 0.08),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.25),
+          color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.35 : 0.25),
           width: 1,
         ),
       ),
-      child: const Row(
+      child: Row(
         children: [
           const Icon(
-            Icons.check_circle_outline_rounded,
-            size: 16,
+            Icons.check_circle_rounded,
+            size: 17,
             color: Color(0xFF10B981),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
               'এই লীগ সফলভাবে সম্পন্ন করেছেন',
               style: TextStyle(
-                color: Colors.white70,
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : const Color(0xFF065F46),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
                 fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ),
-          const Text(
-            'উত্তীর্ণ ✓',
-            style: TextStyle(
-              color: Color(0xFF10B981),
-              fontWeight: FontWeight.w800,
-              fontSize: 12,
-              fontFamily: 'Li Ador Noirrit',
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              'উত্তীর্ণ ✓',
+              style: TextStyle(
+                color: Color(0xFF10B981),
+                fontWeight: FontWeight.w800,
+                fontSize: 11.5,
+                fontFamily: 'Li Ador Noirrit',
+              ),
             ),
           ),
         ],
