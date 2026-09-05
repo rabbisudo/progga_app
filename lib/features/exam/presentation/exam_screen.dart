@@ -506,6 +506,8 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
         borderRadius: BorderRadius.circular(12),
         child: CachedNetworkImage(
           imageUrl: imageUrl,
+          memCacheWidth: 800,
+          maxWidthDiskCache: 1200,
           fit: BoxFit.contain,
           placeholder: (context, url) => Container(
             height: 120,

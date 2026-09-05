@@ -111,6 +111,8 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                       child: hasImage
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
+                              memCacheWidth: 1000,
+                              maxWidthDiskCache: 1200,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
                                 decoration: BoxDecoration(

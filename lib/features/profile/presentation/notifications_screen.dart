@@ -474,6 +474,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                                     borderRadius: BorderRadius.circular(12),
                                     child: CachedNetworkImage(
                                       imageUrl: item.imageUrl!,
+                                      memCacheWidth: 600,
+                                      maxWidthDiskCache: 800,
                                       height: 140,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
