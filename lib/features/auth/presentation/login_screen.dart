@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -329,6 +330,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onPressed: () async {
                                   try {
                                     final GoogleSignIn googleSignIn = GoogleSignIn(
+                                      clientId: Platform.isIOS
+                                          ? '781610946731-fmgsqp1qdq6tt2nfook96g65a0psihhm.apps.googleusercontent.com'
+                                          : null,
                                       serverClientId: '781610946731-1fuqgnrmh6gr2f3kssmn2aefbh9298r6.apps.googleusercontent.com',
                                       scopes: ['email', 'profile'],
                                     );

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>781610946731-fmgsqp1qdq6tt2nfook96g65a0psihhm.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.781610946731-fmgsqp1qdq6tt2nfook96g65a0psihhm</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>781610946731-1nuusadu6a6p3fgfo9tiku8qp9daot73.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCIbJRrkaW6T-zYAnzxZfWlAV9FVimR0Xw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>781610946731</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.progga.app</string>
+	<key>PROJECT_ID</key>
+	<string>proggaexam</string>
+	<key>STORAGE_BUCKET</key>
+	<string>proggaexam.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:781610946731:ios:d44ee76ca65ed3335227ee</string>
+</dict>
+</plist>

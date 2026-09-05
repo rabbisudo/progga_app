@@ -103,6 +103,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       String? fcmToken;
       try {
+        if (Platform.isIOS) {
+          await FirebaseMessaging.instance.requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+        }
         fcmToken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
         // Fallback if token retrieval fails (e.g. during developer local simulators)
@@ -154,6 +161,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       String? fcmToken;
       try {
+        if (Platform.isIOS) {
+          await FirebaseMessaging.instance.requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+        }
         fcmToken = await FirebaseMessaging.instance.getToken();
       } catch (_) {
         // Fallback if token retrieval fails (e.g. during developer local simulators)

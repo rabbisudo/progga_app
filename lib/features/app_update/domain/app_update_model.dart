@@ -31,19 +31,18 @@ class AppUpdateModel {
     );
   }
 
-  /// Returns true if force update is explicitly enabled on backend
-  /// OR current app version is strictly lower than minVersion.
+  /// Returns true if force update is required for the given currentVersion.
+  /// Only applicable if the user is actually running an older version.
   bool isForceRequired(String currentVersion) {
-    if (forceUpdate) return true;
-    if (_isVersionLower(currentVersion, minVersion)) return true;
-    return false;
+    if (!_isVersionLower(currentVersion, latestVersion)) {
+      return false; // User is already on the latest version or newer
+    }
+    return forceUpdate || _isVersionLower(currentVersion, minVersion);
   }
 
   /// Returns true if a newer version is available on the server.
   bool isUpdateAvailable(String currentVersion) {
-    if (forceUpdate) return true;
-    if (_isVersionLower(currentVersion, latestVersion)) return true;
-    return false;
+    return _isVersionLower(currentVersion, latestVersion);
   }
 
   /// Semantic version comparison (e.g. "1.0.11" vs "1.0.12")

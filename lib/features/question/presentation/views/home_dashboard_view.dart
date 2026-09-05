@@ -15,6 +15,7 @@ import '../widgets/banner_slider.dart';
 import '../widgets/spaced_repetition_widget.dart';
 import 'spaced_repetition_notifier.dart';
 import '../../../app_update/data/app_update_service.dart';
+import '../../../../core/services/notification_service.dart';
 
 final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final client = ref.watch(apiClientProvider);
@@ -82,6 +83,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.read(appUpdateServiceProvider).checkAndShowUpdateDialog(context);
+        NotificationService().init();
       }
     });
   }
