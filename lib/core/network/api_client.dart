@@ -146,7 +146,6 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate, br',
       },
     );
     configureDioSslPinning(dio);
@@ -161,7 +160,7 @@ class ApiClient {
 
   /// Helper that evaluates and normalizes client exception types.
   NetworkException handleError(DioException error) {
-    String message = 'একটি অপ্রত্যাশিত নেটওয়ার্ক সমস্যা ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
+    String message = 'একটি অপ্রত্যাশিত সমস্যা ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।';
     int? code = error.response?.statusCode;
     Map<String, dynamic>? responseData;
 
@@ -173,6 +172,16 @@ class ApiClient {
       } else if (rawMsg is String) {
         message = rawMsg;
       }
+    } else if (error.response?.data is Map) {
+      responseData = Map<String, dynamic>.from(error.response?.data as Map);
+      final rawMsg = responseData['message'];
+      if (rawMsg is List) {
+        message = rawMsg.map((e) => e.toString()).join('\n');
+      } else if (rawMsg is String) {
+        message = rawMsg;
+      }
+    } else if (error.response?.data is String && (error.response?.data as String).isNotEmpty) {
+      message = error.response?.data as String;
     }
 
     switch (error.type) {
@@ -211,6 +220,9 @@ class ApiClient {
         message = 'নেটওয়ার্ক সংযোগ ব্যর্থ হয়েছে। আপনার ইন্টারনেট চেক করুন।';
         break;
       default:
+        if (error.message != null && error.message!.isNotEmpty) {
+          message = error.message!;
+        }
         break;
     }
 
