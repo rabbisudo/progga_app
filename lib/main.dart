@@ -5,7 +5,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
-import 'package:safe_device/safe_device.dart';
 import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
@@ -25,93 +24,100 @@ void main() async {
   WidgetsBinding.instance.deferFirstFrame();
 
   final hiveService = HiveService();
-  final secureStorage = SecureStorageService(const FlutterSecureStorage());
+  final secureStorage = SecureStorageService(const FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  ));
 
   // Initialize Firebase, Hive, and check the active session in parallel
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
-  // Run security checks (Root, Jailbreak logging)
-  bool isDeviceSecure = true;
   try {
-    final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
-    if (kReleaseMode && jailbroken) {
-      debugPrint('Security notice: Root/Jailbreak detected on device.');
-    }
-  } catch (_) {}
-  
-  // Initialize Hive first to ensure the settings box is available for cached reads
-  final hiveInitFuture = hiveService.init();
+    // Run security checks (Root, Jailbreak logging)
+    bool isDeviceSecure = true;
+    try {
+      final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
+      if (kReleaseMode && jailbroken) {
+        debugPrint('Security notice: Root/Jailbreak detected on device.');
+      }
+    } catch (_) {}
+    
+    // Initialize Hive first to ensure the settings box is available for cached reads
+    final hiveInitFuture = hiveService.init();
 
-  await Future.wait([
-    Future(() async {
-      try {
-        await Firebase.initializeApp();
-      } catch (_) {}
-    }),
-    hiveInitFuture,
-    Future(() async {
-      SecurityConfig.isDeviceSecure = isDeviceSecure;
-      try {
-        final token = await secureStorage.getAccessToken();
-        if (token != null && token.isNotEmpty) {
-          initialLocation = '/home';
-          
-          // Wait for Hive box to finish opening
-          await hiveInitFuture;
+    await Future.wait([
+      Future(() async {
+        try {
+          await Firebase.initializeApp().timeout(const Duration(seconds: 4));
+        } catch (_) {}
+      }),
+      hiveInitFuture,
+      Future(() async {
+        SecurityConfig.isDeviceSecure = isDeviceSecure;
+        try {
+          final token = await secureStorage.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            initialLocation = '/home';
+            
+            // Wait for Hive box to finish opening
+            await hiveInitFuture;
 
-          // Check if user profile is already cached locally (instant read, <1ms)
-          final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
-          if (cachedProfile != null && cachedProfile is Map) {
-            initialAuthState = AuthState.authenticated(
-              user: recursivelyCastMap(cachedProfile),
-              accessToken: token,
-            );
-          } else {
-            // First time run after login (cache empty), fallback to fast background API fetch
-            initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
-            try {
-              final dio = Dio(BaseOptions(
-                baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'https://proggadata.twelvemind.com/api/v1'),
-                connectTimeout: const Duration(seconds: 4),
-                receiveTimeout: const Duration(seconds: 4),
-                headers: {
-                  'Authorization': 'Bearer $token',
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                },
-              ));
-              configureDioSslPinning(dio);
-              final response = await dio.get('/users/me');
-              if (response.statusCode == 200) {
-                initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
-                hiveService.getSettingsBox().put('cached_user_profile', response.data);
-              }
-            } catch (_) {}
+            // Check if user profile is already cached locally (instant read, <1ms)
+            final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
+            if (cachedProfile != null && cachedProfile is Map) {
+              initialAuthState = AuthState.authenticated(
+                user: recursivelyCastMap(cachedProfile),
+                accessToken: token,
+              );
+            } else {
+              // First time run after login (cache empty), fallback to fast background API fetch
+              initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
+              try {
+                final dio = Dio(BaseOptions(
+                  baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'https://proggadata.twelvemind.com/api/v1'),
+                  connectTimeout: const Duration(seconds: 4),
+                  receiveTimeout: const Duration(seconds: 4),
+                  headers: {
+                    'Authorization': 'Bearer $token',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                  },
+                ));
+                configureDioSslPinning(dio);
+                final response = await dio.get('/users/me');
+                if (response.statusCode == 200) {
+                  initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
+                  hiveService.getSettingsBox().put('cached_user_profile', response.data);
+                }
+              } catch (_) {}
+            }
           }
-        }
-      } catch (_) {}
-    }),
-  ]);
+        } catch (_) {}
+      }),
+    ]);
+  } catch (e) {
+    debugPrint('Initialization error: $e');
+  } finally {
+    // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return SafeErrorWidget(details: details);
+    };
 
-  // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
-  ErrorWidget.builder = (FlutterErrorDetails details) {
-    return SafeErrorWidget(details: details);
-  };
+    runApp(
+      ProviderScope(
+        overrides: [
+          hiveServiceProvider.overrideWithValue(hiveService),
+          initialLocationProvider.overrideWithValue(initialLocation),
+          authInitialStateProvider.overrideWithValue(initialAuthState),
+        ],
+        child: const ProggaApp(),
+      ),
+    );
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        hiveServiceProvider.overrideWithValue(hiveService),
-        initialLocationProvider.overrideWithValue(initialLocation),
-        authInitialStateProvider.overrideWithValue(initialAuthState),
-      ],
-      child: const ProggaApp(),
-    ),
-  );
-
-  // Allow first frame to draw the resolved starting screen background cleanly
-  WidgetsBinding.instance.allowFirstFrame();
+    // Allow first frame to draw the resolved starting screen background cleanly
+    WidgetsBinding.instance.allowFirstFrame();
+  }
 }
 
 Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {

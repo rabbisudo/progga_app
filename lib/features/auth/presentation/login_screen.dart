@@ -28,17 +28,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset('assets/images/panda_login.mp4')
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _isInitialized = true;
-          });
-        }
-      });
-    _controller.setLooping(true);
-    _controller.setVolume(0.0);
-    _controller.play();
+    _controller = VideoPlayerController.asset('assets/images/panda_login.mp4');
+    _controller.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+        _controller.setLooping(true);
+        _controller.setVolume(0.0);
+        _controller.play();
+      }
+    }).catchError((e) {
+      debugPrint('VideoPlayer init error: $e');
+    });
   }
 
   @override

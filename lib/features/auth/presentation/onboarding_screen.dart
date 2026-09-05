@@ -78,6 +78,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isSleepingInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Sleeping video error: $e');
     });
   }
 
@@ -99,6 +101,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isHappyInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Happy video error: $e');
     });
   }
 
@@ -120,6 +124,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isCelebratingInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Celebrating video error: $e');
     });
   }
 
@@ -141,6 +147,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isYawningInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Yawning video error: $e');
     });
   }
 
@@ -162,6 +170,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isScaredInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Scared video error: $e');
     });
   }
 
@@ -183,6 +193,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _isPartyInitialized = true;
         });
       }
+    }).catchError((e) {
+      debugPrint('Party video error: $e');
     });
   }
 

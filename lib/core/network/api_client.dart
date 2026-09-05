@@ -48,12 +48,15 @@ void configureDioSslPinning(Dio dio) {
   
   if (dio.httpClientAdapter is IOHttpClientAdapter) {
     (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      final context = SecurityContext(withTrustedRoots: true);
       try {
-        context.setTrustedCertificatesBytes(utf8.encode(_isrgRootX1PEM));
-      } catch (_) {}
-      final client = HttpClient(context: context);
-      return client;
+        final context = SecurityContext(withTrustedRoots: true);
+        try {
+          context.setTrustedCertificatesBytes(utf8.encode(_isrgRootX1PEM));
+        } catch (_) {}
+        return HttpClient(context: context);
+      } catch (_) {
+        return HttpClient();
+      }
     };
   }
 }

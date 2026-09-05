@@ -122,21 +122,22 @@ LeagueConfigModel? getNextLeagueConfig(String? currentLeagueId) {
 }
 
 double calculateLeagueProgress(int xp) {
+  if (xp <= 0) return 0.0;
   if (xp >= 8500) return 1.0;
-  if (xp >= 6000) return (xp - 6000) / (8500 - 6000);
-  if (xp >= 3500) return (xp - 3500) / (6000 - 3500);
-  if (xp >= 1500) return (xp - 1500) / (3500 - 1500);
-  if (xp >= 500) return (xp - 500) / (1500 - 500);
-  return (xp - 0) / 500.0;
+  if (xp >= 6000) return ((xp - 6000) / (8500 - 6000)).clamp(0.0, 1.0);
+  if (xp >= 3500) return ((xp - 3500) / (6000 - 3500)).clamp(0.0, 1.0);
+  if (xp >= 1500) return ((xp - 1500) / (3500 - 1500)).clamp(0.0, 1.0);
+  if (xp >= 500) return ((xp - 500) / (1500 - 500)).clamp(0.0, 1.0);
+  return (xp / 500.0).clamp(0.0, 1.0);
 }
 
 int calculateXpNeededForNextLeague(int xp) {
   if (xp >= 8500) return 0;
-  if (xp >= 6000) return 8500 - xp;
-  if (xp >= 3500) return 6000 - xp;
-  if (xp >= 1500) return 3500 - xp;
-  if (xp >= 500) return 1500 - xp;
-  return 500 - xp;
+  if (xp >= 6000) return (8500 - xp).clamp(0, 8500);
+  if (xp >= 3500) return (6000 - xp).clamp(0, 6000);
+  if (xp >= 1500) return (3500 - xp).clamp(0, 3500);
+  if (xp >= 500) return (1500 - xp).clamp(0, 1500);
+  return (500 - xp).clamp(0, 500);
 }
 
 class LeaderboardCacheItem {
