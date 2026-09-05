@@ -261,7 +261,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   // ===========================================================================
-  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Dynamic Ambient Glow & Theme Adaptive)
+  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Clean & Crisp Modern Card)
   // ===========================================================================
   Widget _buildLeagueShowcaseCard({
     required LeagueConfigModel selectedLeague,
@@ -277,47 +277,19 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final isCompletedLeague = userXp > (selectedLeague.maxXp ?? 99999999);
     final leagueColor = Color(selectedLeague.colorValue);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
+    return Container(
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF191B22),
-                  const Color(0xFF121419),
-                  leagueColor.withValues(alpha: 0.12),
-                ]
-              : [
-                  Colors.white,
-                  const Color(0xFFFCFDFC),
-                  leagueColor.withValues(alpha: 0.07),
-                ],
-          stops: const [0.0, 0.65, 1.0],
-        ),
         border: Border.all(
-          color: isDark
-              ? leagueColor.withValues(alpha: 0.32)
-              : leagueColor.withValues(alpha: 0.22),
+          color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5E7EB),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: leagueColor.withValues(alpha: isDark ? 0.20 : 0.10),
-            blurRadius: 22,
-            offset: const Offset(0, 8),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.35)
-                : Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -325,7 +297,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Horizontal Badge Carousel with Glowing Aura
+          // Horizontal Badge Carousel (Clean & Crisp, No Muddy Shadows)
           SizedBox(
             height: 94,
             child: PageView.builder(
@@ -343,56 +315,30 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               itemBuilder: (context, index) {
                 final league = defaultLeagues[index];
                 final isSelected = index == _selectedLeagueIndex;
-                final itemColor = Color(league.colorValue);
 
                 return GestureDetector(
                   onTap: () => _onSelectLeagueIndex(index),
                   behavior: HitTestBehavior.opaque,
                   child: Center(
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
                       width: isSelected ? 76 : 46,
                       height: isSelected ? 76 : 46,
                       child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 250),
-                        opacity: isSelected ? 1.0 : 0.42,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (isSelected) ...[
-                              // Outer ambient glow
-                              Container(
-                                width: 76,
-                                height: 76,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: itemColor.withValues(alpha: isDark ? 0.50 : 0.32),
-                                      blurRadius: 26,
-                                      spreadRadius: 3,
-                                    ),
-                                    BoxShadow(
-                                      color: itemColor.withValues(alpha: isDark ? 0.30 : 0.18),
-                                      blurRadius: 12,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            Image.asset(
-                              league.asset,
-                              width: isSelected ? 72 : 44,
-                              height: isSelected ? 72 : 44,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Text(
-                                league.icon,
-                                style: TextStyle(fontSize: isSelected ? 36 : 22),
-                              ),
+                        duration: const Duration(milliseconds: 200),
+                        opacity: isSelected ? 1.0 : 0.40,
+                        child: Center(
+                          child: Image.asset(
+                            league.asset,
+                            width: isSelected ? 74 : 44,
+                            height: isSelected ? 74 : 44,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => Text(
+                              league.icon,
+                              style: TextStyle(fontSize: isSelected ? 36 : 22),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -408,10 +354,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
             decoration: BoxDecoration(
-              color: leagueColor.withValues(alpha: isDark ? 0.18 : 0.10),
+              color: isDark ? const Color(0xFF1E212B) : const Color(0xFFF3F4F6),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: leagueColor.withValues(alpha: isDark ? 0.40 : 0.28),
+                color: isDark ? Colors.white12 : const Color(0xFFE2E8F0),
                 width: 1,
               ),
             ),
@@ -548,20 +494,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                     height: 7,
                     width: trackWidth * progress,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          leagueColor.withValues(alpha: 0.8),
-                          leagueColor,
-                        ],
-                      ),
+                      color: leagueColor,
                       borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: leagueColor.withValues(alpha: 0.45),
-                          blurRadius: 8,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -578,8 +512,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       border: Border.all(color: leagueColor, width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.15),
-                          blurRadius: 5,
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                          blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
                       ],
