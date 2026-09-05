@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:firebase_core/firebase_core';
-import 'package:firebase_messaging/firebase_messaging';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../network/api_client.dart';
 import '../storage/secure_storage_service.dart';
 
