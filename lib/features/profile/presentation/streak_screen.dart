@@ -36,6 +36,34 @@ String _getBengaliMonthYear(DateTime date) {
   return '$monthName $yearStr';
 }
 
+Color _getAvatarColor(String name) {
+  final colors = [
+    const Color(0xFF9333EA), // Purple
+    const Color(0xFF0D9488), // Teal
+    const Color(0xFFEA580C), // Orange
+    const Color(0xFF16A34A), // Green
+    const Color(0xFF2563EB), // Blue
+    const Color(0xFF7C3AED), // Violet
+    const Color(0xFFDB2777), // Pink
+    const Color(0xFF0284C7), // Sky
+    const Color(0xFFD97706), // Amber
+  ];
+  if (name.isEmpty) return colors[0];
+  final hash = name.codeUnits.fold<int>(0, (prev, elem) => prev + elem);
+  return colors[hash % colors.length];
+}
+
+String _getInitials(String name) {
+  if (name.trim().isEmpty) return 'U';
+  final parts = name.trim().split(RegExp(r'\s+'));
+  if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+    final first = parts[0].characters.first;
+    final second = parts[1].characters.first;
+    return '$first$second'.toUpperCase();
+  }
+  return name.trim().characters.first.toUpperCase();
+}
+
 final globalStreakLeaderboardProvider = FutureProvider.autoDispose<List<LeaderboardEntryModel>>((ref) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
   return repo.fetchLeaderboard(scope: 'global');
@@ -138,7 +166,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           physics: const NeverScrollableScrollPhysics(),
           children: [
             _buildPersonalTabSkeleton(isDark, borderColor),
-            _buildLeaderboardSkeleton(isDark),
+            _buildLeaderboardSkeleton(isDark, cardBg, borderColor),
           ],
         ),
         error: (err, stack) => Center(
@@ -1125,41 +1153,48 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
 }
 
 // --- Leaderboard Skeleton Loader Widget ---
-Widget _buildLeaderboardSkeleton(bool isDark) {
-  return ListView.separated(
+Widget _buildLeaderboardSkeleton(bool isDark, Color cardBg, Color borderColor) {
+  return SingleChildScrollView(
     physics: const NeverScrollableScrollPhysics(),
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
-    itemCount: 8,
-    separatorBuilder: (context, index) => Divider(
-      color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F4F2),
-      height: 1,
-      indent: 68,
-    ),
-    itemBuilder: (context, index) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Row(
-          children: [
-            const _ShimmerBox(width: 20, height: 16, borderRadius: 4),
-            const SizedBox(width: 12),
-            const _ShimmerBox(width: 40, height: 40, shape: BoxShape.circle),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _ShimmerBox(width: (index % 2 == 0 ? 130.0 : 100.0), height: 14, borderRadius: 4),
-                  const SizedBox(height: 6),
-                  const _ShimmerBox(width: 60, height: 10, borderRadius: 4),
-                ],
-              ),
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+    child: Container(
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1.2),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: List.generate(
+          6,
+          (index) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                const _ShimmerBox(width: 38, height: 38, shape: BoxShape.circle),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: _ShimmerBox(
+                    width: index % 2 == 0 ? 120 : 90,
+                    height: 14,
+                    borderRadius: 4,
+                  ),
+                ),
+                const SizedBox(width: 30),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _ShimmerBox(width: 20, height: 16, borderRadius: 4),
+                    SizedBox(height: 4),
+                    _ShimmerBox(width: 44, height: 10, borderRadius: 4),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            const _ShimmerBox(width: 54, height: 26, borderRadius: 10),
-          ],
+          ),
         ),
-      );
-    },
+      ),
+    ),
   );
 }
 
@@ -1399,7 +1434,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
     const brandGreen = Color(0xFF017A47);
 
     if (_isLoadingInitial) {
-      return _buildLeaderboardSkeleton(widget.isDark);
+      return _buildLeaderboardSkeleton(widget.isDark, widget.cardBg, widget.borderColor);
     }
 
     if (_errorMessage != null && _entries.isEmpty) {
@@ -1475,185 +1510,193 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
     return RefreshIndicator(
       onRefresh: () => _fetchPage(isInitial: true),
       color: brandGreen,
-      child: ListView.separated(
+      child: SingleChildScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
-        itemCount: reRanked.length + (_hasMore ? 1 : 0),
-        separatorBuilder: (context, index) => Divider(
-          color: widget.isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF0F4F2),
-          height: 1,
-          indent: 68,
-        ),
-        itemBuilder: (context, index) {
-          if (index == reRanked.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
-              child: Center(
-                child: CircularProgressIndicator(color: brandGreen, strokeWidth: 2),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        child: Container(
+          decoration: BoxDecoration(
+            color: widget.cardBg,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: widget.borderColor, width: 1.2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.local_fire_department_rounded,
+                          size: 18,
+                          color: widget.isDark ? Colors.white70 : const Color(0xFF1F2937),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'গ্লোবাল স্ট্রিক লিডারবোর্ড',
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w800,
+                            color: widget.isDark ? Colors.white : const Color(0xFF111827),
+                            fontFamily: 'Li Ador Noirrit',
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: widget.isDark ? const Color(0xFF2A2315) : const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${_toBengaliDigits(reRanked.length.toString())} জন',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFD97706),
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            );
-          }
 
-          final entry = reRanked[index].key;
-          final rank = entry.rank;
-          final fullName = entry.fullName;
-          final batchName = entry.batch ?? 'শিক্ষার্থী';
-          final streakCount = reRanked[index].value;
-          final isMe = entry.userId == widget.myUserId;
+              Divider(height: 1, thickness: 1, color: widget.borderColor),
 
-          final String avatar = (entry.avatarKey != null && entry.avatarKey!.isNotEmpty)
-              ? entry.avatarKey!
-              : 'https://api.dicebear.com/9.x/avataaars/svg?seed=${Uri.encodeComponent(entry.userId)}';
-
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 3),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-            decoration: BoxDecoration(
-              color: isMe
-                  ? brandGreen.withValues(alpha: widget.isDark ? 0.15 : 0.08)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-              border: isMe
-                  ? Border.all(color: brandGreen.withValues(alpha: 0.3), width: 1)
-                  : null,
-            ),
-            child: Row(
-              children: [
-                // Rank Number
-                SizedBox(
-                  width: 24,
-                  child: Text(
-                    _toBengaliDigits(rank.toString()),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: rank <= 3
-                          ? (rank == 1
-                              ? const Color(0xFFD97706)
-                              : (rank == 2 ? const Color(0xFF64748B) : const Color(0xFFB45309)))
-                          : (widget.isDark ? Colors.white38 : const Color(0xFF9CA3AF)),
-                      fontFamily: 'Li Ador Noirrit',
-                    ),
-                  ),
+              // Rows
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: reRanked.length + (_hasMore ? 1 : 0),
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  thickness: 0.8,
+                  color: widget.borderColor.withValues(alpha: 0.5),
+                  indent: 64,
+                  endIndent: 16,
                 ),
-                const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  if (index == reRanked.length) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Center(
+                        child: CircularProgressIndicator(color: brandGreen, strokeWidth: 2),
+                      ),
+                    );
+                  }
 
-                // Avatar
-                CustomAvatar(
-                  avatarUrl: avatar,
-                  radius: 20,
-                  backgroundColor: brandGreen.withValues(alpha: 0.1),
-                  fallbackWidget: Text(
-                    fullName.isNotEmpty ? fullName[0].toUpperCase() : 'S',
-                    style: const TextStyle(
-                      color: brandGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
+                  final entry = reRanked[index].key;
+                  final rank = entry.rank;
+                  final name = entry.fullName.isNotEmpty ? entry.fullName : entry.username;
+                  final streakCount = reRanked[index].value;
+                  final isMe = entry.userId == widget.myUserId;
+                  final initials = _getInitials(name);
+                  final avatarColor = _getAvatarColor(entry.userId.isNotEmpty ? entry.userId : name);
 
-                // User Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              fullName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
-                                color: widget.isDark ? Colors.white : const Color(0xFF111827),
-                                fontFamily: 'Li Ador Noirrit',
+                  return Container(
+                    color: isMe
+                        ? brandGreen.withValues(alpha: widget.isDark ? 0.12 : 0.06)
+                        : Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        // Round Avatar
+                        if (entry.avatarKey != null && entry.avatarKey!.isNotEmpty)
+                          CustomAvatar(
+                            avatarUrl: entry.avatarKey!,
+                            radius: 19,
+                            backgroundColor: avatarColor,
+                            fallbackWidget: Text(
+                              initials,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: avatarColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                initials,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ),
-                          if (isMe) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: brandGreen,
-                                borderRadius: BorderRadius.circular(4),
+
+                        const SizedBox(width: 14),
+
+                        // User Name
+                        Expanded(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
+                              fontSize: 14,
+                              color: widget.isDark ? Colors.white : const Color(0xFF111827),
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        // Rank Number & Streak Days (Aligned Right, matching Screenshot)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              rank.toString(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: rank == 1
+                                    ? const Color(0xFFD97706)
+                                    : (widget.isDark ? Colors.white : const Color(0xFF111827)),
+                                fontFamily: 'Li Ador Noirrit',
                               ),
-                              child: const Text(
-                                'তুমি',
-                                style: TextStyle(color: Colors.white, fontSize: 9.5, fontFamily: 'Li Ador Noirrit'),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              '${_toBengaliDigits(streakCount.toString())} দিন',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: widget.isDark ? Colors.white54 : const Color(0xFF6B7280),
+                                fontFamily: 'Li Ador Noirrit',
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        batchName,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: widget.isDark ? Colors.white38 : const Color(0xFF9CA3AF),
-                          fontFamily: 'Li Ador Noirrit',
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-
-                // Streak Badge Pill
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: streakCount > 0
-                        ? brandGreen.withValues(alpha: widget.isDark ? 0.15 : 0.08)
-                        : (widget.isDark ? const Color(0xFF1A221C) : const Color(0xFFF3F4F6)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.local_fire_department_rounded,
-                        color: streakCount > 0 ? brandGreen : Colors.grey.shade400,
-                        size: 15,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        _toBengaliDigits(streakCount.toString()),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: streakCount > 0
-                              ? brandGreen
-                              : (widget.isDark ? Colors.white38 : Colors.black38),
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'দিন',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w700,
-                          color: streakCount > 0
-                              ? brandGreen
-                              : (widget.isDark ? Colors.white38 : Colors.black38),
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
