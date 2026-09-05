@@ -261,7 +261,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   // ===========================================================================
-  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Smooth & Interactive UI/UX)
+  // 1. TOP LEAGUE CAROUSEL SHOWCASE (Distinct Themed Surface & Smooth UI/UX)
   // ===========================================================================
   Widget _buildLeagueShowcaseCard({
     required LeagueConfigModel selectedLeague,
@@ -277,12 +277,32 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final isCompletedLeague = userXp > (selectedLeague.maxXp ?? 99999999);
     final leagueColor = Color(selectedLeague.colorValue);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1B1D24),
+                  const Color(0xFF13151A),
+                  leagueColor.withValues(alpha: 0.12),
+                ]
+              : [
+                  Colors.white,
+                  Color.alphaBlend(leagueColor.withValues(alpha: 0.04), Colors.white),
+                  Color.alphaBlend(leagueColor.withValues(alpha: 0.09), const Color(0xFFF8FAFC)),
+                ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
         border: Border.all(
-          color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5E7EB),
+          color: isDark
+              ? leagueColor.withValues(alpha: 0.35)
+              : leagueColor.withValues(alpha: 0.25),
           width: 1.2,
         ),
       ),
@@ -290,7 +310,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Horizontal Badge Carousel
+          // Horizontal Badge Carousel with Pedestal Framing
           SizedBox(
             height: 94,
             child: PageView.builder(
@@ -308,6 +328,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               itemBuilder: (context, index) {
                 final league = defaultLeagues[index];
                 final isSelected = index == _selectedLeagueIndex;
+                final itemColor = Color(league.colorValue);
 
                 return GestureDetector(
                   onTap: () => _onSelectLeagueIndex(index),
@@ -316,21 +337,38 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                     child: AnimatedScale(
                       duration: const Duration(milliseconds: 250),
                       curve: Curves.easeOutCubic,
-                      scale: isSelected ? 1.0 : 0.70,
+                      scale: isSelected ? 1.0 : 0.68,
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
                         opacity: isSelected ? 1.0 : 0.38,
-                        child: Center(
-                          child: Image.asset(
-                            league.asset,
-                            width: 76,
-                            height: 76,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => Text(
-                              league.icon,
-                              style: TextStyle(fontSize: isSelected ? 36 : 22),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Clean Pedestal Framing Ring for Active Badge
+                            if (isSelected)
+                              Container(
+                                width: 84,
+                                height: 84,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: itemColor.withValues(alpha: isDark ? 0.14 : 0.08),
+                                  border: Border.all(
+                                    color: itemColor.withValues(alpha: isDark ? 0.32 : 0.20),
+                                    width: 1.2,
+                                  ),
+                                ),
+                              ),
+                            Image.asset(
+                              league.asset,
+                              width: 74,
+                              height: 74,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Text(
+                                league.icon,
+                                style: TextStyle(fontSize: isSelected ? 36 : 22),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ),
@@ -344,13 +382,15 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
           // League Title Badge Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5.5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: leagueColor.withValues(alpha: isDark ? 0.18 : 0.08),
+              color: isDark
+                  ? leagueColor.withValues(alpha: 0.18)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: leagueColor.withValues(alpha: isDark ? 0.35 : 0.25),
-                width: 1,
+                color: leagueColor.withValues(alpha: isDark ? 0.40 : 0.30),
+                width: 1.2,
               ),
             ),
             child: Row(
@@ -358,8 +398,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               children: [
                 Image.asset(
                   selectedLeague.asset,
-                  width: 17,
-                  height: 17,
+                  width: 18,
+                  height: 18,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => Icon(
                     Icons.shield_rounded,
@@ -367,7 +407,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                     color: leagueColor,
                   ),
                 ),
-                const SizedBox(width: 7),
+                const SizedBox(width: 8),
                 Text(
                   selectedLeague.name,
                   style: TextStyle(
