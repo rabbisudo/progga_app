@@ -83,7 +83,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final profileAsync = ref.watch(userProfileProvider);
     final leaderboardAsync = ref.watch(myLeaderboardProvider);
     final bannersAsync = ref.watch(activeBannersProvider);
-    final curriculumAsync = ref.watch(studentCurriculumProvider);
+    ref.watch(studentCurriculumProvider);
     final spacedCardsAsync = ref.watch(spacedRepetitionProvider);
 
     final profile = profileAsync.value?.profile;
@@ -116,8 +116,6 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
 
     final userName = profile?.fullName ?? 'User';
     final userScore = profile?.xp ?? 0;
-    final starPoints = profile != null ? (profile.xp % 100) : 0;
-    final progressVal = profile != null ? (profile.xp % 100) / 100.0 : 0.0;
 
     return RefreshIndicator(
       color: const Color(0xFF017A47),
@@ -250,6 +248,44 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                     fontWeight: FontWeight.bold,
                                     color: isDark ? Colors.white : Colors.black87,
                                     fontFamily: 'Li Ador Noirrit',
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF017A47).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color(0xFF017A47).withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        _getLeagueAsset(profile?.league),
+                                        width: 14,
+                                        height: 14,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.shield_outlined,
+                                          size: 12,
+                                          color: Color(0xFF017A47),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        leagueName,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF017A47),
+                                          fontFamily: 'Li Ador Noirrit',
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -681,23 +717,5 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       default:
         return 'assets/legue/bronze.webp';
     }
-  }
-
-  LinearGradient _getLeftIconGradient(int index, bool isDark) {
-    final gradients = [
-      [const Color(0xFF00B09B), const Color(0xFF96C93D)],
-      [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
-      [const Color(0xFFF12711), const Color(0xFFF5AF19)],
-      [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
-      [const Color(0xFFF857A6), const Color(0xFFFF5858)],
-      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
-    ];
-    final selected = gradients[index % gradients.length];
-    final opacity = isDark ? 0.22 : 0.12;
-    return LinearGradient(
-      colors: selected.map((c) => c.withOpacity(opacity)).toList(),
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
   }
 }
