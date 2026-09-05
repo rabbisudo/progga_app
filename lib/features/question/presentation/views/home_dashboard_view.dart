@@ -588,43 +588,18 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   ),
             const SizedBox(width: 14),
 
-            // Middle: User Name & 'তুমি' tag
+            // Middle: User Name
             Expanded(
-              child: Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w700,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : const Color(0xFF111827),
-                        fontFamily: 'Li Ador Noirrit',
-                      ),
-                    ),
-                  ),
-                  if (isCurrentUser) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF017A47),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'তুমি',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w700,
+                  fontSize: 14,
+                  color: isDark ? Colors.white : const Color(0xFF111827),
+                  fontFamily: 'Li Ador Noirrit',
+                ),
               ),
             ),
 
