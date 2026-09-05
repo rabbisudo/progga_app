@@ -15,6 +15,7 @@ import 'core/widgets/empty_state_widget.dart';
 import 'features/profile/presentation/profile_notifier.dart';
 import 'features/leaderboard/presentation/leaderboard_notifier.dart';
 import 'features/academics/data/academics_repository.dart';
+import 'core/services/notification_service.dart';
 import 'app.dart';
 
 void main() async {
@@ -50,6 +51,7 @@ void main() async {
       Future(() async {
         try {
           await Firebase.initializeApp().timeout(const Duration(seconds: 4));
+          await NotificationService().init();
         } catch (_) {}
       }),
       hiveInitFuture,

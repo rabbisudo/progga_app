@@ -1,6 +1,19 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../network/api_client.dart';
+import '../storage/secure_storage_service.dart';
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {}
+  if (kDebugMode) {
+    debugPrint('FCM background message received: ${message.messageId}');
+  }
+}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -11,6 +24,10 @@ class NotificationService {
 
   Future<void> init() async {
     if (_isInitialized) return;
+
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    } catch (_) {}
 
     // Request permissions for Firebase Messaging (critical for iOS & Android 13+)
     await requestPermissions();
@@ -27,6 +44,39 @@ class NotificationService {
     } catch (_) {}
 
     _isInitialized = true;
+  }
+
+  Future<void> syncDeviceToken(ApiClient apiClient, SecureStorageService storageService) async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null && token.isNotEmpty) {
+        final deviceUuid = await storageService.getOrGenerateDeviceUuid();
+        final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+        await apiClient.dio.post('/notifications/register-device', data: {
+          'deviceToken': token,
+          'deviceUuid': deviceUuid,
+          'deviceOs': deviceOs,
+        });
+        if (kDebugMode) {
+          debugPrint('Successfully synced FCM device token with backend.');
+        }
+      }
+    } catch (_) {}
+
+    // Automatically sync on token rotation
+    try {
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        try {
+          final deviceUuid = await storageService.getOrGenerateDeviceUuid();
+          final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+          await apiClient.dio.post('/notifications/register-device', data: {
+            'deviceToken': newToken,
+            'deviceUuid': deviceUuid,
+            'deviceOs': deviceOs,
+          });
+        } catch (_) {}
+      });
+    } catch (_) {}
   }
 
   Future<void> requestPermissions() async {
@@ -58,10 +108,10 @@ class NotificationService {
   }
 
   Future<void> scheduleStreakReminder() async {
-    // Stub for streak reminders handled via backend FCM cron jobs
+    // Handled via backend FCM cron jobs
   }
 
   Future<void> cancelStreakReminder() async {
-    // Stub for streak reminders handled via backend FCM cron jobs
+    // Handled via backend FCM cron jobs
   }
 }

@@ -84,6 +84,11 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       if (mounted) {
         ref.read(appUpdateServiceProvider).checkAndShowUpdateDialog(context);
         NotificationService().init();
+        try {
+          final apiClient = ref.read(apiClientProvider);
+          final storage = ref.read(secureStorageServiceProvider);
+          NotificationService().syncDeviceToken(apiClient, storage);
+        } catch (_) {}
       }
     });
   }
