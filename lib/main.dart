@@ -121,10 +121,8 @@ void main() async {
       ),
     );
 
-    // Remove splash screen smoothly once the first UI frame has completely rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FlutterNativeSplash.remove();
-    });
+    // Remove splash screen smoothly once the first frame is ready
+    FlutterNativeSplash.remove();
   }
 }
 
