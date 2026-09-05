@@ -21,9 +21,9 @@ import 'app.dart';
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
-  // Configure high-performance image cache to eliminate re-decoding lag during fast list scrolling
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 120 << 20; // 120 MB
-  PaintingBinding.instance.imageCache.maximumSize = 1000;
+  // Configure optimized memory-efficient image cache (64MB / 500 images) to keep RAM low without re-decoding lag
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 64 << 20; // 64 MB
+  PaintingBinding.instance.imageCache.maximumSize = 500;
 
   // Keep native splash screen visible while background async initialization runs
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
@@ -121,8 +121,10 @@ void main() async {
       ),
     );
 
-    // Remove splash screen smoothly once the first frame is ready
-    FlutterNativeSplash.remove();
+    // Remove splash screen smoothly once the first UI frame has completely rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
   }
 }
 
@@ -147,7 +149,7 @@ Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {
 
 class SafeErrorWidget extends StatefulWidget {
   final FlutterErrorDetails details;
-  const SafeErrorWidget({Key? key, required this.details}) : super(key: key);
+  const SafeErrorWidget({super.key, required this.details});
 
   @override
   State<SafeErrorWidget> createState() => _SafeErrorWidgetState();
