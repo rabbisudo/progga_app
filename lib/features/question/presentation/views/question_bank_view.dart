@@ -106,7 +106,7 @@ class QuestionBankView extends ConsumerWidget {
                   children: sectionsList.map((sec) {
                     final sectionMap = sec as Map<String, dynamic>;
                     final seriesList = (sectionMap['series'] as List<dynamic>?) ?? [];
-                    return _buildSeriesList(context, ref, classId, seriesList, isDark);
+                    return _buildSeriesList(context, ref, seriesList, isDark);
                   }).toList(),
                 ),
               ),
@@ -122,34 +122,23 @@ class QuestionBankView extends ConsumerWidget {
   Widget _buildSeriesList(
     BuildContext context,
     WidgetRef ref,
-    String classId,
     List<dynamic> seriesList,
     bool isDark,
   ) {
     if (seriesList.isEmpty) {
-      return RefreshIndicator(
-        color: const Color(0xFF017A47),
-        onRefresh: () => ref.refresh(qbClassSectionsProvider(classId).future),
-        child: const SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: EmptyStateWidget(
-            title: 'কোনো সিরিজ পাওয়া যায়নি',
-            subtitle: 'এই বিভাগের অধীনে কোনো প্রশ্নব্যাংক সিরিজ সচল নেই।',
-            icon: Icons.layers_clear_rounded,
-          ),
-        ),
+      return const EmptyStateWidget(
+        title: 'কোনো সিরিজ পাওয়া যায়নি',
+        subtitle: 'এই বিভাগের অধীনে কোনো প্রশ্নব্যাংক সিরিজ সচল নেই।',
+        icon: Icons.layers_clear_rounded,
       );
     }
 
-    return RefreshIndicator(
-      color: const Color(0xFF017A47),
-      onRefresh: () => ref.refresh(qbClassSectionsProvider(classId).future),
-      child: ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 100.0),
-        itemCount: seriesList.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 100.0),
+      itemCount: seriesList.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
         final seriesMap = seriesList[index] as Map<String, dynamic>;
         final name = seriesMap['name']?.toString() ?? '';
         final idStr = seriesMap['id']?.toString() ?? '';
@@ -281,9 +270,8 @@ class QuestionBankView extends ConsumerWidget {
           ),
         );
       },
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildErrorWidget(String message) {
     return Center(
