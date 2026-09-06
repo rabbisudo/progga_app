@@ -73,10 +73,11 @@ class AcademicsRepository {
   }
 
   /// Speed-First Single API: Fetches full curriculum (Subjects -> Chapters -> Topics)
-  /// tailored for student based on their classId and optional groupId.
+  /// tailored for student based on their classId and optional groupId/batchId.
   Future<List<dynamic>> fetchStudentCurriculum({
     required String classId,
     String? groupId,
+    String? batchId,
     String? userId,
     bool isQuestionBank = false,
   }) async {
@@ -86,6 +87,7 @@ class AcademicsRepository {
         queryParameters: {
           'classId': classId,
           if (groupId != null && groupId.isNotEmpty) 'groupId': groupId,
+          if (batchId != null && batchId.isNotEmpty) 'batchId': batchId,
           if (userId != null && userId.isNotEmpty) 'userId': userId,
           if (isQuestionBank) 'isQuestionBank': 'true',
         },
@@ -109,24 +111,29 @@ final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) asy
 });
 
 final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
-  final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
-  final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
-  final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  final classId = profile?.classId;
+  final groupId = profile?.groupId;
+  final batchId = profile?.batchId;
+  final userId = profile?.userId;
 
   if (classId == null || classId.isEmpty) {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cached = hive.getCachedList('cached_student_curriculum');
+  final cacheKey = 'cached_student_curriculum_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
+
+  final cached = hive.getCachedList(cacheKey);
 
   // Asynchronous background revalidation
   final fetchFuture = repo.fetchStudentCurriculum(
     classId: classId,
     groupId: groupId,
+    batchId: batchId,
     userId: userId,
   ).then((freshData) async {
-    await hive.cacheList('cached_student_curriculum', freshData);
+    await hive.cacheList(cacheKey, freshData);
     return freshData;
   }).catchError((_) => cached ?? <dynamic>[]);
 
@@ -140,25 +147,30 @@ final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
 });
 
 final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
-  final classId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.classId));
-  final groupId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.groupId));
-  final userId = ref.watch(userProfileProvider.select((v) => v.value?.profile?.userId));
+  final profile = ref.watch(userProfileProvider).value?.profile;
+  final classId = profile?.classId;
+  final groupId = profile?.groupId;
+  final batchId = profile?.batchId;
+  final userId = profile?.userId;
 
   if (classId == null || classId.isEmpty) {
     return [];
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cached = hive.getCachedList('cached_student_qb_curriculum');
+  final cacheKey = 'cached_student_qb_curriculum_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
+
+  final cached = hive.getCachedList(cacheKey);
 
   // Asynchronous background revalidation
   final fetchFuture = repo.fetchStudentCurriculum(
     classId: classId,
     groupId: groupId,
+    batchId: batchId,
     userId: userId,
     isQuestionBank: true,
   ).then((freshData) async {
-    await hive.cacheList('cached_student_qb_curriculum', freshData);
+    await hive.cacheList(cacheKey, freshData);
     return freshData;
   }).catchError((_) => cached ?? <dynamic>[]);
 
@@ -234,7 +246,7 @@ final qbSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, subj
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cacheKey = 'cached_qb_series_sub_${profile.classId}_$subjectId';
+  final cacheKey = 'cached_qb_series_sub_${profile.classId}_${profile.groupId ?? "none"}_${profile.batchId ?? "none"}_$subjectId';
 
   final cached = hive.getCachedList(cacheKey);
 

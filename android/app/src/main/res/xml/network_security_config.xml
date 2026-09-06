@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Globally restrict cleartext (HTTP) traffic -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Only trust pre-installed Android system CAs, reject user/proxy CAs -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Specific configuration for Progga API & web domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">proggadata.twelvemind.com</domain>
+        <domain includeSubdomains="true">progga.com.bd</domain>
+        <domain includeSubdomains="true">twelvemind.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

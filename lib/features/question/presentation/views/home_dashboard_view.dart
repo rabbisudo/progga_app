@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,35 +19,48 @@ import '../../../app_update/data/app_update_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';
 
-final activeBannersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final hive = ref.read(hiveServiceProvider);
-  final cached = hive.getCachedList('cached_active_banners');
-  List<Map<String, dynamic>>? cachedList;
-  if (cached != null && cached.isNotEmpty) {
-    try {
-      cachedList = cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-    } catch (_) {}
-  }
-
-  // Background fetch for silent refresh
-  final fetchFuture = client.dio.get('/banners').then((response) async {
-    if (response.statusCode == 200 && response.data != null) {
-      final List<dynamic> list = response.data;
-      final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
-      await hive.cacheList('cached_active_banners', result);
-      return result;
+class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
+  @override
+  FutureOr<List<Map<String, dynamic>>> build() async {
+    final hive = ref.read(hiveServiceProvider);
+    final cached = hive.getCachedList('cached_active_banners');
+    List<Map<String, dynamic>>? cachedList;
+    if (cached != null && cached.isNotEmpty) {
+      try {
+        cachedList = cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      } catch (_) {}
     }
-    return cachedList ?? <Map<String, dynamic>>[];
-  }).catchError((_) => cachedList ?? <Map<String, dynamic>>[]);
 
-  // 0ms immediate render from Hive cache if available
-  if (cachedList != null && cachedList.isNotEmpty) {
-    fetchFuture.ignore();
-    return cachedList;
+    _fetchFresh();
+
+    return cachedList ?? [];
   }
 
-  return fetchFuture;
+  Future<void> _fetchFresh() async {
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.dio.get('/banners');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data;
+        final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        final hive = ref.read(hiveServiceProvider);
+        await hive.cacheList('cached_active_banners', result);
+        state = AsyncData(result);
+      }
+    } catch (e, st) {
+      if (state.value == null || state.value!.isEmpty) {
+        state = AsyncError(e, st);
+      }
+    }
+  }
+
+  Future<void> refresh() async {
+    await _fetchFresh();
+  }
+}
+
+final activeBannersProvider = AsyncNotifierProvider<ActiveBannersNotifier, List<Map<String, dynamic>>>(() {
+  return ActiveBannersNotifier();
 });
 
 class LeaderboardPlayer {
@@ -102,16 +116,10 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final profileAsync = ref.watch(userProfileProvider);
     final leaderboardAsync = ref.watch(myLeaderboardProvider);
     final bannersAsync = ref.watch(activeBannersProvider);
-    ref.watch(studentCurriculumProvider);
     final spacedCardsAsync = ref.watch(spacedRepetitionProvider);
 
     final profile = profileAsync.value?.profile;
     final myUserId = profileAsync.value?.id;
-
-    if (profile?.classId != null && profile!.classId!.isNotEmpty) {
-      ref.watch(qbClassSectionsProvider(profile.classId!));
-      ref.watch(qbClassSeriesProvider(profile.classId!));
-    }
 
     // Read league name dynamically
     String leagueName = 'ব্রোঞ্জ লীগ';
@@ -145,18 +153,23 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       color: const Color(0xFF017A47),
       onRefresh: () async {
         try {
-          final futures = [
-            ref.refresh(userProfileProvider.future),
-            ref.refresh(myLeaderboardProvider.future),
-            ref.refresh(activeBannersProvider.future),
-            ref.refresh(studentCurriculumProvider.future),
-            ref.refresh(studentQbCurriculumProvider.future),
-          ];
+          // 1. Spaced Repetition (retention) cards stay cached on screen; sync in background
+          ref.read(spacedRepetitionProvider.notifier).refresh();
+
+          // 2. Refresh visible Profile, Leaderboard, and Banners in parallel (sub-second)
+          await Future.wait([
+            ref.read(userProfileProvider.notifier).refreshProfile(),
+            ref.read(myLeaderboardProvider.notifier).refresh(),
+            ref.read(activeBannersProvider.notifier).refresh(),
+          ]).timeout(const Duration(seconds: 4), onTimeout: () => []);
+
+          // 3. Silently invalidate curriculum providers for other tabs in background without blocking Home spinner
+          ref.invalidate(studentCurriculumProvider);
+          ref.invalidate(studentQbCurriculumProvider);
           if (profile?.classId != null && profile!.classId!.isNotEmpty) {
-            futures.add(ref.refresh(qbClassSectionsProvider(profile.classId!).future));
-            futures.add(ref.refresh(qbClassSeriesProvider(profile.classId!).future));
+            ref.invalidate(qbClassSectionsProvider(profile.classId!));
+            ref.invalidate(qbClassSeriesProvider(profile.classId!));
           }
-          await Future.wait(futures);
         } catch (_) {}
       },
       child: SingleChildScrollView(
@@ -231,9 +244,18 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
             RepaintBoundary(
               child: spacedCardsAsync.when(
                 data: (cards) {
-                  if (cards.isEmpty) return const SizedBox.shrink();
+                  final validMcqCards = cards.where((card) {
+                    if (card == null || card is! Map) return false;
+                    final q = card['question'];
+                    if (q == null || q is! Map) return false;
+                    final type = (q['type'] as String? ?? 'MCQ').trim().toUpperCase();
+                    final options = q['options'];
+                    return type == 'MCQ' && options is List && options.length >= 2;
+                  }).toList();
+
+                  if (validMcqCards.isEmpty) return const SizedBox.shrink();
                   return SpacedRepetitionWidget(
-                    cards: cards,
+                    cards: validMcqCards,
                     onFinished: () {
                       ref.read(spacedRepetitionProvider.notifier).refresh();
                     },

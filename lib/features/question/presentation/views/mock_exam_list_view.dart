@@ -150,12 +150,12 @@ class MockExamListView extends ConsumerWidget {
                                   color: const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(
+                                child: const Text(
                                   "মক পরীক্ষা দিন",
                                   style: TextStyle(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF02A25F),
+                                    color: Color(0xFF02A25F),
                                     fontFamily: 'Li Ador Noirrit',
                                   ),
                                 ),

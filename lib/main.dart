@@ -9,6 +9,7 @@ import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
 import 'core/network/api_client.dart';
+import 'core/network/ssl_pinning_config.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/auth_notifier.dart';
 import 'core/widgets/empty_state_widget.dart';
@@ -90,7 +91,7 @@ void main() async {
                     'Accept': 'application/json',
                   },
                 ));
-                configureDioSslPinning(dio);
+                SslPinningConfig.configureDio(dio);
                 final response = await dio.get('/users/me');
                 if (response.statusCode == 200) {
                   initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);

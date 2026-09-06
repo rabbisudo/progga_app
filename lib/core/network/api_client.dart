@@ -1,32 +1,14 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'auth_interceptor.dart';
 import 'device_service.dart';
+import 'ssl_pinning_config.dart';
 import '../storage/secure_storage_service.dart';
 
-
-
 void configureDioSslPinning(Dio dio) {
-  if (kIsWeb) return;
-  
-  if (dio.httpClientAdapter is IOHttpClientAdapter) {
-    (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
-      final client = HttpClient();
-      client.badCertificateCallback = (X509Certificate cert, String host, int port) {
-        // Trust Progga server host domains
-        return host == 'proggadata.twelvemind.com' ||
-            host == 'progga.com.bd' ||
-            host.endsWith('.twelvemind.com') ||
-            host.endsWith('.progga.com.bd');
-      };
-      return client;
-    };
-  }
+  SslPinningConfig.configureDio(dio);
 }
 
 Map<String, dynamic> sortMapKeys(Map<String, dynamic> map) {
@@ -218,6 +200,9 @@ class ApiClient {
         break;
       case DioExceptionType.connectionError:
         message = 'নেটওয়ার্ক সংযোগ ব্যর্থ হয়েছে। আপনার ইন্টারনেট চেক করুন।';
+        break;
+      case DioExceptionType.badCertificate:
+        message = 'নিরাপত্তা সতর্কতা: নিরাপদ সংযোগ স্থাপন সম্ভব হয়নি (SSL Certificate Verification Failed)। কোনো অননুমোদিত প্রক্সি বা নেটওয়ার্ক সংযোগ শনাক্ত হয়েছে।';
         break;
       default:
         if (error.message != null && error.message!.isNotEmpty) {

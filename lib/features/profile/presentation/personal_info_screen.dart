@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'profile_notifier.dart';
 import '../domain/profile_model.dart';
 import '../../academics/data/academics_repository.dart';
@@ -163,14 +162,24 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       if (_selectedGroup != null) {
         payload['groupId'] = _selectedGroup!.id;
         payload['targetExam'] = _selectedGroup!.name;
+      } else if (_selectedClass != null && _selectedClass!.groups.isEmpty) {
+        payload['groupId'] = null;
+        payload['targetExam'] = null;
       }
       if (_selectedBatch != null) {
         payload['batchId'] = _selectedBatch!.id;
         payload['batch'] = _selectedBatch!.name;
+      } else {
+        payload['batchId'] = null;
+        payload['batch'] = null;
       }
 
       await ref.read(userProfileProvider.notifier).updateProfileDetails(payload);
 
+      ref.invalidate(studentCurriculumProvider);
+      ref.invalidate(studentQbCurriculumProvider);
+      ref.invalidate(qbClassSectionsProvider);
+      ref.invalidate(qbClassSeriesProvider);
       ref.invalidate(leaderboardProvider);
       ref.invalidate(practiceProvider);
 

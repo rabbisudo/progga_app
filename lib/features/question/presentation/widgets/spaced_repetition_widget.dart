@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'bouncing_card.dart';
 import '../views/spaced_repetition_notifier.dart';
-import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/widgets/app_math_text.dart';
 
@@ -27,6 +26,16 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
   final Map<String, Widget> _mathWidgetCache = {};
 
   @override
+  void didUpdateWidget(covariant SpacedRepetitionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_currentIndex >= widget.cards.length) {
+      _currentIndex = 0;
+      _selectedOptionId = null;
+      _hasAnswered = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.cards.isEmpty || _currentIndex >= widget.cards.length) {
       return const SizedBox.shrink();
@@ -37,8 +46,11 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
     final question = card['question'];
     if (question == null) return const SizedBox.shrink();
 
-    final questionText = question['questionText'] ?? 'প্রশ্ন';
     final options = question['options'] as List<dynamic>? ?? [];
+    final isTypeMcq = (question['type'] as String? ?? 'MCQ').trim().toUpperCase() == 'MCQ';
+    if (!isTypeMcq || options.length < 2) return const SizedBox.shrink();
+
+    final questionText = question['questionText'] ?? 'প্রশ্ন';
     final explanations = question['explanations'] as List<dynamic>? ?? [];
     final explanationText = explanations.isNotEmpty ? explanations[0]['text'] : null;
 
@@ -376,11 +388,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
     );
   }
 
-  // --- HTML & LaTeX Parsing helpers ---
-  String _stripHtml(String htmlString) => stripHtmlTags(htmlString);
-
-  String _fixBrokenLatex(String text) => cleanAndNormalizeMath(text);
-
+  // --- Math Parsing Widget ---
   Widget _buildMathWidget(
     String rawText, {
     TextStyle? textStyle,
