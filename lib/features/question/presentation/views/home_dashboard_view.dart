@@ -193,47 +193,67 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
               ),
             ),
 
-            // 2. Premium Grid Action Cards (Clean gradients + shadows + micro scales)
+            // 2. Premium Grid Action Cards (Clean, Simple & Modern)
             RepaintBoundary(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
                 child: Row(
                   children: [
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset('assets/icons/qsbank.png', Icons.inventory_2_outlined),
+                      iconWidget: _buildImageIconAsset(
+                        'assets/icons/qsbank.png',
+                        Icons.inventory_2_outlined,
+                        fallbackColor: const Color(0xFF0284C7),
+                      ),
                       label: 'প্রশ্নব্যাংক',
                       onTap: () => widget.onTabSelected(1),
                       context: context,
-                      gradientColors: isDark
-                          ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                          : [const Color(0xFFE0F2FE), const Color(0xFFBAE6FD)],
+                      badgeBgColor: isDark ? const Color(0xFF0F2537) : const Color(0xFFEBF5FF),
+                      badgeBorderColor: isDark
+                          ? const Color(0xFF0284C7).withValues(alpha: 0.3)
+                          : const Color(0xFFBAE6FD).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset('assets/icons/exam.png', Icons.edit_note_outlined),
+                      iconWidget: _buildImageIconAsset(
+                        'assets/icons/exam.png',
+                        Icons.edit_note_outlined,
+                        fallbackColor: const Color(0xFF059669),
+                      ),
                       label: 'মক পরীক্ষা',
                       onTap: () => widget.onTabSelected(2),
                       context: context,
-                      gradientColors: isDark
-                          ? [const Color(0xFF065F46), const Color(0xFF064E3B)]
-                          : [const Color(0xFFDCFCE7), const Color(0xFFBBF7D0)],
+                      badgeBgColor: isDark ? const Color(0xFF093122) : const Color(0xFFECFDF5),
+                      badgeBorderColor: isDark
+                          ? const Color(0xFF059669).withValues(alpha: 0.3)
+                          : const Color(0xFFA7F3D0).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
+                      iconWidget: _buildImageIconAsset(
+                        'assets/icons/report.png',
+                        Icons.bar_chart_outlined,
+                        fallbackColor: const Color(0xFFE11D48),
+                      ),
                       label: 'পরীক্ষার হিস্ট্রি',
                       onTap: () => context.push('/exam-history'),
                       context: context,
-                      gradientColors: isDark
-                          ? [const Color(0xFF7F1D1D), const Color(0xFF991B1B)]
-                          : [const Color(0xFFFEE2E2), const Color(0xFFFECACA)],
+                      badgeBgColor: isDark ? const Color(0xFF331418) : const Color(0xFFFFF1F2),
+                      badgeBorderColor: isDark
+                          ? const Color(0xFFE11D48).withValues(alpha: 0.3)
+                          : const Color(0xFFFECDD3).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
+                      iconWidget: _buildImageIconAsset(
+                        'assets/icons/ai.png',
+                        Icons.psychology_outlined,
+                        fallbackColor: const Color(0xFF9333EA),
+                      ),
                       label: 'প্রজ্ঞা এআই',
                       onTap: () => context.push('/progga-ai'),
                       context: context,
-                      gradientColors: isDark
-                          ? [const Color(0xFF581C87), const Color(0xFF4C1D95)]
-                          : [const Color(0xFFF3E8FF), const Color(0xFFE9D5FF)],
+                      badgeBgColor: isDark ? const Color(0xFF271342) : const Color(0xFFFAF5FF),
+                      badgeBorderColor: isDark
+                          ? const Color(0xFF9333EA).withValues(alpha: 0.3)
+                          : const Color(0xFFE9D5FF).withValues(alpha: 0.7),
                     ),
                   ],
                 ),
@@ -511,14 +531,18 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     );
   }
 
-  Widget _buildImageIconAsset(String assetPath, IconData fallbackIcon) {
+  Widget _buildImageIconAsset(
+    String assetPath,
+    IconData fallbackIcon, {
+    Color fallbackColor = const Color(0xFF017A47),
+  }) {
     return Image.asset(
       assetPath,
-      width: 44,
-      height: 44,
+      width: 26,
+      height: 26,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(fallbackIcon, size: 36, color: const Color(0xFF017A47));
+        return Icon(fallbackIcon, size: 22, color: fallbackColor);
       },
     );
   }
@@ -528,40 +552,49 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     required String label,
     required VoidCallback onTap,
     required BuildContext context,
-    required List<Color> gradientColors,
+    required Color badgeBgColor,
+    required Color badgeBorderColor,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 3.0),
         child: BouncingCard(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 13.0, horizontal: 4.0),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradientColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.5),
-                width: 1.2,
+                color: isDark ? Colors.white.withValues(alpha: 0.07) : const Color(0xFFE5E7EB),
+                width: 1.1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.035),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(isDark ? 0.1 : 0.8),
+                    color: badgeBgColor,
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: badgeBorderColor,
+                      width: 1,
+                    ),
                   ),
-                  child: iconWidget,
+                  child: Center(child: iconWidget),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   label,
                   textAlign: TextAlign.center,
@@ -570,7 +603,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? Colors.white : const Color(0xFF1F2937),
                     fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
