@@ -52,11 +52,15 @@ class PracticeDashboardScreen extends ConsumerStatefulWidget {
 
 class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScreen> {
   int _currentNavIndex = 0;
+  final Set<int> _activatedTabs = {0};
 
   @override
   void initState() {
     super.initState();
-    _requestNotificationPermission();
+    // Non-blocking notification permission check after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestNotificationPermission();
+    });
   }
 
   Future<void> _requestNotificationPermission() async {
@@ -90,18 +94,19 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
       }
     }
 
-    // List of page view bodies matching each bottom navigation index
+    // Lazy tab initialization: only instantiate and mount tabs that have been activated by user
     final List<Widget> views = [
       HomeDashboardView(
         onTabSelected: (idx) {
           setState(() {
             _currentNavIndex = idx;
+            _activatedTabs.add(idx);
           });
         },
       ),
-      const QuestionBankView(),
-      const MockExamListView(),
-      const ProfileScreen(),
+      _activatedTabs.contains(1) ? const QuestionBankView() : const SizedBox.shrink(),
+      _activatedTabs.contains(2) ? const MockExamListView() : const SizedBox.shrink(),
+      _activatedTabs.contains(3) ? const ProfileScreen() : const SizedBox.shrink(),
     ];
 
     // Greeting calculations for personalized header
@@ -273,6 +278,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
           } else {
             setState(() {
               _currentNavIndex = index;
+              _activatedTabs.add(index);
             });
           }
         },

@@ -44,7 +44,7 @@ class SecureStorageService {
     String? token;
     try {
       token = await _storage.read(key: _accessTokenKey).timeout(
-        const Duration(seconds: 2),
+        const Duration(milliseconds: 1200),
         onTimeout: () => null,
       );
     } catch (_) {

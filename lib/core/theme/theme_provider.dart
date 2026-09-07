@@ -11,20 +11,26 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 
   void _loadTheme() {
-    final box = _hiveService.getSettingsBox();
-    final savedTheme = box.get(_themeKey) as String?;
-    if (savedTheme != null) {
-      state = ThemeMode.values.firstWhere(
-        (e) => e.name == savedTheme,
-        orElse: () => ThemeMode.light,
-      );
+    try {
+      final box = _hiveService.getSettingsBox();
+      final savedTheme = box.get(_themeKey) as String?;
+      if (savedTheme != null) {
+        state = ThemeMode.values.firstWhere(
+          (e) => e.name == savedTheme,
+          orElse: () => ThemeMode.light,
+        );
+      }
+    } catch (_) {
+      // Gracefully fall back to light theme if box is not available
     }
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    final box = _hiveService.getSettingsBox();
-    await box.put(_themeKey, mode.name);
+    try {
+      final box = _hiveService.getSettingsBox();
+      await box.put(_themeKey, mode.name);
+    } catch (_) {}
   }
 }
 

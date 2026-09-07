@@ -91,6 +91,7 @@ class ExamRunnerNotifier extends StateNotifier<ExamRunnerState> {
     state = state.copyWith(isLoading: true, errorMessage: null, result: null);
     _timer?.cancel();
     _autoSaveTimer?.cancel();
+    _hiveService.initPracticeBox().catchError((_) {});
 
     try {
       ExamModel exam;

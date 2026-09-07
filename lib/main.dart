@@ -34,42 +34,45 @@ void main() async {
     ),
   ));
 
-  // Initialize Firebase and notification service in the background without blocking launch
-  Firebase.initializeApp().then((_) {
-    NotificationService().init();
-  }).catchError((_) {});
-
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
-  // Fast local initialization: ONLY Hive and SecureStorage with hard timeout guard
+  // Fast parallel local initialization: Concurrent Hive settings box & SecureStorage token lookup
   try {
-    await hiveService.init().timeout(
-      const Duration(seconds: 2),
-      onTimeout: () {},
+    final results = await Future.wait([
+      hiveService.init(settingsOnly: true),
+      secureStorage.getAccessToken(),
+    ]).timeout(
+      const Duration(milliseconds: 2500),
+      onTimeout: () => [null, null],
     );
-    final token = await secureStorage.getAccessToken().timeout(
-      const Duration(seconds: 2),
-      onTimeout: () => null,
-    );
+
+    // Hard guarantee: Ensure settingsBox is OPEN before runApp is invoked, even if timeout fired
+    if (!hiveService.isSettingsBoxOpen) {
+      await hiveService.ensureSettingsBoxOpen();
+    }
+
+    final token = results[1] as String?;
 
     if (token != null && token.isNotEmpty) {
       initialLocation = '/home';
 
       try {
         // Check if user profile is already cached locally (instant read, <1ms)
-        final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
-        if (cachedProfile != null && cachedProfile is Map) {
-          initialAuthState = AuthState.authenticated(
-            user: recursivelyCastMap(cachedProfile),
-            accessToken: token,
-          );
-        } else {
-          // Cache empty: authenticate with token immediately, background profile repository will fetch fresh data
-          initialAuthState = AuthState.authenticated(
-            user: const {},
-            accessToken: token,
-          );
+        if (hiveService.isSettingsBoxOpen) {
+          final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
+          if (cachedProfile != null && cachedProfile is Map) {
+            initialAuthState = AuthState.authenticated(
+              user: recursivelyCastMap(cachedProfile),
+              accessToken: token,
+            );
+          } else {
+            // Cache empty: authenticate with token immediately, background profile repository will fetch fresh data
+            initialAuthState = AuthState.authenticated(
+              user: const {},
+              accessToken: token,
+            );
+          }
         }
       } catch (_) {
         initialAuthState = AuthState.authenticated(
@@ -81,12 +84,20 @@ void main() async {
   } catch (_) {
     // Suppress initialization error in release
   } finally {
-    // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
+    // Ultimate failsafe: Ensure settingsBox is open before root providers mount
+    if (!hiveService.isSettingsBoxOpen) {
+      await hiveService.ensureSettingsBoxOpen();
+    }
+
+    // Custom ErrorWidget.builder to intercept unhandled exceptions with guaranteed Directionality
     ErrorWidget.builder = (FlutterErrorDetails details) {
       try {
         FlutterNativeSplash.remove();
       } catch (_) {}
-      return SafeErrorWidget(details: details);
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: SafeErrorWidget(details: details),
+      );
     };
 
     runApp(
@@ -100,20 +111,27 @@ void main() async {
       ),
     );
 
-    // Remove splash screen immediately once the first UI frame renders
+    // Remove splash screen immediately once the first UI frame renders & start deferred services
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         FlutterNativeSplash.remove();
       } catch (_) {}
-    });
 
-    // Failsafe timer: ensure splash screen is NEVER stuck on any phone
-    Future.delayed(const Duration(milliseconds: 800), () {
-      try {
-        FlutterNativeSplash.remove();
-      } catch (_) {}
+      // Deferred background warmup: does not compete with first frame render
+      _initDeferredServices(hiveService);
     });
   }
+}
+
+/// Initializes non-critical background services after the first frame has rendered
+void _initDeferredServices(HiveService hiveService) {
+  // 1. Warm up offline practice box in background without blocking UI
+  hiveService.initPracticeBox().catchError((_) {});
+
+  // 2. Initialize Firebase and notification service asynchronously in background
+  Firebase.initializeApp().then((_) {
+    NotificationService().init();
+  }).catchError((_) {});
 }
 
 Map<String, dynamic> recursivelyCastMap(Map<dynamic, dynamic> source) {

@@ -21,9 +21,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   ]) : super(initialState) {
     _apiClient.onUnauthenticated = forceLogout;
     initialState.maybeWhen(
-      authenticated: (_, __) {
-        // Run silent check in background on boot to ensure token validity and refresh profile
-        checkActiveSession(silent: true);
+      authenticated: (user, _) {
+        // If cached profile is present, ProfileNotifier automatically revalidates in the background.
+        // Avoid redundant duplicate GET /users/me requests during cold boot.
+        if (user.isEmpty) {
+          checkActiveSession(silent: true);
+        }
       },
       orElse: () => checkActiveSession(),
     );

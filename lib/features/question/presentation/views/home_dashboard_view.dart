@@ -60,14 +60,16 @@ class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   }
 
   void _precacheBannerImages(List<Map<String, dynamic>> list) {
-    for (final item in list) {
-      final img = item['imageUrl'];
-      if (img is String && img.isNotEmpty) {
-        try {
-          CachedNetworkImageProvider(img).resolve(ImageConfiguration.empty);
-        } catch (_) {}
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final item in list) {
+        final img = item['imageUrl'];
+        if (img is String && img.isNotEmpty) {
+          try {
+            CachedNetworkImageProvider(img).resolve(ImageConfiguration.empty);
+          } catch (_) {}
+        }
       }
-    }
+    });
   }
 
   Future<void> _fetchFresh() async {
@@ -132,7 +134,14 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(appUpdateServiceProvider).checkAndShowUpdateDialog(context);
+        // Defer update check by 2 seconds so the first screen renders without modal/dialog interruptions
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            ref.read(appUpdateServiceProvider).checkAndShowUpdateDialog(context);
+          }
+        });
+
+        // Initialize & sync notifications in background without competing with UI rendering
         NotificationService().init();
         try {
           final apiClient = ref.read(apiClientProvider);

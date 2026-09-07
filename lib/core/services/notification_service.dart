@@ -25,8 +25,8 @@ class NotificationService {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
     } catch (_) {}
 
-    // Request permissions for Firebase Messaging (critical for iOS & Android 13+)
-    await requestPermissions();
+    // Request permissions for Firebase Messaging asynchronously (non-blocking)
+    requestPermissions().catchError((_) {});
 
     // Listen to incoming foreground messages
     try {

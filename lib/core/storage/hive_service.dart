@@ -7,8 +7,12 @@ class HiveService {
   static const String practiceBoxName = 'offline_practice_box';
   static const String settingsBoxName = 'profile_settings_box';
 
-  Future<void> init() async {
-    await Hive.initFlutter();
+  HiveCipher? _cachedCipher;
+  bool _isSettingsBoxInitialized = false;
+  bool _isPracticeBoxInitialized = false;
+
+  Future<HiveCipher?> _resolveCipher() async {
+    if (_cachedCipher != null) return _cachedCipher;
 
     List<int>? encryptionKeyBytes;
     try {
@@ -18,14 +22,14 @@ class HiveService {
         ),
       );
       var base64Key = await secureStorage.read(key: 'hive_encryption_key').timeout(
-        const Duration(seconds: 1),
+        const Duration(milliseconds: 1200),
         onTimeout: () => null,
       );
       if (base64Key == null) {
         final key = Hive.generateSecureKey();
         base64Key = base64UrlEncode(key);
         await secureStorage.write(key: 'hive_encryption_key', value: base64Key).timeout(
-          const Duration(seconds: 1),
+          const Duration(milliseconds: 1200),
           onTimeout: () {},
         );
       }
@@ -34,10 +38,58 @@ class HiveService {
       // Suppress KeyStore errors on unsupported/budget devices
     }
 
-    final cipher = encryptionKeyBytes != null ? HiveAesCipher(encryptionKeyBytes) : null;
+    _cachedCipher = encryptionKeyBytes != null ? HiveAesCipher(encryptionKeyBytes) : null;
+    return _cachedCipher;
+  }
 
+  /// Critical fast-path startup initialization: ONLY initializes Hive & profile_settings_box
+  Future<void> init({bool settingsOnly = true}) async {
+    if (_isSettingsBoxInitialized && (!settingsOnly || _isPracticeBoxInitialized)) return;
+
+    await Hive.initFlutter();
+    final cipher = await _resolveCipher();
+
+    if (!_isSettingsBoxInitialized) {
+      await _openSafeBox(settingsBoxName, cipher);
+      _isSettingsBoxInitialized = true;
+    }
+
+    if (!settingsOnly && !_isPracticeBoxInitialized) {
+      await _openSafeBox(practiceBoxName, cipher);
+      _isPracticeBoxInitialized = true;
+    }
+  }
+
+  /// Returns whether settingsBox is currently open
+  bool get isSettingsBoxOpen => Hive.isBoxOpen(settingsBoxName);
+
+  /// Guarantees that settingsBox is open, falling back to unencrypted box if needed
+  Future<void> ensureSettingsBoxOpen() async {
+    if (Hive.isBoxOpen(settingsBoxName)) {
+      _isSettingsBoxInitialized = true;
+      return;
+    }
+    try {
+      await Hive.initFlutter();
+      final cipher = await _resolveCipher();
+      await _openSafeBox(settingsBoxName, cipher);
+    } catch (_) {
+      try {
+        await Hive.openBox(settingsBoxName);
+      } catch (_) {}
+    }
+    _isSettingsBoxInitialized = Hive.isBoxOpen(settingsBoxName);
+  }
+
+  /// Non-blocking deferred background initialization for offline practice box
+  Future<void> initPracticeBox() async {
+    if (_isPracticeBoxInitialized || Hive.isBoxOpen(practiceBoxName)) {
+      _isPracticeBoxInitialized = true;
+      return;
+    }
+    final cipher = await _resolveCipher();
     await _openSafeBox(practiceBoxName, cipher);
-    await _openSafeBox(settingsBoxName, cipher);
+    _isPracticeBoxInitialized = true;
   }
 
   Future<Box> _openSafeBox(String name, [HiveCipher? cipher]) async {
