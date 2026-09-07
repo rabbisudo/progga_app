@@ -10,25 +10,53 @@ class HiveService {
   Future<void> init() async {
     await Hive.initFlutter();
 
-    // Securely retrieve or generate standard AES-256 encryption key from Keystore/Keychain
-    const secureStorage = FlutterSecureStorage();
-    var base64Key = await secureStorage.read(key: 'hive_encryption_key');
-    if (base64Key == null) {
-      final key = Hive.generateSecureKey();
-      base64Key = base64UrlEncode(key);
-      await secureStorage.write(key: 'hive_encryption_key', value: base64Key);
+    List<int>? encryptionKeyBytes;
+    try {
+      const secureStorage = FlutterSecureStorage(
+        aOptions: AndroidOptions(
+          encryptedSharedPreferences: true,
+          resetOnError: true,
+        ),
+      );
+      var base64Key = await secureStorage.read(key: 'hive_encryption_key').timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => null,
+      );
+      if (base64Key == null) {
+        final key = Hive.generateSecureKey();
+        base64Key = base64UrlEncode(key);
+        await secureStorage.write(key: 'hive_encryption_key', value: base64Key).timeout(
+          const Duration(seconds: 1),
+          onTimeout: () {},
+        );
+      }
+      encryptionKeyBytes = base64Url.decode(base64Key);
+    } catch (_) {
+      // Suppress KeyStore errors on unsupported/budget devices
     }
-    final encryptionKeyBytes = base64Url.decode(base64Key);
 
-    // Open boxes with AES-256 cipher encryption
-    await Hive.openBox(
-      practiceBoxName,
-      encryptionCipher: HiveAesCipher(encryptionKeyBytes),
-    );
-    await Hive.openBox(
-      settingsBoxName,
-      encryptionCipher: HiveAesCipher(encryptionKeyBytes),
-    );
+    final cipher = encryptionKeyBytes != null ? HiveAesCipher(encryptionKeyBytes) : null;
+
+    await _openSafeBox(practiceBoxName, cipher);
+    await _openSafeBox(settingsBoxName, cipher);
+  }
+
+  Future<Box> _openSafeBox(String name, [HiveCipher? cipher]) async {
+    try {
+      if (Hive.isBoxOpen(name)) return Hive.box(name);
+      return await Hive.openBox(name, encryptionCipher: cipher);
+    } catch (_) {
+      // Auto-recover from key mismatch (e.g. app reinstallation, cloud restore) or box corruption
+      try {
+        await Hive.deleteBoxFromDisk(name);
+      } catch (_) {}
+      try {
+        return await Hive.openBox(name, encryptionCipher: cipher);
+      } catch (_) {
+        // Last-resort fallback without cipher
+        return await Hive.openBox(name);
+      }
+    }
   }
 
   Box getPracticeBox() {

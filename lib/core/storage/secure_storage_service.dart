@@ -12,11 +12,23 @@ class SecureStorageService {
   SecureStorageService(this._storage);
 
   Future<void> saveAccessToken(String token) async {
-    await _storage.write(key: _accessTokenKey, value: token);
+    try {
+      await _storage.write(key: _accessTokenKey, value: token).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {},
+      );
+    } catch (_) {}
   }
 
   Future<String?> getAccessToken() async {
-    return await _storage.read(key: _accessTokenKey);
+    try {
+      return await _storage.read(key: _accessTokenKey).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => null,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> saveRefreshToken(String token) async {
@@ -29,27 +41,46 @@ class SecureStorageService {
   }
 
   Future<void> clearTokens() async {
-    await _storage.delete(key: _accessTokenKey);
-    await _storage.delete(key: _refreshTokenKey);
+    try {
+      await _storage.delete(key: _accessTokenKey).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {},
+      );
+      await _storage.delete(key: _refreshTokenKey).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () {},
+      );
+    } catch (_) {}
   }
 
-  /**
-   * Resolves device unique UUID, generating and persisting if not previously allocated.
-   */
+  /// Resolves device unique UUID, generating and persisting if not previously allocated.
   Future<String> getOrGenerateDeviceUuid() async {
-    String? current = await _storage.read(key: _deviceUuidKey);
-    if (current == null) {
-      current = const Uuid().v4();
-      await _storage.write(key: _deviceUuidKey, value: current);
+    try {
+      String? current = await _storage.read(key: _deviceUuidKey).timeout(
+        const Duration(seconds: 2),
+        onTimeout: () => null,
+      );
+      if (current == null) {
+        current = const Uuid().v4();
+        await _storage.write(key: _deviceUuidKey, value: current).timeout(
+          const Duration(seconds: 2),
+          onTimeout: () {},
+        );
+      }
+      return current;
+    } catch (_) {
+      return const Uuid().v4();
     }
-    return current;
   }
 }
 
 final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
   return SecureStorageService(const FlutterSecureStorage(
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
   ));
 });
 

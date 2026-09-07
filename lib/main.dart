@@ -29,7 +29,10 @@ void main() async {
   final hiveService = HiveService();
   final secureStorage = SecureStorageService(const FlutterSecureStorage(
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+      resetOnError: true,
+    ),
   ));
 
   // Initialize Firebase and notification service in the background without blocking launch
@@ -40,23 +43,36 @@ void main() async {
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
-  // Fast local initialization: ONLY Hive and SecureStorage (~30ms total)
+  // Fast local initialization: ONLY Hive and SecureStorage with hard timeout guard
   try {
-    await hiveService.init();
-    final token = await secureStorage.getAccessToken();
+    await hiveService.init().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () {},
+    );
+    final token = await secureStorage.getAccessToken().timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => null,
+    );
 
     if (token != null && token.isNotEmpty) {
       initialLocation = '/home';
 
-      // Check if user profile is already cached locally (instant read, <1ms)
-      final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
-      if (cachedProfile != null && cachedProfile is Map) {
-        initialAuthState = AuthState.authenticated(
-          user: recursivelyCastMap(cachedProfile),
-          accessToken: token,
-        );
-      } else {
-        // Cache empty: authenticate with token immediately, background profile repository will fetch fresh data
+      try {
+        // Check if user profile is already cached locally (instant read, <1ms)
+        final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
+        if (cachedProfile != null && cachedProfile is Map) {
+          initialAuthState = AuthState.authenticated(
+            user: recursivelyCastMap(cachedProfile),
+            accessToken: token,
+          );
+        } else {
+          // Cache empty: authenticate with token immediately, background profile repository will fetch fresh data
+          initialAuthState = AuthState.authenticated(
+            user: const {},
+            accessToken: token,
+          );
+        }
+      } catch (_) {
         initialAuthState = AuthState.authenticated(
           user: const {},
           accessToken: token,
@@ -68,6 +84,9 @@ void main() async {
   } finally {
     // Custom ErrorWidget.builder to intercept unhandled exceptions (like NetworkExceptions during layout/build)
     ErrorWidget.builder = (FlutterErrorDetails details) {
+      try {
+        FlutterNativeSplash.remove();
+      } catch (_) {}
       return SafeErrorWidget(details: details);
     };
 
@@ -84,7 +103,16 @@ void main() async {
 
     // Remove splash screen immediately once the first UI frame renders
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      FlutterNativeSplash.remove();
+      try {
+        FlutterNativeSplash.remove();
+      } catch (_) {}
+    });
+
+    // Failsafe timer: ensure splash screen is NEVER stuck on any phone
+    Future.delayed(const Duration(milliseconds: 800), () {
+      try {
+        FlutterNativeSplash.remove();
+      } catch (_) {}
     });
   }
 }
@@ -117,6 +145,13 @@ class SafeErrorWidget extends StatefulWidget {
 }
 
 class _SafeErrorWidgetState extends State<SafeErrorWidget> {
+  @override
+  void initState() {
+    super.initState();
+    try {
+      FlutterNativeSplash.remove();
+    } catch (_) {}
+  }
   @override
   Widget build(BuildContext context) {
     final exception = widget.details.exception;

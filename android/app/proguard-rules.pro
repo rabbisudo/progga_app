@@ -32,3 +32,15 @@
 -dontwarn javax.crypto.**
 -dontwarn okio.**
 -dontwarn sun.misc.**
+-keep class androidx.security.crypto.** { *; }
+-dontwarn androidx.security.crypto.**
+-keep class com.it_nomads.fluttersecurestorage.** { *; }
+
+# Flutter Native Splash
+-keep class net.jonhanson.flutter_native_splash.** { *; }
+
+# Storage / Plus Utilities
+-dontwarn com.tekartik.sqflite.**
+-keep class com.tekartik.sqflite.** { *; }
+-dontwarn dev.fluttercommunity.plus.**
+-keep class dev.fluttercommunity.plus.** { *; }
