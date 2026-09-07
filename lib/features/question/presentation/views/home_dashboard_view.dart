@@ -193,67 +193,37 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
               ),
             ),
 
-            // 2. Premium Grid Action Cards (Clean, Simple & Modern)
+            // 2. Quick Action Grid (Just icon image + title below)
             RepaintBoundary(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset(
-                        'assets/icons/qsbank.png',
-                        Icons.inventory_2_outlined,
-                        fallbackColor: const Color(0xFF0284C7),
-                      ),
+                      iconWidget: _buildImageIconAsset('assets/icons/qsbank.png', Icons.inventory_2_outlined),
                       label: 'প্রশ্নব্যাংক',
                       onTap: () => widget.onTabSelected(1),
                       context: context,
-                      badgeBgColor: isDark ? const Color(0xFF0F2537) : const Color(0xFFEBF5FF),
-                      badgeBorderColor: isDark
-                          ? const Color(0xFF0284C7).withValues(alpha: 0.3)
-                          : const Color(0xFFBAE6FD).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset(
-                        'assets/icons/exam.png',
-                        Icons.edit_note_outlined,
-                        fallbackColor: const Color(0xFF059669),
-                      ),
+                      iconWidget: _buildImageIconAsset('assets/icons/exam.png', Icons.edit_note_outlined),
                       label: 'মক পরীক্ষা',
                       onTap: () => widget.onTabSelected(2),
                       context: context,
-                      badgeBgColor: isDark ? const Color(0xFF093122) : const Color(0xFFECFDF5),
-                      badgeBorderColor: isDark
-                          ? const Color(0xFF059669).withValues(alpha: 0.3)
-                          : const Color(0xFFA7F3D0).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset(
-                        'assets/icons/report.png',
-                        Icons.bar_chart_outlined,
-                        fallbackColor: const Color(0xFFE11D48),
-                      ),
+                      iconWidget: _buildImageIconAsset('assets/icons/report.png', Icons.bar_chart_outlined),
                       label: 'পরীক্ষার হিস্ট্রি',
                       onTap: () => context.push('/exam-history'),
                       context: context,
-                      badgeBgColor: isDark ? const Color(0xFF331418) : const Color(0xFFFFF1F2),
-                      badgeBorderColor: isDark
-                          ? const Color(0xFFE11D48).withValues(alpha: 0.3)
-                          : const Color(0xFFFECDD3).withValues(alpha: 0.7),
                     ),
                     _buildGridAction(
-                      iconWidget: _buildImageIconAsset(
-                        'assets/icons/ai.png',
-                        Icons.psychology_outlined,
-                        fallbackColor: const Color(0xFF9333EA),
-                      ),
+                      iconWidget: _buildImageIconAsset('assets/icons/ai.png', Icons.psychology_outlined),
                       label: 'প্রজ্ঞা এআই',
                       onTap: () => context.push('/progga-ai'),
                       context: context,
-                      badgeBgColor: isDark ? const Color(0xFF271342) : const Color(0xFFFAF5FF),
-                      badgeBorderColor: isDark
-                          ? const Color(0xFF9333EA).withValues(alpha: 0.3)
-                          : const Color(0xFFE9D5FF).withValues(alpha: 0.7),
                     ),
                   ],
                 ),
@@ -531,18 +501,14 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     );
   }
 
-  Widget _buildImageIconAsset(
-    String assetPath,
-    IconData fallbackIcon, {
-    Color fallbackColor = const Color(0xFF017A47),
-  }) {
+  Widget _buildImageIconAsset(String assetPath, IconData fallbackIcon) {
     return Image.asset(
       assetPath,
-      width: 26,
-      height: 26,
+      width: 48,
+      height: 48,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(fallbackIcon, size: 22, color: fallbackColor);
+        return Icon(fallbackIcon, size: 38, color: const Color(0xFF017A47));
       },
     );
   }
@@ -552,63 +518,32 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     required String label,
     required VoidCallback onTap,
     required BuildContext context,
-    required Color badgeBgColor,
-    required Color badgeBorderColor,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3.0),
-        child: BouncingCard(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 13.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.07) : const Color(0xFFE5E7EB),
-                width: 1.1,
+      child: BouncingCard(
+        onTap: onTap,
+        child: Container(
+          color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              iconWidget,
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white.withValues(alpha: 0.9) : const Color(0xFF1E293B),
+                  fontFamily: 'Li Ador Noirrit',
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.035),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: badgeBgColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: badgeBorderColor,
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(child: iconWidget),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1F2937),
-                    fontFamily: 'Li Ador Noirrit',
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
