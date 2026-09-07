@@ -411,7 +411,31 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                         );
                       },
                       loading: () => _buildSkeleton(context, isDark, showSearchAndTabs: false),
-                      error: (err, _) => Center(child: Text('পরীক্ষা লোড করতে ব্যর্থ হয়েছে: $err')),
+                      error: (err, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'পরীক্ষা লোড করতে সমস্যা হয়েছে: $err',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton.icon(
+                                onPressed: () => ref.refresh(qbExamsProvider(idsToLoad.join(','))),
+                                icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF017A47)),
+                                label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Color(0xFF017A47))),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -420,7 +444,38 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
           );
         },
         loading: () => _buildSkeleton(context, isDark, showSearchAndTabs: true),
-        error: (err, _) => Center(child: Text('ডাটা লোড করা যায়নি: $err')),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off_rounded, color: Colors.amber, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  'ডাটা লোড করা যায়নি: $err',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => ref.refresh(qbClassSeriesProvider(classId)),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

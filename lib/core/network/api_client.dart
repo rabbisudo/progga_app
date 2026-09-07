@@ -123,8 +123,8 @@ class ApiClient {
   void init(SecureStorageService storageService) {
     dio.options = BaseOptions(
       baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'https://proggadata.twelvemind.com/api/v1'),
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 15),
+      connectTimeout: const Duration(seconds: 45),
+      receiveTimeout: const Duration(seconds: 45),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

@@ -205,7 +205,38 @@ class QbSubSeriesScreen extends ConsumerWidget {
             borderRadius: 20,
           ),
         ),
-        error: (err, _) => Center(child: Text('ডাটা লোড করা যায়নি: $err')),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off_rounded, color: Colors.amber, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  'ডাটা লোড করা যায়নি: $err',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => ref.refresh(qbClassSeriesProvider(classId)),
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF017A47),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

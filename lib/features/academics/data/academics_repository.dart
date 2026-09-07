@@ -111,7 +111,7 @@ final activeClassesProvider = FutureProvider<List<AcademicClassModel>>((ref) asy
 });
 
 final Map<String, int> _lastAcademicsFetchTimestamps = {};
-const int _kAcademicsCacheTtlMs = 5 * 60 * 1000; // 5 minutes TTL
+const int _kAcademicsCacheTtlMs = 24 * 60 * 60 * 1000; // 24 hours TTL
 
 final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
   final classId = ref.watch(userProfileProvider.select((u) => u.value?.profile?.classId));
@@ -145,15 +145,22 @@ final studentCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
     return cached;
   }
 
-  final freshData = await repo.fetchStudentCurriculum(
-    classId: classId,
-    groupId: groupId,
-    batchId: batchId,
-    userId: userId,
-  );
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchStudentCurriculum(
+      classId: classId,
+      groupId: groupId,
+      batchId: batchId,
+      userId: userId,
+    );
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
@@ -189,16 +196,23 @@ final studentQbCurriculumProvider = FutureProvider<List<dynamic>>((ref) async {
     return cached;
   }
 
-  final freshData = await repo.fetchStudentCurriculum(
-    classId: classId,
-    groupId: groupId,
-    batchId: batchId,
-    userId: userId,
-    isQuestionBank: true,
-  );
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchStudentCurriculum(
+      classId: classId,
+      groupId: groupId,
+      batchId: batchId,
+      userId: userId,
+      isQuestionBank: true,
+    );
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 // Added Question Bank Series methods to AcademicsRepository
@@ -267,7 +281,7 @@ final qbSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, subj
   }
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cacheKey = 'cached_qb_series_sub_${classId}_${groupId ?? "none"}_${batchId ?? "none"}_$subjectId';
+  final cacheKey = 'cached_qb_series_sub_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
 
   final cached = hive.getCachedList(cacheKey);
   final lastFetch = _lastAcademicsFetchTimestamps[cacheKey] ?? 0;
@@ -286,13 +300,20 @@ final qbSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, subj
     return cached;
   }
 
-  final freshData = await repo.fetchQuestionBankSeries(
-    classId: classId,
-    subjectId: subjectId,
-  );
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchQuestionBankSeries(
+      classId: classId,
+      subjectId: subjectId,
+    );
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbExamsProvider = FutureProvider.family<List<dynamic>, String>((ref, idsStr) async {
@@ -316,10 +337,17 @@ final qbExamsProvider = FutureProvider.family<List<dynamic>, String>((ref, idsSt
     return cached;
   }
 
-  final freshData = await repo.fetchExamsByIds(ids);
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchExamsByIds(ids);
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbClassSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, classId) async {
@@ -344,13 +372,20 @@ final qbClassSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref,
     return cached;
   }
 
-  final freshData = await repo.fetchQuestionBankSeries(
-    classId: classId,
-    subjectId: '',
-  );
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchQuestionBankSeries(
+      classId: classId,
+      subjectId: '',
+    );
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
 
 final qbClassSectionsProvider = FutureProvider.family<List<dynamic>, String>((ref, classId) async {
@@ -378,12 +413,19 @@ final qbClassSectionsProvider = FutureProvider.family<List<dynamic>, String>((re
     return cached;
   }
 
-  final freshData = await repo.fetchQuestionBankSections(
-    classId: classId,
-    groupId: groupId,
-    batchId: batchId,
-  );
-  _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
-  await hive.cacheList(cacheKey, freshData);
-  return freshData;
+  try {
+    final freshData = await repo.fetchQuestionBankSections(
+      classId: classId,
+      groupId: groupId,
+      batchId: batchId,
+    );
+    _lastAcademicsFetchTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
+    await hive.cacheList(cacheKey, freshData);
+    return freshData;
+  } catch (e) {
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    rethrow;
+  }
 });
