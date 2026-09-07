@@ -7,39 +7,46 @@ import '../../../core/storage/hive_service.dart';
 
 class ProfileNotifier extends AsyncNotifier<UserData> {
   @override
-  FutureOr<UserData> build() async {
+  FutureOr<UserData> build() {
     final repository = ref.read(profileRepositoryProvider);
     final authState = ref.watch(authProvider);
 
-    return authState.maybeWhen(
+    UserData? initialUser;
+
+    authState.maybeWhen(
       authenticated: (user, token) {
         if (user.isNotEmpty) {
           try {
-            final userData = UserData.fromJson(user);
-            _cacheProfile(user);
-            return userData;
+            initialUser = UserData.fromJson(user);
           } catch (_) {}
         }
-        final cached = _loadCachedProfile();
-        if (cached != null) {
-          return cached;
-        }
-        return repository.fetchMyProfile().then((data) {
-          _cacheProfile(_toMap(data));
-          return data;
-        });
       },
-      orElse: () {
-        final cached = _loadCachedProfile();
-        if (cached != null) {
-          return cached;
-        }
-        return repository.fetchMyProfile().then((data) {
-          _cacheProfile(_toMap(data));
-          return data;
-        });
-      },
+      orElse: () {},
     );
+
+    initialUser ??= _loadCachedProfile();
+
+    // Trigger silent background synchronization automatically
+    _fetchFreshProfileSilently(repository);
+
+    // Return instant local/cached or fallback data synchronously
+    return initialUser ?? const UserData(
+      id: '',
+      email: '',
+      username: '',
+      isActive: true,
+      createdAt: '',
+    );
+  }
+
+  void _fetchFreshProfileSilently(ProfileRepository repository) {
+    repository.fetchMyProfile().then((fresh) {
+      _cacheProfile(_toMap(fresh));
+      ref.read(authProvider.notifier).updateUserData(_toMap(fresh));
+      state = AsyncData(fresh);
+    }).catchError((_) {
+      // Silently ignore background network errors without disturbing local UI
+    });
   }
 
   /// Manually refresh profile from backend (e.g. pull-to-refresh)

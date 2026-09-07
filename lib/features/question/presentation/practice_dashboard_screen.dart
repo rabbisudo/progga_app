@@ -79,43 +79,22 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    if (profileAsync.isLoading && profileAsync.value == null) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF017A47)),
-        ),
-      );
-    }
-
     if (profileAsync is AsyncError) {
       final error = profileAsync.error;
       if (error is NetworkException && error.statusCode == 401) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.go('/login');
+          if (mounted) context.go('/login');
         });
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: const Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
-          ),
-        );
       }
     }
 
-    // Redirect to onboarding if not set up yet
-    if (profileAsync.value != null) {
+    // Redirect to onboarding if profile is loaded and user has not completed onboarding
+    if (profileAsync.value != null && profileAsync.value!.id.isNotEmpty) {
       final userData = profileAsync.value!;
-      if (userData.profile?.className == null || userData.profile!.className!.isEmpty) {
+      if (userData.profile != null && (userData.profile!.className == null || userData.profile!.className!.isEmpty)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.go('/onboarding');
+          if (mounted) context.go('/onboarding');
         });
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: const Center(
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
-          ),
-        );
       }
     }
 
