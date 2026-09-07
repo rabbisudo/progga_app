@@ -31,7 +31,6 @@ void main() async {
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
-      resetOnError: true,
     ),
   ));
 

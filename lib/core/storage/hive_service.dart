@@ -15,7 +15,6 @@ class HiveService {
       const secureStorage = FlutterSecureStorage(
         aOptions: AndroidOptions(
           encryptedSharedPreferences: true,
-          resetOnError: true,
         ),
       );
       var base64Key = await secureStorage.read(key: 'hive_encryption_key').timeout(
