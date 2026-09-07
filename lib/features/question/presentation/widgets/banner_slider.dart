@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'shimmer_skeleton.dart';
 
 class BannerSliderWidget extends StatefulWidget {
   final List<Map<String, dynamic>> banners;
@@ -113,16 +114,12 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                               imageUrl: imageUrl,
                               memCacheWidth: 1000,
                               maxWidthDiskCache: 1200,
-                              fadeInDuration: const Duration(milliseconds: 150),
+                              fadeInDuration: const Duration(milliseconds: 200),
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => _buildFallbackCard(
-                                gradientColors: gradientColors,
-                                badgeText: badgeText,
-                                title: title,
-                                targetUrl: targetUrl,
-                                isClickable: isClickable,
-                                icon: banner['icon'],
-                                context: context,
+                              placeholder: (context, url) => const ShimmerSkeleton(
+                                width: double.infinity,
+                                height: 160,
+                                borderRadius: 24,
                               ),
                               errorWidget: (context, url, error) => _buildFallbackCard(
                                 gradientColors: gradientColors,
@@ -265,11 +262,12 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                     ),
                   ),
                   child: const Text(
-                    'Get now',
+                    'বিস্তারিত দেখুন',
                     style: TextStyle(
                       color: Color(0xFF004D40),
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
                 ),
@@ -278,15 +276,17 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
           ),
           const SizedBox(width: 8),
           Container(
-            width: 70,
-            height: 70,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.15),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
             ),
             child: Center(
-              child: Text(icon ?? '🦖', style: const TextStyle(fontSize: 38)),
+              child: icon != null && icon.isNotEmpty
+                  ? Text(icon, style: const TextStyle(fontSize: 32))
+                  : const Icon(Icons.campaign_rounded, size: 32, color: Colors.white),
             ),
           ),
         ],
