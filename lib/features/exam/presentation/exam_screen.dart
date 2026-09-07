@@ -901,7 +901,10 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
     
     List<String> clues = _extractClues(q.questionText);
     if (clues.isEmpty && q.options.isNotEmpty) {
-      clues = q.options.map((opt) => opt.optionText.replaceAll(RegExp(r'<[^>]*>'), '').trim()).toList();
+      clues = q.options
+          .map((opt) => opt.optionText.replaceAll(RegExp(r'<[^>]*>'), '').trim())
+          .where((c) => c.isNotEmpty && !RegExp(r'^option\s+[a-e]$', caseSensitive: false).hasMatch(c))
+          .toList();
     }
     final totalGaps = _getTotalGapsCount(q.questionText);
     final filledCount = _getFilledCount(q.id, q.questionText);
