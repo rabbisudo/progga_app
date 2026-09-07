@@ -25,9 +25,8 @@ class MockExamListView extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final profile = ref.watch(userProfileProvider).value?.profile;
-    final className = profile?.className ?? 'HSC 2026';
-    final groupName = profile?.batch ?? profile?.targetExam ?? 'বিজ্ঞান';
+    final className = ref.watch(userProfileProvider.select((u) => u.value?.profile?.className)) ?? 'HSC 2026';
+    final groupName = ref.watch(userProfileProvider.select((u) => u.value?.profile?.batch ?? u.value?.profile?.targetExam)) ?? 'বিজ্ঞান';
 
     final curriculumAsync = ref.watch(studentCurriculumProvider);
 

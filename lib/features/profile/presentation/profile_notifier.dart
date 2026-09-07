@@ -9,11 +9,25 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   @override
   FutureOr<UserData> build() {
     final repository = ref.read(profileRepositoryProvider);
-    final authState = ref.watch(authProvider);
+    // Only rebuild when authentication token/status changes (e.g. login/logout), NOT on every profile mutation
+    final authToken = ref.watch(authProvider.select((s) => s.maybeWhen(
+      authenticated: (_, token) => token,
+      orElse: () => null,
+    )));
+
+    if (authToken == null || authToken.isEmpty) {
+      return const UserData(
+        id: '',
+        email: '',
+        username: '',
+        isActive: false,
+        createdAt: '',
+      );
+    }
 
     UserData? initialUser;
-
-    authState.maybeWhen(
+    final currentAuth = ref.read(authProvider);
+    currentAuth.maybeWhen(
       authenticated: (user, token) {
         if (user.isNotEmpty) {
           try {
@@ -26,7 +40,7 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
 
     initialUser ??= _loadCachedProfile();
 
-    // Trigger silent background synchronization automatically
+    // Trigger silent background synchronization automatically once on mount
     _fetchFreshProfileSilently(repository);
 
     // Return instant local/cached or fallback data synchronously
@@ -42,7 +56,6 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   void _fetchFreshProfileSilently(ProfileRepository repository) {
     repository.fetchMyProfile().then((fresh) {
       _cacheProfile(_toMap(fresh));
-      ref.read(authProvider.notifier).updateUserData(_toMap(fresh));
       state = AsyncData(fresh);
     }).catchError((_) {
       // Silently ignore background network errors without disturbing local UI
@@ -55,7 +68,6 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
     try {
       final fresh = await repository.fetchMyProfile();
       _cacheProfile(_toMap(fresh));
-      ref.read(authProvider.notifier).updateUserData(_toMap(fresh));
       state = AsyncData(fresh);
     } catch (_) {}
   }

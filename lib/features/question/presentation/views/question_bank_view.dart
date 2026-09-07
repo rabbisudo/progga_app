@@ -14,8 +14,8 @@ class QuestionBankView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(userProfileProvider).value?.profile;
-    if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+    final classId = ref.watch(userProfileProvider.select((u) => u.value?.profile?.classId));
+    if (classId == null || classId.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(24.0),
@@ -27,8 +27,6 @@ class QuestionBankView extends ConsumerWidget {
         ),
       );
     }
-
-    final classId = profile.classId!;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

@@ -18,12 +18,39 @@ final examResultProvider = FutureProvider.family<Map<String, dynamic>, String>((
   return repo.fetchExamResult(sessionId);
 });
 
+final Map<String, int> _lastExamDetailsTimestamps = {};
+const int _kExamDetailsCacheTtlMs = 15 * 60 * 1000; // 15 minutes TTL
+
 // Fetch and format exam questions for previewing with encrypted offline caching
 final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, examId) async {
   final repo = ref.watch(examRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
   final cacheKey = 'cached_exam_details_$examId';
 
+  final cached = hive.getCachedMap(cacheKey);
+  final lastFetch = _lastExamDetailsTimestamps[cacheKey] ?? 0;
+  final isFresh = (DateTime.now().millisecondsSinceEpoch - lastFetch) < _kExamDetailsCacheTtlMs;
+
+  // If cached and fresh, return immediately without network hit
+  if (cached != null && isFresh) {
+    return cached;
+  }
+
+  // If cached exists but stale, return cached and revalidate in background
+  if (cached != null) {
+    _fetchAndCacheExamDetails(repo, hive, cacheKey, examId).catchError((_) => cached);
+    return cached;
+  }
+
+  return _fetchAndCacheExamDetails(repo, hive, cacheKey, examId);
+});
+
+Future<Map<String, dynamic>> _fetchAndCacheExamDetails(
+  ExamRepository repo,
+  HiveService hive,
+  String cacheKey,
+  String examId,
+) async {
   try {
     final exam = await repo.fetchExamDetails(examId);
 
@@ -95,6 +122,7 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
       'answers': [],
     };
 
+    _lastExamDetailsTimestamps[cacheKey] = DateTime.now().millisecondsSinceEpoch;
     await hive.cacheMap(cacheKey, formattedData);
     return formattedData;
   } catch (e) {
@@ -104,10 +132,10 @@ final examDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>(
     }
     rethrow;
   }
-});
+}
 
 // Fetch user's actual daily explanation quota
-final explanationQuotaProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+final explanationQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final repo = ref.watch(examRepositoryProvider);
   return repo.fetchExplanationQuota();
 });

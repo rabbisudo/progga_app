@@ -24,8 +24,8 @@ class QbSectionSeriesScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final profile = ref.watch(userProfileProvider).value?.profile;
-    if (profile == null || profile.classId == null || profile.classId!.isEmpty) {
+    final classId = ref.watch(userProfileProvider.select((u) => u.value?.profile?.classId));
+    if (classId == null || classId.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           leading: const CustomBackButton(color: Color(0xFF017A47)),
@@ -38,7 +38,7 @@ class QbSectionSeriesScreen extends ConsumerWidget {
       );
     }
 
-    final sectionsAsync = ref.watch(qbClassSectionsProvider(profile.classId!));
+    final sectionsAsync = ref.watch(qbClassSectionsProvider(classId));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
