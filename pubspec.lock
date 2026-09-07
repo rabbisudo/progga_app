@@ -446,14 +446,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.2"
-  flutter_jailbreak_detection_plus:
-    dependency: "direct main"
-    description:
-      name: flutter_jailbreak_detection_plus
-      sha256: b1b7787c83197d187f6bcba8167bc876340124861308396d5667169048a452ac
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.10.7"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -1176,14 +1168,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
-  safe_device:
-    dependency: "direct main"
-    description:
-      name: safe_device
-      sha256: ad1b32a564484c710f6d52b5a526838c8a7d999c8ab2e14890ff55c06a018248
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.4.1"
   shelf:
     dependency: transitive
     description:

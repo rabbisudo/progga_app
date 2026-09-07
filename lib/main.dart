@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'core/storage/hive_service.dart';
 import 'core/storage/secure_storage_service.dart';
 import 'core/navigation/app_router.dart';
 import 'core/network/api_client.dart';
-import 'core/network/ssl_pinning_config.dart';
 import 'features/auth/domain/auth_state.dart';
 import 'features/auth/presentation/auth_notifier.dart';
 import 'core/widgets/empty_state_widget.dart';
@@ -35,74 +32,37 @@ void main() async {
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   ));
 
-  // Initialize Firebase, Hive, and check the active session in parallel
+  // Initialize Firebase and notification service in the background without blocking launch
+  Firebase.initializeApp().then((_) {
+    NotificationService().init();
+  }).catchError((_) {});
+
   String initialLocation = '/login';
   AuthState initialAuthState = const AuthState.initial();
 
+  // Fast local initialization: ONLY Hive and SecureStorage (~30ms total)
   try {
-    // Run security checks (Root, Jailbreak logging)
-    bool isDeviceSecure = true;
-    try {
-      final jailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
-      if (jailbroken) {
-        // Root/Jailbreak detected
+    await hiveService.init();
+    final token = await secureStorage.getAccessToken();
+
+    if (token != null && token.isNotEmpty) {
+      initialLocation = '/home';
+
+      // Check if user profile is already cached locally (instant read, <1ms)
+      final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
+      if (cachedProfile != null && cachedProfile is Map) {
+        initialAuthState = AuthState.authenticated(
+          user: recursivelyCastMap(cachedProfile),
+          accessToken: token,
+        );
+      } else {
+        // Cache empty: authenticate with token immediately, background profile repository will fetch fresh data
+        initialAuthState = AuthState.authenticated(
+          user: const {},
+          accessToken: token,
+        );
       }
-    } catch (_) {}
-    
-    // Initialize Hive first to ensure the settings box is available for cached reads
-    final hiveInitFuture = hiveService.init();
-
-    await Future.wait([
-      Future(() async {
-        try {
-          await Firebase.initializeApp().timeout(const Duration(seconds: 4));
-          await NotificationService().init();
-        } catch (_) {}
-      }),
-      hiveInitFuture,
-      Future(() async {
-        SecurityConfig.isDeviceSecure = isDeviceSecure;
-        try {
-          final token = await secureStorage.getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            initialLocation = '/home';
-            
-            // Wait for Hive box to finish opening
-            await hiveInitFuture;
-
-            // Check if user profile is already cached locally (instant read, <1ms)
-            final cachedProfile = hiveService.getSettingsBox().get('cached_user_profile');
-            if (cachedProfile != null && cachedProfile is Map) {
-              initialAuthState = AuthState.authenticated(
-                user: recursivelyCastMap(cachedProfile),
-                accessToken: token,
-              );
-            } else {
-              // First time run after login (cache empty), fallback to fast background API fetch
-              initialAuthState = AuthState.authenticated(user: const {}, accessToken: token);
-              try {
-                final dio = Dio(BaseOptions(
-                  baseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: 'https://proggadata.twelvemind.com/api/v1'),
-                  connectTimeout: const Duration(seconds: 4),
-                  receiveTimeout: const Duration(seconds: 4),
-                  headers: {
-                    'Authorization': 'Bearer $token',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                  },
-                ));
-                SslPinningConfig.configureDio(dio);
-                final response = await dio.get('/users/me');
-                if (response.statusCode == 200) {
-                  initialAuthState = AuthState.authenticated(user: response.data, accessToken: token);
-                  hiveService.getSettingsBox().put('cached_user_profile', response.data);
-                }
-              } catch (_) {}
-            }
-          }
-        } catch (_) {}
-      }),
-    ]);
+    }
   } catch (_) {
     // Suppress initialization error in release
   } finally {
@@ -122,7 +82,7 @@ void main() async {
       ),
     );
 
-    // Remove splash screen smoothly once the first UI frame has completely rendered
+    // Remove splash screen immediately once the first UI frame renders
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FlutterNativeSplash.remove();
     });
