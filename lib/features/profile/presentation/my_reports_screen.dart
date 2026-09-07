@@ -126,6 +126,11 @@ class MyReportsScreen extends ConsumerWidget {
                 final report = reports[index];
                 final String qId = report['questionId'] ?? '';
                 final String questionText = report['questionText'] ?? '';
+                final String? rawType = report['type']?.toString() ?? report['questionType']?.toString();
+                final bool isFitb = _isFitbQuestion(rawType, questionText);
+                final String displayQuestionText = isFitb
+                    ? _getPassageWithoutTable(questionText)
+                    : questionText;
                 final String? imageKey = report['imageKey'];
                 final String? latexFormula = report['latexFormula'];
                 final String reason = report['reason'] ?? '';
@@ -204,7 +209,7 @@ class MyReportsScreen extends ConsumerWidget {
                             ),
                             Expanded(
                               child: _buildResultMathWidget(
-                                questionText,
+                                displayQuestionText,
                                 textStyle: TextStyle(
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.bold,
@@ -240,8 +245,10 @@ class MyReportsScreen extends ConsumerWidget {
                           ),
                         ],
                         const SizedBox(height: 16),
-                        // Options list
-                        if (options.isNotEmpty) ...[
+                        // FITB Clues & Answers OR Options list
+                        if (isFitb) ...[
+                          _buildFitbContent(report, isDark),
+                        ] else if (options.isNotEmpty) ...[
                           Text(
                             'অপশনসমূহ:',
                             style: TextStyle(
@@ -675,6 +682,277 @@ String _toBengaliNumber(dynamic input) {
   return output;
 }
 
+bool _isFitbQuestion(String? rawType, String questionText) {
+  final type = (rawType ?? '').toUpperCase().trim();
+  if (type == 'FILL_IN_THE_GAP' ||
+      type == 'FILL_IN_THE_GAPS' ||
+      type == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+      type == 'FILL' ||
+      type.contains('FILL_IN') ||
+      type.contains('CLOZE')) {
+    return true;
+  }
+  return questionText.contains('(a)') &&
+      RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false)
+          .hasMatch(questionText);
+}
+
+String _getPassageWithoutTable(String html) {
+  final clean = html.replaceAll(RegExp(r'<table[^>]*>([\s\S]*?)<\/table>', caseSensitive: false), '').trim();
+  return clean.replaceAll(RegExp(r'</?span[^>]*>', caseSensitive: false), '');
+}
+
+List<String> _extractFitbClues(String questionText, List<dynamic> optionsList) {
+  final List<String> clues = [];
+  final tdRegex = RegExp(r'<td[^>]*>(?:<p>)?(.*?)(?:</p>)?</td>', caseSensitive: false);
+  final matches = tdRegex.allMatches(questionText);
+  for (final m in matches) {
+    final text = m.group(1)!
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll('&nbsp;', ' ')
+        .trim();
+    if (text.isNotEmpty && !RegExp(r'^\([a-z0-9]\)$', caseSensitive: false).hasMatch(text)) {
+      clues.add(text);
+    }
+  }
+  if (clues.isNotEmpty) return clues;
+
+  final Set<String> seen = {};
+  for (final opt in optionsList) {
+    final rawText = opt is Map
+        ? (opt['optionText'] ?? opt['text'] ?? '')
+        : opt.toString();
+    final clean = rawText.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    if (clean.isNotEmpty &&
+        !RegExp(r'^option\s+[a-e]$', caseSensitive: false).hasMatch(clean)) {
+      seen.add(clean);
+    }
+  }
+  return seen.toList();
+}
+
+Map<String, String> _parseFitbAnswers(Map<String, dynamic> qData) {
+  final Map<String, String> correctMap = {};
+  final optionsList = (qData['options'] as List<dynamic>?) ?? [];
+
+  for (final opt in optionsList) {
+    if (opt is Map) {
+      final isCorr = opt['isCorrect'];
+      final num? idx = (isCorr is num) ? isCorr : num.tryParse(isCorr?.toString() ?? '');
+      if (idx != null && idx >= 0 && idx < 26) {
+        final key = String.fromCharCode(97 + idx.toInt());
+        final val = (opt['optionText'] ?? opt['text'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'<[^>]*>'), '')
+            .trim();
+        if (val.isNotEmpty) {
+          correctMap[key] = val;
+        }
+      }
+    }
+  }
+  if (correctMap.isNotEmpty) return correctMap;
+
+  var solutionHtml = qData['solution'] as String? ?? '';
+  if (solutionHtml.isEmpty && qData['explanations'] != null) {
+    final exList = qData['explanations'] as List?;
+    if (exList != null && exList.isNotEmpty) {
+      final firstEx = exList[0];
+      if (firstEx is Map) {
+        solutionHtml = firstEx['text'] as String? ?? '';
+      }
+    }
+  }
+
+  if (solutionHtml.isNotEmpty) {
+    final pRegex = RegExp(r'\(([a-z0-9])\)\s*([^<;.,\)\n\r]+)', caseSensitive: false);
+    final matches = pRegex.allMatches(solutionHtml).toList();
+    for (int i = 0; i < matches.length; i++) {
+      final m = matches[i];
+      var label = m.group(1)!.toLowerCase();
+      if (RegExp(r'^\d+$').hasMatch(label)) {
+        label = String.fromCharCode(97 + i);
+      }
+      final val = m.group(2)!.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+      if (val.isNotEmpty) {
+        correctMap[label] = val;
+      }
+    }
+  }
+
+  return correctMap;
+}
+
+Widget _buildFitbContent(Map<String, dynamic> qData, bool isDark) {
+  final rawQuestionText = qData['questionText'] as String? ?? '';
+  final qType = (qData['type'] as String? ?? qData['questionType'] as String? ?? '').toUpperCase().trim();
+  final isWithoutClues = qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES';
+  final optionsList = (qData['options'] as List<dynamic>?) ?? [];
+  final clues = isWithoutClues ? <String>[] : _extractFitbClues(rawQuestionText, optionsList);
+  final answersMap = _parseFitbAnswers(qData);
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (clues.isNotEmpty) ...[
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1B2A20) : const Color(0xFFF1F8F5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC),
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline_rounded,
+                    size: 17,
+                    color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    'ক্লুসমূহ (শব্দ ভাণ্ডার):',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: clues.map((clue) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF24382B) : Colors.white,
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF00C569).withValues(alpha: 0.3)
+                            : const Color(0xFF017A47).withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      clue,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+
+      if (answersMap.isNotEmpty) ...[
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF00381C).withValues(alpha: 0.5)
+                : const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0),
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.check_circle_rounded,
+                    size: 17,
+                    color: Color(0xFF017A47),
+                  ),
+                  SizedBox(width: 7),
+                  Text(
+                    'সঠিক উত্তরসমূহ:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF017A47),
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: answersMap.entries.map((entry) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1B3B2B) : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF00C569).withValues(alpha: 0.3)
+                            : const Color(0xFF81C784),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '(${entry.key}) ',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                          ),
+                        ),
+                        Text(
+                          entry.value,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
 String _getOptionLabel(int index) {
   const labels = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
   if (index >= 0 && index < labels.length) {
@@ -683,9 +961,6 @@ String _getOptionLabel(int index) {
   return '${index + 1}';
 }
 
-String _stripHtml(String htmlString) => stripHtmlTags(htmlString);
-
-String _fixBrokenLatex(String text) => cleanAndNormalizeMath(text);
 
 Widget _buildResultMathWidget(
   String rawText, {

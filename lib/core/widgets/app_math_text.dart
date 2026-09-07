@@ -33,6 +33,8 @@ String stripHtmlTags(String htmlString) {
   result = result.replaceAll('&hellip;', '...');
   result = result.replaceAll('&mdash;', '—');
   result = result.replaceAll('&ndash;', '–');
+  result = result.replaceAll(r'\"', '"');
+  result = result.replaceAll(r"\'", "'");
 
   return result.trim();
 }
@@ -83,6 +85,25 @@ String cleanAndNormalizeMath(String rawText) {
 
   // 2. Strip HTML tags and safely decode HTML entities
   text = stripHtmlTags(text);
+
+  // Auto-format itemized sub-questions (e.g. tag questions, fill in the blanks with parts):
+  const subLabel = r'\((?:[a-zA-Z]|[0-9]{1,2}|i{1,3}|iv|v|vi{1,3}|ix|x|[\u0985-\u09B9\u09E6-\u09EF]{1,2})\)';
+  const subStandalone = r'(?:[a-zA-Z0-9\u0980-\u09FF]{1,2})[\.\)]';
+
+  text = text.replaceAllMapped(RegExp('([:：])\\s*($subLabel|$subStandalone)', caseSensitive: false), (m) => '${m.group(1)}\n${m.group(2)} ');
+  text = text.replaceAllMapped(RegExp('(_{2,}|[\\?\\.!；;।])\\s*($subLabel)(?!\\s*_{2,})', caseSensitive: false), (m) => '${m.group(1)}\n${m.group(2)} ');
+  text = text.replaceAllMapped(RegExp('(_{2,}|[\\?\\.!；;।])\\s+($subStandalone)(?!\\w|\\s*_{2,})', caseSensitive: false), (m) => '${m.group(1)}\n${m.group(2)} ');
+  text = text.replaceAllMapped(RegExp('(,\\s*)(?=$subLabel(?!\\s*_{2,}))', caseSensitive: false), (m) => ',\n');
+
+  if (!RegExp(r'\([a-zA-Z]\)\s*_{2,}').hasMatch(text)) {
+    if (RegExp(r'\([a-zA-Z]\)[\s\S]*?\([b-zB-Z]\)[\s\S]*?\([c-zC-Z]\)').hasMatch(text) || RegExp(r'^[a-zA-Z]\)[\s\S]*?\([b-zB-Z]\)').hasMatch(text)) {
+      text = text.replaceAllMapped(RegExp('(?<=[^\\s_\\(\\)])\\s*($subLabel|(?<=\\s)[b-zB-Z]\\))', caseSensitive: false), (m) => '\n${m.group(1)}');
+    }
+  }
+
+  // Clean spacing around blanks
+  text = text.replaceAllMapped(RegExp(r'([,;:!])\s*(_{2,})'), (m) => '${m.group(1)} ${m.group(2)}');
+  text = text.replaceAllMapped(RegExp(r'(_{2,})\s*([a-zA-Z\?\.!])'), (m) => '${m.group(1)} ${m.group(2)}');
 
   // 3. Convert LaTeX delimiters \( ... \), \[ ... \], and $$ ... $$ to normalized $ ... $
   text = text

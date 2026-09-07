@@ -519,9 +519,16 @@ String _computeQuestionStatus({
   if (rawStatus == 'WRONG') return 'WRONG';
   if (rawStatus == 'SKIPPED') return 'SKIPPED';
 
-  final isFitb = qType == 'FILL_IN_THE_GAP' ||
-      qType == 'FILL_IN_THE_GAPS' ||
-      qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES';
+  final qText = (qData['questionText'] as String?) ?? '';
+  final normalizedType = (qType ?? '').toUpperCase().trim();
+  final isFitb = normalizedType == 'FILL_IN_THE_GAP' ||
+      normalizedType == 'FILL_IN_THE_GAPS' ||
+      normalizedType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+      normalizedType == 'FILL' ||
+      normalizedType.contains('FILL_IN') ||
+      normalizedType.contains('CLOZE') ||
+      (qText.contains('(a)') &&
+          RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(qText));
   if (isFitb) {
     final rawAns = textAnswer ?? selectedOptionId;
     if (rawAns == null || rawAns.trim().isEmpty || rawAns == '{}') {
@@ -1824,8 +1831,28 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     return acceptedAnswers.any((ans) => cleanUser == ans.trim());
   }
 
-  Map<String, String> _parseCorrectAnswers(String solutionHtml) {
+  Map<String, String> _parseCorrectAnswers(String solutionHtml, [List<dynamic>? optionsList]) {
     final Map<String, String> correctMap = {};
+    if (optionsList != null && optionsList.isNotEmpty) {
+      for (final opt in optionsList) {
+        if (opt is Map) {
+          final isCorr = opt['isCorrect'];
+          final num? idx = (isCorr is num) ? isCorr : num.tryParse(isCorr?.toString() ?? '');
+          if (idx != null && idx >= 0 && idx < 26) {
+            final key = String.fromCharCode(97 + idx.toInt());
+            final val = (opt['optionText'] ?? opt['text'] ?? '')
+                .toString()
+                .replaceAll(RegExp(r'<[^>]*>'), '')
+                .trim();
+            if (val.isNotEmpty) {
+              correctMap[key] = val;
+            }
+          }
+        }
+      }
+      if (correctMap.isNotEmpty) return correctMap;
+    }
+
     final pRegex = RegExp(r'\(([a-z0-9])\)\s*([^<;.,\)]+)', caseSensitive: false);
     final matches = pRegex.allMatches(solutionHtml).toList();
     for (int i = 0; i < matches.length; i++) {
@@ -1995,8 +2022,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
       } catch (_) {}
     }
     
-    // Parse correct answers from solution
-    final correctMap = _parseCorrectAnswers(solutionHtml);
+    // Parse correct answers from solution or options
+    final correctMap = _parseCorrectAnswers(solutionHtml, qData['options'] as List<dynamic>?);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2150,11 +2177,14 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
         (qType?.startsWith('CQ_') ?? false) ||
         qMarks > 1.1;
 
-    final isFitb = qType == 'FILL_IN_THE_GAP' ||
-        qType == 'FILL_IN_THE_GAPS' ||
-        qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
-        ((qType == 'WRITTEN' || qType == 'FILL') &&
-        questionText.contains('(a)') &&
+    final normalizedType = (qType ?? '').toUpperCase().trim();
+    final isFitb = normalizedType == 'FILL_IN_THE_GAP' ||
+        normalizedType == 'FILL_IN_THE_GAPS' ||
+        normalizedType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+        normalizedType == 'FILL' ||
+        normalizedType.contains('FILL_IN') ||
+        normalizedType.contains('CLOZE') ||
+        (questionText.contains('(a)') &&
         RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(questionText));
 
     final theme = Theme.of(context);

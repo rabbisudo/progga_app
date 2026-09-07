@@ -559,7 +559,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
           .replaceAll(RegExp(r'<[^>]*>'), '')
           .replaceAll('&nbsp;', ' ')
           .trim();
-      if (text.isNotEmpty) {
+      if (text.isNotEmpty && !RegExp(r'^\([a-z0-9]\)$', caseSensitive: false).hasMatch(text)) {
         clues.add(text);
       }
     }
@@ -904,6 +904,7 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
       clues = q.options
           .map((opt) => opt.optionText.replaceAll(RegExp(r'<[^>]*>'), '').trim())
           .where((c) => c.isNotEmpty && !RegExp(r'^option\s+[a-e]$', caseSensitive: false).hasMatch(c))
+          .toSet()
           .toList();
     }
     final totalGaps = _getTotalGapsCount(q.questionText);
@@ -1635,12 +1636,15 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                   final eq = item.examQuestion!;
                   final q = eq.question;
 
-                  final isFitb = q.type == 'FILL_IN_THE_GAP' ||
-                      q.type == 'FILL_IN_THE_GAPS' ||
-                      q.type == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
-                      ((q.type == 'WRITTEN' || q.type == 'FILL') &&
-                      q.questionText.contains('(a)') &&
-                      RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(q.questionText));
+                  final qType = (q.type ?? '').toUpperCase().trim();
+                  final isFitb = qType == 'FILL_IN_THE_GAP' ||
+                      qType == 'FILL_IN_THE_GAPS' ||
+                      qType == 'FILL_IN_THE_GAPS_WITHOUT_CLUES' ||
+                      qType == 'FILL' ||
+                      qType.contains('FILL_IN') ||
+                      qType.contains('CLOZE') ||
+                      (q.questionText.contains('(a)') &&
+                          RegExp(r'\(([a-z0-9])\)\s*(——|___+|_+|&mdash;|&ndash;|[\u2014\u2013\u002d]+)', caseSensitive: false).hasMatch(q.questionText));
 
                   if (isFitb) {
                     return _buildFitbQuestionCard(item, state);
