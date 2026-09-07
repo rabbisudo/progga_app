@@ -67,27 +67,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
         }
       }
     } catch (e) {
-      bool isNetworkError = false;
-      if (e is DioException) {
-        final errType = e.type;
-        if (errType == DioExceptionType.connectionTimeout ||
-            errType == DioExceptionType.sendTimeout ||
-            errType == DioExceptionType.receiveTimeout ||
-            errType == DioExceptionType.connectionError) {
-          isNetworkError = true;
-        }
-      }
-      if (isNetworkError) {
-        if (!silent) {
-          final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
-          state = AuthState.authenticated(
-            user: cachedProfile != null && cachedProfile is Map ? _hiveService.recursivelyCastMap(cachedProfile) : const {},
-            accessToken: token,
-          );
-        }
-      } else {
+      // ONLY log out if the backend explicitly rejected the token with 401 or 403
+      if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
         await _storage.clearTokens();
         state = const AuthState.initial();
+      } else {
+        // Offline / Network failure / Temporary server issue: KEEP USER LOGGED IN with cached profile!
+        final cachedProfile = _hiveService.getSettingsBox().get('cached_user_profile');
+        state = AuthState.authenticated(
+          user: cachedProfile != null && cachedProfile is Map
+              ? _hiveService.recursivelyCastMap(cachedProfile)
+              : const {},
+          accessToken: token,
+        );
       }
     }
   }

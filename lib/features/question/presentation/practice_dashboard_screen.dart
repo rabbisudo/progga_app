@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import '../../../core/network/api_client.dart';
 import '../../../core/widgets/custom_avatar.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -79,14 +78,6 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    if (profileAsync is AsyncError) {
-      final error = profileAsync.error;
-      if (error is NetworkException && error.statusCode == 401) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) context.go('/login');
-        });
-      }
-    }
 
     // Redirect to onboarding if profile is loaded and user has not completed onboarding
     if (profileAsync.value != null && profileAsync.value!.id.isNotEmpty) {

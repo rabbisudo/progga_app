@@ -113,121 +113,35 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                               imageUrl: imageUrl,
                               memCacheWidth: 1000,
                               maxWidthDiskCache: 1200,
+                              fadeInDuration: const Duration(milliseconds: 150),
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: gradientColors,
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                              placeholder: (context, url) => _buildFallbackCard(
+                                gradientColors: gradientColors,
+                                badgeText: badgeText,
+                                title: title,
+                                targetUrl: targetUrl,
+                                isClickable: isClickable,
+                                icon: banner['icon'],
+                                context: context,
                               ),
-                              errorWidget: (context, url, error) => Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: gradientColors,
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(Icons.error_outline, color: Colors.white),
-                                ),
+                              errorWidget: (context, url, error) => _buildFallbackCard(
+                                gradientColors: gradientColors,
+                                badgeText: badgeText,
+                                title: title,
+                                targetUrl: targetUrl,
+                                isClickable: isClickable,
+                                icon: banner['icon'],
+                                context: context,
                               ),
                             )
-                          : Padding(
-                              padding: const EdgeInsets.all(18),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [Color(0xFFD9746E), Color(0xFFF18881)],
-                                            ),
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          child: Text(
-                                            badgeText,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 1.1,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          title,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            height: 1.25,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        ElevatedButton(
-                                          onPressed: isClickable
-                                              ? () {
-                                                  if (targetUrl.startsWith('/')) {
-                                                    context.push(targetUrl);
-                                                  }
-                                                }
-                                              : null,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            elevation: 0,
-                                            minimumSize: const Size(0, 30),
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            'Get now',
-                                            style: TextStyle(
-                                              color: Color(0xFF004D40),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    width: 70,
-                                    height: 70,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.15),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                                    ),
-                                    child: Center(
-                                      child: Text(banner['icon'] ?? '🦖', style: const TextStyle(fontSize: 38)),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          : _buildFallbackCard(
+                              gradientColors: gradientColors,
+                              badgeText: badgeText,
+                              title: title,
+                              targetUrl: targetUrl,
+                              isClickable: isClickable,
+                              icon: banner['icon'],
+                              context: context,
                             ),
                     ),
                   ),
@@ -271,6 +185,111 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackCard({
+    required List<Color> gradientColors,
+    required String badgeText,
+    required String title,
+    required String targetUrl,
+    required bool isClickable,
+    String? icon,
+    required BuildContext context,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD9746E), Color(0xFFF18881)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    badgeText.isNotEmpty ? badgeText : 'PROGGA',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  title.isNotEmpty ? title : 'অনুশীলন শুরু করো',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: isClickable
+                      ? () {
+                          if (targetUrl.startsWith('/')) {
+                            context.push(targetUrl);
+                          }
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    minimumSize: const Size(0, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Get now',
+                    style: TextStyle(
+                      color: Color(0xFF004D40),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+            ),
+            child: Center(
+              child: Text(icon ?? '🦖', style: const TextStyle(fontSize: 38)),
+            ),
+          ),
+        ],
       ),
     );
   }

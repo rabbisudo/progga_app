@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../../core/network/api_client.dart';
 import '../../../../core/widgets/custom_avatar.dart';
 import '../../../leaderboard/domain/leaderboard_model.dart';
@@ -21,19 +23,31 @@ import '../../../../core/storage/secure_storage_service.dart';
 
 class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
-  FutureOr<List<Map<String, dynamic>>> build() async {
+  FutureOr<List<Map<String, dynamic>>> build() {
     final hive = ref.read(hiveServiceProvider);
     final cached = hive.getCachedList('cached_active_banners');
     List<Map<String, dynamic>>? cachedList;
     if (cached != null && cached.isNotEmpty) {
       try {
         cachedList = cached.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _precacheBannerImages(cachedList);
       } catch (_) {}
     }
 
     _fetchFresh();
 
     return cachedList ?? [];
+  }
+
+  void _precacheBannerImages(List<Map<String, dynamic>> list) {
+    for (final item in list) {
+      final img = item['imageUrl'];
+      if (img is String && img.isNotEmpty) {
+        try {
+          CachedNetworkImageProvider(img).resolve(ImageConfiguration.empty);
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> _fetchFresh() async {
@@ -45,6 +59,7 @@ class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
         final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
         final hive = ref.read(hiveServiceProvider);
         await hive.cacheList('cached_active_banners', result);
+        _precacheBannerImages(result);
         state = AsyncData(result);
       }
     } catch (e, st) {
