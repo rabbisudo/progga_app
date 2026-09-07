@@ -37,6 +37,22 @@ String stripHtmlTags(String htmlString) {
   return result.trim();
 }
 
+/// Cleans trailing dangling backslashes and converts leading words to text mode
+String cleanLatexFormula(String raw) {
+  var formula = raw.trim();
+  // 1. Remove dangling trailing backslashes or escaped spaces (e.g. "\ " before delimiter)
+  formula = formula.replaceAll(RegExp(r'(?<!\\)\\(\s*)$'), '').trim();
+  formula = formula.replaceAll(RegExp(r'(?<!\\)\\+$'), '').trim();
+
+  // 2. Convert leading English keywords like "if\ \ ", "then\ ", "where\ " to \text{...}
+  formula = formula.replaceAllMapped(
+    RegExp(r'^(if|then|where|and|for|when|let)(\\\s|\s)+', caseSensitive: false),
+    (m) => '\\text{${m.group(1)} } ',
+  );
+
+  return formula;
+}
+
 /// Helper to check if a character position is inside an active $ ... $ math block
 bool _isInsideDollar(String text, int pos) {
   int count = 0;
@@ -70,9 +86,9 @@ String cleanAndNormalizeMath(String rawText) {
 
   // 3. Convert LaTeX delimiters \( ... \), \[ ... \], and $$ ... $$ to normalized $ ... $
   text = text
-      .replaceAllMapped(RegExp(r'\${2,}(.*?)\${2,}', dotAll: true), (m) => '\$${m.group(1)}\$')
-      .replaceAllMapped(RegExp(r'\\{1,2}\[(.*?)\\{1,2}\]', dotAll: true), (m) => '\$${m.group(1)}\$')
-      .replaceAllMapped(RegExp(r'\\{1,2}\((.*?)\\{1,2}\)', dotAll: true), (m) => '\$${m.group(1)}\$');
+      .replaceAllMapped(RegExp(r'\${2,}(.*?)\${2,}', dotAll: true), (m) => '\$${cleanLatexFormula(m.group(1)!)}\$')
+      .replaceAllMapped(RegExp(r'\\{1,2}\[(.*?)\\{1,2}\]', dotAll: true), (m) => '\$${cleanLatexFormula(m.group(1)!)}\$')
+      .replaceAllMapped(RegExp(r'\\{1,2}\((.*?)\\{1,2}\)', dotAll: true), (m) => '\$${cleanLatexFormula(m.group(1)!)}\$');
 
   // 4. Fix escaped control characters during JSON parsing (\f -> \frac, \t -> \times, etc.)
   text = text
@@ -342,7 +358,7 @@ class AppMathText extends StatelessWidget {
           ));
         }
 
-        final latexStr = match.group(1)!.trim();
+        final latexStr = cleanLatexFormula(match.group(1)!);
         if (latexStr.isNotEmpty) {
           spans.add(WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -390,17 +406,23 @@ class AppMathText extends StatelessWidget {
       );
     }
 
-    // 4. Non-Bengali line or pure math formula (e.g. "4x - 1 = 0" or "y^2 = -x" or "m + n + p")
+    // 4. Standalone pure math formula (e.g. "4x - 1 = 0" or "y^2 = -x" or "m + n + p")
+    // Note: Do NOT treat English sentences as math formulas (e.g. "then what is the value of (x - y)?")
     final hasBengali = cleanedText.contains(RegExp(r'[\u0980-\u09FF]'));
+    final englishWords = RegExp(r'\b[a-zA-Z]{2,}\b').allMatches(cleanedText).length;
+    final isEnglishSentence = englishWords >= 2;
+
     if (!hasBengali &&
+        !isEnglishSentence &&
         (cleanedText.contains(RegExp(r'[=+\-*/^_{}\\]')) || cleanedText.startsWith('\\')) &&
         cleanedText.trim().length > 1) {
+      final formula = cleanLatexFormula(cleanedText);
       return RepaintBoundary(
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           child: Math.tex(
-            cleanedText.trim(),
+            formula,
             textStyle: TextStyle(
               fontSize: fontSize + 1,
               color: activeColor,
