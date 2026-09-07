@@ -7,7 +7,7 @@ import '../../../core/storage/hive_service.dart';
 
 class ProfileNotifier extends AsyncNotifier<UserData> {
   @override
-  FutureOr<UserData> build() {
+  FutureOr<UserData> build() async {
     final repository = ref.read(profileRepositoryProvider);
     // Only rebuild when authentication token/status changes (e.g. login/logout), NOT on every profile mutation
     final authToken = ref.watch(authProvider.select((s) => s.maybeWhen(
@@ -40,17 +40,26 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
 
     initialUser ??= _loadCachedProfile();
 
-    // Trigger silent background synchronization automatically once on mount
-    _fetchFreshProfileSilently(repository);
+    if (initialUser != null && initialUser!.id.isNotEmpty && initialUser!.profile != null) {
+      // Trigger silent background synchronization automatically once on mount
+      _fetchFreshProfileSilently(repository);
+      return initialUser!;
+    }
 
-    // Return instant local/cached or fallback data synchronously
-    return initialUser ?? const UserData(
-      id: '',
-      email: '',
-      username: '',
-      isActive: true,
-      createdAt: '',
-    );
+    // No valid cache available: fetch fresh profile asynchronously so state is AsyncLoading until done
+    try {
+      final fresh = await repository.fetchMyProfile();
+      _cacheProfile(_toMap(fresh));
+      return fresh;
+    } catch (_) {
+      return initialUser ?? const UserData(
+        id: '',
+        email: '',
+        username: '',
+        isActive: true,
+        createdAt: '',
+      );
+    }
   }
 
   void _fetchFreshProfileSilently(ProfileRepository repository) {

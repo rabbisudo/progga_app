@@ -21,9 +21,20 @@ class MyLeaderboardNotifier extends AsyncNotifier<List<LeaderboardEntryModel>> {
       } catch (_) {}
     }
 
-    _fetchFresh();
+    if (cachedList != null && cachedList.isNotEmpty) {
+      _fetchFresh();
+      return cachedList;
+    }
 
-    return cachedList ?? [];
+    try {
+      final repo = ref.read(leaderboardRepositoryProvider);
+      final data = await repo.fetchLeaderboardAroundMe();
+      final hive = ref.read(hiveServiceProvider);
+      await hive.cacheList('cached_my_leaderboard', data.map((e) => e.toJson()).toList());
+      return data;
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<void> _fetchFresh() async {

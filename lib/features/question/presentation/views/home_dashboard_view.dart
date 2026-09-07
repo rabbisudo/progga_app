@@ -23,7 +23,7 @@ import '../../../../core/storage/secure_storage_service.dart';
 
 class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
-  FutureOr<List<Map<String, dynamic>>> build() {
+  FutureOr<List<Map<String, dynamic>>> build() async {
     final hive = ref.read(hiveServiceProvider);
     final cached = hive.getCachedList('cached_active_banners');
     List<Map<String, dynamic>>? cachedList;
@@ -34,9 +34,25 @@ class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
       } catch (_) {}
     }
 
-    _fetchFresh();
+    if (cachedList != null && cachedList.isNotEmpty) {
+      _fetchFresh();
+      return cachedList;
+    }
 
-    return cachedList ?? [];
+    try {
+      final client = ref.read(apiClientProvider);
+      final response = await client.dio.get('/banners');
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> list = response.data;
+        final result = list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+        final hive = ref.read(hiveServiceProvider);
+        await hive.cacheList('cached_active_banners', result);
+        _precacheBannerImages(result);
+        return result;
+      }
+    } catch (_) {}
+
+    return [];
   }
 
   void _precacheBannerImages(List<Map<String, dynamic>> list) {
@@ -164,30 +180,40 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final userName = profile?.fullName ?? 'User';
     final userScore = profile?.xp ?? 0;
 
-    return RefreshIndicator(
-      color: const Color(0xFF017A47),
-      onRefresh: () async {
-        try {
-          // 1. Spaced Repetition (retention) cards stay cached on screen; sync in background
-          ref.read(spacedRepetitionProvider.notifier).refresh();
+    // Show cohesive skeleton loading until profile, banners, and leaderboard are loaded
+    final bool isInitialLoading = profile == null ||
+        (bannersAsync.isLoading && (bannersAsync.value == null || bannersAsync.value!.isEmpty)) ||
+        (leaderboardAsync.isLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty));
 
-          // 2. Refresh visible Profile, Leaderboard, and Banners in parallel (sub-second)
-          await Future.wait([
-            ref.read(userProfileProvider.notifier).refreshProfile(),
-            ref.read(myLeaderboardProvider.notifier).refresh(),
-            ref.read(activeBannersProvider.notifier).refresh(),
-          ]).timeout(const Duration(seconds: 4), onTimeout: () => []);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: isInitialLoading
+          ? _buildDashboardSkeleton(isDark)
+          : RefreshIndicator(
+              key: const ValueKey('home_dashboard_content'),
+              color: const Color(0xFF017A47),
+              onRefresh: () async {
+                try {
+                  // 1. Spaced Repetition (retention) cards stay cached on screen; sync in background
+                  ref.read(spacedRepetitionProvider.notifier).refresh();
 
-          // 3. Silently invalidate curriculum providers for other tabs in background without blocking Home spinner
-          ref.invalidate(studentCurriculumProvider);
-          ref.invalidate(studentQbCurriculumProvider);
-          if (profile?.classId != null && profile!.classId!.isNotEmpty) {
-            ref.invalidate(qbClassSectionsProvider(profile.classId!));
-            ref.invalidate(qbClassSeriesProvider(profile.classId!));
-          }
-        } catch (_) {}
-      },
-      child: SingleChildScrollView(
+                  // 2. Refresh visible Profile, Leaderboard, and Banners in parallel (sub-second)
+                  await Future.wait([
+                    ref.read(userProfileProvider.notifier).refreshProfile(),
+                    ref.read(myLeaderboardProvider.notifier).refresh(),
+                    ref.read(activeBannersProvider.notifier).refresh(),
+                  ]).timeout(const Duration(seconds: 4), onTimeout: () => []);
+
+                  // 3. Silently invalidate curriculum providers for other tabs in background without blocking Home spinner
+                  ref.invalidate(studentCurriculumProvider);
+                  ref.invalidate(studentQbCurriculumProvider);
+                  if (profile?.classId != null && profile!.classId!.isNotEmpty) {
+                    ref.invalidate(qbClassSectionsProvider(profile.classId!));
+                    ref.invalidate(qbClassSeriesProvider(profile.classId!));
+                  }
+                } catch (_) {}
+              },
+              child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -371,8 +397,8 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                     
 
 
-                    // Onboarding suggestion box when star points is 0 (or XP is low)
-                    if (userScore == 0) ...[
+                    // Onboarding suggestion box when star points is 0 (or XP is low) and data is loaded
+                    if (userScore == 0 && profile != null && leaderboardAsync.value != null) ...[
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
                         padding: const EdgeInsets.all(12),
@@ -430,7 +456,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                           ],
                         ),
                       )),
-                    ] else if (leaderboardAsync.hasError || leaderboardAsync.value == null) ...[
+                    ] else if (leaderboardAsync.hasError || leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty) ...[
                       _buildLeaderboardRow(
                         name: userName,
                         score: userScore,
@@ -512,6 +538,184 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
             const SizedBox(height: 100),
           ],
         ),
+      ),
+    ),
+  );
+}
+
+  Widget _buildDashboardSkeleton(bool isDark) {
+    return SingleChildScrollView(
+      key: const ValueKey('home_dashboard_skeleton'),
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 8),
+
+          // 1. Promo Banner Carousel Skeleton (160dp card)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            child: ShimmerSkeleton(
+              width: double.infinity,
+              height: 160,
+              borderRadius: 20,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          // 2. Quick Action Grid Skeleton (4 buttons)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(4, (index) {
+                return Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      ShimmerSkeleton(
+                        width: 48,
+                        height: 48,
+                        borderRadius: 16,
+                      ),
+                      SizedBox(height: 8),
+                      ShimmerSkeleton(
+                        width: 52,
+                        height: 12,
+                        borderRadius: 6,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // 3. Spaced Repetition / Daily Quiz Card Skeleton
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+            child: ShimmerSkeleton(
+              width: double.infinity,
+              height: 72,
+              borderRadius: 20,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          // 4. Leaderboard Card Skeleton
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade200,
+                  width: 1.2,
+                ),
+              ),
+              child: Column(
+                children: [
+                  // Leaderboard Header
+                  Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: const [
+                            ShimmerSkeleton(
+                              width: 76,
+                              height: 18,
+                              borderRadius: 6,
+                            ),
+                            SizedBox(width: 8),
+                            ShimmerSkeleton(
+                              width: 80,
+                              height: 22,
+                              borderRadius: 12,
+                            ),
+                          ],
+                        ),
+                        const ShimmerSkeleton(
+                          width: 60,
+                          height: 14,
+                          borderRadius: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 3 Player Rows
+                  for (int i = 0; i < 3; i++) ...[
+                    if (i > 0)
+                      Divider(
+                        height: 1,
+                        thickness: 0.8,
+                        color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5ECE8),
+                        indent: 70,
+                        endIndent: 18,
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      child: Row(
+                        children: [
+                          const ShimmerSkeleton(
+                            width: 38,
+                            height: 38,
+                            borderRadius: 19,
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ShimmerSkeleton(
+                                  width: i == 0 ? 110 : (i == 1 ? 135 : 95),
+                                  height: 15,
+                                  borderRadius: 6,
+                                ),
+                                const SizedBox(height: 6),
+                                const ShimmerSkeleton(
+                                  width: 50,
+                                  height: 10,
+                                  borderRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: const [
+                              ShimmerSkeleton(
+                                width: 16,
+                                height: 16,
+                                borderRadius: 4,
+                              ),
+                              SizedBox(height: 4),
+                              ShimmerSkeleton(
+                                width: 44,
+                                height: 11,
+                                borderRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }

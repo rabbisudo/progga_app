@@ -10,6 +10,7 @@ import '../../profile/presentation/profile_screen.dart';
 
 // Local Widgets and Views
 import 'widgets/premium_bottom_nav_bar.dart';
+import 'widgets/shimmer_skeleton.dart';
 import 'views/home_dashboard_view.dart';
 import 'views/question_bank_view.dart';
 import 'views/mock_exam_list_view.dart';
@@ -119,77 +120,78 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
               surfaceTintColor: Colors.transparent,
               centerTitle: true,
               leadingWidth: 88,
-              // Left: Balanced Sleek Streak Pill
+              // Left: Balanced Sleek Streak Pill or Shimmer
               leading: Padding(
                 padding: const EdgeInsets.only(left: 16.0),
                 child: Center(
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => context.push('/streak'),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF064E3B).withValues(alpha: 0.35)
-                              : const Color(0xFFE6FCF5),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF0CA678).withValues(alpha: 0.4)
-                                : const Color(0xFF96F2D7),
-                            width: 1.2,
+                  child: profile == null
+                      ? const ShimmerSkeleton(width: 54, height: 28, borderRadius: 20)
+                      : Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => context.push('/streak'),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF064E3B).withValues(alpha: 0.35)
+                                    : const Color(0xFFE6FCF5),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF0CA678).withValues(alpha: 0.4)
+                                      : const Color(0xFF96F2D7),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SvgPicture.string(
+                                    _streakFireSvg,
+                                    width: 16,
+                                    height: 16,
+                                    colorFilter: ColorFilter.mode(
+                                      isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                      BlendMode.srcIn,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    _toBengaliDigits('${profile.currentStreak}'),
+                                    style: TextStyle(
+                                      color: isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      fontFamily: 'Li Ador Noirrit',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SvgPicture.string(
-                              _streakFireSvg,
-                              width: 16,
-                              height: 16,
-                              colorFilter: ColorFilter.mode(
-                                isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
-                                BlendMode.srcIn,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              profileAsync.maybeWhen(
-                                data: (user) => _toBengaliDigits('${user.profile?.currentStreak ?? 0}'),
-                                orElse: () => '০',
-                              ),
-                              style: TextStyle(
-                                color: isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                fontFamily: 'Li Ador Noirrit',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                 ),
               ),
-              // Center: Clean Bengali Greeting
-              title: displayName.isNotEmpty
-                  ? Text(
-                      '$greetingText, $displayName',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: 'Li Ador Noirrit',
-                        fontSize: 16.5,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        letterSpacing: 0.2,
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-              // Right: Polished Avatar with symmetric 88px container width balance
+              // Center: Clean Bengali Greeting or Shimmer
+              title: profile == null
+                  ? const ShimmerSkeleton(width: 120, height: 18, borderRadius: 9)
+                  : (displayName.isNotEmpty
+                      ? Text(
+                          '$greetingText, $displayName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Li Ador Noirrit',
+                            fontSize: 16.5,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                            letterSpacing: 0.2,
+                          ),
+                        )
+                      : const SizedBox.shrink()),
+              // Right: Polished Avatar with symmetric 88px container width balance or Shimmer
               actions: [
                 SizedBox(
                   width: 88,
@@ -198,38 +200,40 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                       padding: const EdgeInsets.only(right: 16.0),
                       child: Align(
                         alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () => context.push('/profile'),
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF0CA678).withValues(alpha: 0.5)
-                                    : const Color(0xFF086057).withValues(alpha: 0.25),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (isDark ? Colors.black : const Color(0xFF086057))
-                                      .withValues(alpha: 0.06),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                        child: profile == null
+                            ? const ShimmerSkeleton(width: 36, height: 36, borderRadius: 18)
+                            : GestureDetector(
+                                onTap: () => context.push('/profile'),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF0CA678).withValues(alpha: 0.5)
+                                          : const Color(0xFF086057).withValues(alpha: 0.25),
+                                      width: 1.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: (isDark ? Colors.black : const Color(0xFF086057))
+                                            .withValues(alpha: 0.06),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: CustomAvatar(
+                                    avatarUrl: profile.avatarKey,
+                                    radius: 17,
+                                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE6FCF5),
+                                    fallbackWidget: const Text(
+                                      '👨‍🎓',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                            child: CustomAvatar(
-                              avatarUrl: profileAsync.value?.profile?.avatarKey,
-                              radius: 17,
-                              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE6FCF5),
-                              fallbackWidget: const Text(
-                                '👨‍🎓',
-                                style: TextStyle(fontSize: 16),
                               ),
-                            ),
-                          ),
-                        ),
                       ),
                     ),
                   ),
