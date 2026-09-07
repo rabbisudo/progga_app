@@ -11,7 +11,7 @@ final leaderboardProvider = FutureProvider.family<List<LeaderboardEntryModel>, S
 
 class MyLeaderboardNotifier extends AsyncNotifier<List<LeaderboardEntryModel>> {
   @override
-  FutureOr<List<LeaderboardEntryModel>> build() async {
+  FutureOr<List<LeaderboardEntryModel>> build() {
     final hive = ref.read(hiveServiceProvider);
     final cached = hive.getCachedList('cached_my_leaderboard');
     List<LeaderboardEntryModel>? cachedList;
@@ -22,10 +22,15 @@ class MyLeaderboardNotifier extends AsyncNotifier<List<LeaderboardEntryModel>> {
     }
 
     if (cachedList != null && cachedList.isNotEmpty) {
+      // Instant cache hit: return synchronously for 0ms immediate UI render!
       _fetchFresh();
       return cachedList;
     }
 
+    return _fetchInitialLeaderboard();
+  }
+
+  Future<List<LeaderboardEntryModel>> _fetchInitialLeaderboard() async {
     try {
       final repo = ref.read(leaderboardRepositoryProvider);
       final data = await repo.fetchLeaderboardAroundMe();

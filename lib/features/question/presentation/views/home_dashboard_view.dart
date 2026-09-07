@@ -23,7 +23,7 @@ import '../../../../core/storage/secure_storage_service.dart';
 
 class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
-  FutureOr<List<Map<String, dynamic>>> build() async {
+  FutureOr<List<Map<String, dynamic>>> build() {
     final hive = ref.read(hiveServiceProvider);
     final cached = hive.getCachedList('cached_active_banners');
     List<Map<String, dynamic>>? cachedList;
@@ -35,10 +35,15 @@ class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
     }
 
     if (cachedList != null && cachedList.isNotEmpty) {
+      // Instant cache hit: return synchronously for 0ms immediate UI render!
       _fetchFresh();
       return cachedList;
     }
 
+    return _fetchInitialBanners();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchInitialBanners() async {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.dio.get('/banners');
@@ -51,7 +56,6 @@ class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
         return result;
       }
     } catch (_) {}
-
     return [];
   }
 
@@ -180,10 +184,8 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     final userName = profile?.fullName ?? 'User';
     final userScore = profile?.xp ?? 0;
 
-    // Show cohesive skeleton loading until profile, banners, and leaderboard are loaded
-    final bool isInitialLoading = profile == null ||
-        (bannersAsync.isLoading && (bannersAsync.value == null || bannersAsync.value!.isEmpty)) ||
-        (leaderboardAsync.isLoading && (leaderboardAsync.value == null || leaderboardAsync.value!.isEmpty));
+    // Show skeleton ONLY on cold-start when there is NO cached profile/data at all
+    final bool isInitialLoading = profile == null && profileAsync.isLoading;
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
