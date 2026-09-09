@@ -13,6 +13,7 @@ import 'core/widgets/empty_state_widget.dart';
 import 'features/profile/presentation/profile_notifier.dart';
 import 'features/leaderboard/presentation/leaderboard_notifier.dart';
 import 'features/academics/data/academics_repository.dart';
+import 'package:dio/dio.dart';
 import 'core/services/notification_service.dart';
 import 'app.dart';
 
@@ -118,19 +119,25 @@ void main() async {
       } catch (_) {}
 
       // Deferred background warmup: does not compete with first frame render
-      _initDeferredServices(hiveService);
+      _initDeferredServices(hiveService, secureStorage);
     });
   }
 }
 
 /// Initializes non-critical background services after the first frame has rendered
-void _initDeferredServices(HiveService hiveService) {
+void _initDeferredServices(HiveService hiveService, SecureStorageService secureStorage) {
   // 1. Warm up offline practice box in background without blocking UI
   hiveService.initPracticeBox().catchError((_) {});
 
   // 2. Initialize Firebase and notification service asynchronously in background
-  Firebase.initializeApp().then((_) {
-    NotificationService().init();
+  Firebase.initializeApp().then((_) async {
+    await NotificationService().init();
+    final token = await secureStorage.getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      final dio = Dio();
+      final apiClient = ApiClient(dio)..init(secureStorage);
+      NotificationService().syncDeviceToken(apiClient, secureStorage).catchError((_) {});
+    }
   }).catchError((_) {});
 }
 

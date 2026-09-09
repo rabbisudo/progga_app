@@ -38,10 +38,29 @@ class NotificationService {
     _isInitialized = true;
   }
 
+  Future<String?> getValidToken() async {
+    try {
+      if (Platform.isIOS) {
+        String? apns = await FirebaseMessaging.instance.getAPNSToken();
+        int retries = 0;
+        while (apns == null && retries < 10) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          apns = await FirebaseMessaging.instance.getAPNSToken();
+          retries++;
+        }
+      }
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token != null && token.isNotEmpty && token.length >= 50 && !token.contains('-')) {
+        return token;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> syncDeviceToken(ApiClient apiClient, SecureStorageService storageService) async {
     try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null && token.isNotEmpty) {
+      final token = await getValidToken();
+      if (token != null) {
         final deviceUuid = await storageService.getOrGenerateDeviceUuid();
         final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
         await apiClient.dio.post('/notifications/register-device', data: {
@@ -56,13 +75,15 @@ class NotificationService {
     try {
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         try {
-          final deviceUuid = await storageService.getOrGenerateDeviceUuid();
-          final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
-          await apiClient.dio.post('/notifications/register-device', data: {
-            'deviceToken': newToken,
-            'deviceUuid': deviceUuid,
-            'deviceOs': deviceOs,
-          });
+          if (newToken.length >= 50 && !newToken.contains('-')) {
+            final deviceUuid = await storageService.getOrGenerateDeviceUuid();
+            final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
+            await apiClient.dio.post('/notifications/register-device', data: {
+              'deviceToken': newToken,
+              'deviceUuid': deviceUuid,
+              'deviceOs': deviceOs,
+            });
+          }
         } catch (_) {}
       });
     } catch (_) {}

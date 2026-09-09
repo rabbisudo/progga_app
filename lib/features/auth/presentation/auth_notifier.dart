@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../core/storage/secure_storage_service.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/storage/hive_service.dart';
+import '../../../core/services/notification_service.dart';
 import '../domain/auth_state.dart';
 import 'package:dio/dio.dart';
 
@@ -95,29 +95,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final deviceUuid = await _storage.getOrGenerateDeviceUuid();
       
-      String? fcmToken;
-      try {
-        if (Platform.isIOS) {
-          await FirebaseMessaging.instance.requestPermission(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-        }
-        fcmToken = await FirebaseMessaging.instance.getToken();
-      } catch (e) {
-        // Fallback if token retrieval fails (e.g. during developer local simulators)
-        fcmToken = null;
-      }
-
+      final fcmToken = await NotificationService().getValidToken();
       final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
       
-      final response = await _apiClient.dio.post('/auth/google', data: {
+      final Map<String, dynamic> googlePayload = {
         'idToken': idToken,
         'deviceUuid': deviceUuid,
         'deviceOs': deviceOs,
-        'deviceToken': fcmToken,
-      });
+      };
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        googlePayload['deviceToken'] = fcmToken;
+      }
+      
+      final response = await _apiClient.dio.post('/auth/google', data: googlePayload);
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -134,6 +124,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           user: user,
           accessToken: accessToken,
         );
+
+        // Asynchronously sync device token to ensure registration
+        NotificationService().syncDeviceToken(_apiClient, _storage).catchError((_) {});
       } else {
         state = const AuthState.error(message: 'গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
@@ -153,21 +146,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final deviceUuid = await _storage.getOrGenerateDeviceUuid();
       
-      String? fcmToken;
-      try {
-        if (Platform.isIOS) {
-          await FirebaseMessaging.instance.requestPermission(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-        }
-        fcmToken = await FirebaseMessaging.instance.getToken();
-      } catch (_) {
-        // Fallback if token retrieval fails (e.g. during developer local simulators)
-        fcmToken = null;
-      }
-
+      final fcmToken = await NotificationService().getValidToken();
       final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
       
       final Map<String, dynamic> payload = {
@@ -197,6 +176,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
           user: user,
           accessToken: accessToken,
         );
+
+        // Asynchronously sync device token to ensure registration
+        NotificationService().syncDeviceToken(_apiClient, _storage).catchError((_) {});
       } else {
         state = const AuthState.error(message: 'লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       }
