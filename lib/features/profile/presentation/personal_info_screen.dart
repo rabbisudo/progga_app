@@ -286,16 +286,6 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
-              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
-            ),
-            backgroundColor: Color(0xFF017A47),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
