@@ -101,12 +101,29 @@ final activeBannersProvider = AsyncNotifierProvider<ActiveBannersNotifier, List<
   return ActiveBannersNotifier();
 });
 
+String formatBatchTag(String? rawBatch) {
+  if (rawBatch == null || rawBatch.trim().isEmpty) return '';
+  final trimmed = rawBatch.trim();
+  if (trimmed == 'শিক্ষার্থী') return '';
+
+  final regex = RegExp(r'^(SSC|HSC|JSC|Dakhil|Alim)[\s\-_]*(\d{2,4})$', caseSensitive: false);
+  final match = regex.firstMatch(trimmed);
+  if (match != null) {
+    final prefix = match.group(1)!.toUpperCase();
+    final year = match.group(2)!;
+    final shortYear = year.length == 4 ? year.substring(2) : year;
+    return '$prefix-$shortYear';
+  }
+  return trimmed;
+}
+
 class LeaderboardPlayer {
   final String name;
   final int score;
   final String avatarText;
   final Color avatarBg;
   final bool isCurrentUser;
+  final String? batch;
 
   LeaderboardPlayer({
     required this.name,
@@ -114,6 +131,7 @@ class LeaderboardPlayer {
     required this.avatarText,
     required this.avatarBg,
     this.isCurrentUser = false,
+    this.batch,
   });
 }
 
@@ -477,6 +495,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                         avatarBg: const Color(0xFF81C784),
                         isCurrentUser: true,
                         rank: 1,
+                        batch: formatBatchTag(profile?.batch),
                         context: context,
                       ),
                     ] else ...[
@@ -488,12 +507,14 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                             final avatarDisplay = e.avatarKey != null && e.avatarKey!.isNotEmpty
                                 ? e.avatarKey!
                                 : (e.fullName.isNotEmpty ? e.fullName[0].toUpperCase() : '?');
+                            final rawBatch = isMe ? (profile?.batch ?? e.batch) : e.batch;
                             return LeaderboardPlayer(
                               name: e.fullName.isNotEmpty ? e.fullName : e.username,
                               score: e.xp,
                               avatarText: avatarDisplay,
                               avatarBg: isMe ? const Color(0xFF81C784) : const Color(0xFF26A69A),
                               isCurrentUser: isMe,
+                              batch: formatBatchTag(rawBatch),
                             );
                           }).toList();
 
@@ -507,6 +528,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                 avatarText: userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                                 avatarBg: const Color(0xFF81C784),
                                 isCurrentUser: true,
+                                batch: formatBatchTag(profile.batch),
                               ),
                             );
                           }
@@ -527,6 +549,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                   avatarBg: top3Players[i].avatarBg,
                                   isCurrentUser: top3Players[i].isCurrentUser,
                                   rank: i + 1,
+                                  batch: top3Players[i].batch,
                                   context: context,
                                 ),
                             ],
@@ -772,6 +795,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
     required bool isCurrentUser,
     required int rank,
     required BuildContext context,
+    String? batch,
   }) {
     final bool isUrl = avatarText.startsWith('http') || avatarText.startsWith('https');
     final bool isSingleChar = avatarText.length <= 2;
@@ -821,18 +845,40 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   ),
             const SizedBox(width: 14),
 
-            // Middle: User Name
+            // Middle: User Name & Batch
             Expanded(
-              child: Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w700,
-                  fontSize: 14,
-                  color: isDark ? Colors.white : const Color(0xFF111827),
-                  fontFamily: 'Li Ador Noirrit',
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w700,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : const Color(0xFF111827),
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                  if (batch != null && batch.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      batch,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: isCurrentUser
+                            ? const Color(0xFF017A47)
+                            : (isDark ? Colors.white54 : const Color(0xFF6B7280)),
+                        fontFamily: 'Li Ador Noirrit',
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
 

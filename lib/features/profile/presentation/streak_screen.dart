@@ -64,6 +64,22 @@ String _getInitials(String name) {
   return name.trim().characters.first.toUpperCase();
 }
 
+String formatBatchTag(String? rawBatch) {
+  if (rawBatch == null || rawBatch.trim().isEmpty) return '';
+  final trimmed = rawBatch.trim();
+  if (trimmed == 'শিক্ষার্থী') return '';
+
+  final regex = RegExp(r'^(SSC|HSC|JSC|Dakhil|Alim)[\s\-_]*(\d{2,4})$', caseSensitive: false);
+  final match = regex.firstMatch(trimmed);
+  if (match != null) {
+    final prefix = match.group(1)!.toUpperCase();
+    final year = match.group(2)!;
+    final shortYear = year.length == 4 ? year.substring(2) : year;
+    return '$prefix-$shortYear';
+  }
+  return trimmed;
+}
+
 final globalStreakLeaderboardProvider = FutureProvider.autoDispose<List<LeaderboardEntryModel>>((ref) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
   return repo.fetchStreakLeaderboard();
@@ -1575,6 +1591,8 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                   final isMe = entry.userId == widget.myUserId;
                   final initials = _getInitials(name);
                   final avatarColor = _getAvatarColor(entry.userId.isNotEmpty ? entry.userId : name);
+                  final rawBatch = isMe ? (widget.profile?.batch ?? entry.batch) : entry.batch;
+                  final batchDisplay = formatBatchTag(rawBatch);
 
                   return Container(
                     color: isMe
@@ -1620,18 +1638,40 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
 
                         const SizedBox(width: 14),
 
-                        // User Name
+                        // User Name & Batch Tag
                         Expanded(
-                          child: Text(
-                            name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
-                              fontSize: 14,
-                              color: widget.isDark ? Colors.white : const Color(0xFF111827),
-                              fontFamily: 'Li Ador Noirrit',
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: isMe ? FontWeight.w800 : FontWeight.w700,
+                                  fontSize: 14,
+                                  color: widget.isDark ? Colors.white : const Color(0xFF111827),
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
+                              ),
+                              if (batchDisplay.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  batchDisplay,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isMe
+                                        ? brandGreen
+                                        : (widget.isDark ? Colors.white54 : const Color(0xFF6B7280)),
+                                    fontFamily: 'Li Ador Noirrit',
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
 
