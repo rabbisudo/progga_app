@@ -7,6 +7,7 @@ import '../../../profile/presentation/profile_notifier.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../widgets/shimmer_skeleton.dart';
 import '../widgets/bouncing_card.dart';
+import 'qb/qb_helpers.dart';
 
 const String _editPenSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 	<path d="M0 0h24v24H0z" fill="none" />
@@ -66,7 +67,7 @@ class MockExamListView extends ConsumerWidget {
 
         return ListView.separated(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 20.0)),
           itemCount: subjects.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {

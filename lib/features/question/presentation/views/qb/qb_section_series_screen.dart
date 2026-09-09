@@ -95,15 +95,18 @@ class QbSectionSeriesScreen extends ConsumerWidget {
             }
           });
 
-          return GridView.builder(
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            cacheExtent: 600,
-            addAutomaticKeepAlives: true,
-            addRepaintBoundaries: true,
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: 100.0),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            final bottomInset = MediaQuery.of(context).padding.bottom;
+            final bottomPadding = bottomInset > 0 ? bottomInset + 20.0 : 28.0;
+
+            return GridView.builder(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              cacheExtent: 600,
+              addAutomaticKeepAlives: true,
+              addRepaintBoundaries: true,
+              padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: bottomPadding),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 14,
               mainAxisSpacing: 14,
@@ -150,16 +153,19 @@ class QbSectionSeriesScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => _buildListSkeleton(),
+        loading: () => _buildListSkeleton(context),
         error: (err, _) => Center(child: Text('ত্রুটি: $err')),
       ),
     );
   }
 
-  Widget _buildListSkeleton() {
+  Widget _buildListSkeleton(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final bottomPadding = bottomInset > 0 ? bottomInset + 20.0 : 28.0;
+
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: bottomPadding),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 14,

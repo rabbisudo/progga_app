@@ -428,3 +428,13 @@ class QbThumbnailWidget extends StatelessWidget {
     return fallbackIcons[idx % fallbackIcons.length];
   }
 }
+
+/// Calculates the exact bottom padding required for scroll views rendered above the floating bottom navigation bar.
+/// Dynamically accounts for device safe area insets, navigation bar height (72), floating bottom margin,
+/// and adds comfortable breathing room [extraClearance] above the bar.
+double getFloatingBottomBarPadding(BuildContext context, {double extraClearance = 20.0}) {
+  final bottomInset = MediaQuery.of(context).padding.bottom;
+  const navBarHeight = 72.0;
+  final navBarBottomMargin = bottomInset > 0 ? bottomInset : 6.0;
+  return navBarHeight + navBarBottomMargin + extraClearance;
+}

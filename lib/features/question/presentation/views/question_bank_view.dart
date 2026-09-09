@@ -113,7 +113,7 @@ class QuestionBankView extends ConsumerWidget {
           ),
         );
       },
-      loading: () => _buildSubjectListSkeleton(),
+      loading: () => _buildSubjectListSkeleton(context),
       error: (err, _) => _buildErrorWidget('ডাটা লোড করা যায়নি: $err'),
     );
   }
@@ -151,6 +151,8 @@ class QuestionBankView extends ConsumerWidget {
       }
     });
 
+    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 20.0);
+
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
@@ -158,7 +160,7 @@ class QuestionBankView extends ConsumerWidget {
       cacheExtent: 600,
       addAutomaticKeepAlives: true,
       addRepaintBoundaries: true,
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: 100.0),
+      padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: bottomPadding),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 14,
@@ -242,10 +244,12 @@ class QuestionBankView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSubjectListSkeleton() {
+  Widget _buildSubjectListSkeleton(BuildContext context) {
+    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 20.0);
+
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      padding: EdgeInsets.fromLTRB(16.0, 14.0, 16.0, bottomPadding),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 14,

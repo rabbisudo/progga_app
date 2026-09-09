@@ -20,6 +20,7 @@ import 'spaced_repetition_notifier.dart';
 import '../../../app_update/data/app_update_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/storage/secure_storage_service.dart';
+import 'qb/qb_helpers.dart';
 
 class ActiveBannersNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
@@ -546,7 +547,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                 ),
               ),
             ),
-            const SizedBox(height: 100),
+            SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 20.0)),
           ],
         ),
       ),
@@ -725,7 +726,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
               ),
             ),
           ),
-          const SizedBox(height: 100),
+          SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 20.0)),
         ],
       ),
     );
