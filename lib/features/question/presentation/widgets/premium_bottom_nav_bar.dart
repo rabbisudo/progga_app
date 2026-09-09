@@ -79,10 +79,10 @@ class PremiumBottomNavBar extends StatelessWidget {
       alignment: Alignment.bottomCenter,
       clipBehavior: Clip.none,
       children: [
-        // 1. Bottom atmospheric gradient scrim to smoothly dissolve scrolling content
-        // and cleanly conceal the gesture navigation inset at the screen bottom.
+        // 1. Subtle bottom fade starting halfway behind the bar to cleanly conceal the bottom inset
+        // without casting any dark shadow or haze over the content above the bar.
         Positioned(
-          top: -24,
+          top: 15,
           left: 0,
           right: 0,
           bottom: 0,
@@ -94,20 +94,19 @@ class PremiumBottomNavBar extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.7),
                     theme.scaffoldBackgroundColor,
                   ],
-                  stops: const [0.0, 0.35, 0.7, 1.0],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
           ),
         ),
 
-        // 2. Floating Navigation Bar Pill with prominent floating BoxShadow
+        // 2. Floating Navigation Bar Pill with clean white background and soft subtle shadow
         Padding(
-          padding: EdgeInsets.fromLTRB(20, 6, 20, effectiveBottom),
+          padding: EdgeInsets.fromLTRB(20, 4, 20, effectiveBottom),
           child: Container(
             height: 70,
             decoration: BoxDecoration(
@@ -115,36 +114,35 @@ class PremiumBottomNavBar extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: isDark 
-                      ? Colors.black.withValues(alpha: 0.6) 
-                      : const Color(0xFF017A47).withValues(alpha: 0.16),
-                  blurRadius: 26,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 8),
+                      ? Colors.black.withValues(alpha: 0.35) 
+                      : Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
                 BoxShadow(
                   color: isDark 
-                      ? Colors.black.withValues(alpha: 0.35) 
-                      : Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+                      ? Colors.black.withValues(alpha: 0.2) 
+                      : Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(30),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDark 
-                        ? const Color(0xFF1E1E1E).withValues(alpha: 0.88) 
-                        : Colors.white.withValues(alpha: 0.90),
+                        ? const Color(0xFF1E1E1E) 
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
                       color: isDark 
-                          ? Colors.white.withValues(alpha: 0.09) 
-                          : const Color(0xFF017A47).withValues(alpha: 0.14),
-                      width: 1.5,
+                          ? Colors.white.withValues(alpha: 0.08) 
+                          : const Color(0xFFE9ECEF),
+                      width: 1.0,
                     ),
                   ),
                   child: LayoutBuilder(
