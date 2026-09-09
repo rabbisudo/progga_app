@@ -885,7 +885,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             InkWell(
               onTap: () {
                 _showInputBottomSheet(
-                  title: 'আপনার মোবাইল নম্বর লিখুন (১১ ডিজিট)',
+                  title: 'আপনার মোবাইল নম্বর লিখুন',
                   label: 'মোবাইল নম্বর',
                   hint: 'যেমন - 017XXXXXXXX',
                   controller: _phoneController,

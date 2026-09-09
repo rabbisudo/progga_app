@@ -408,7 +408,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                   _buildTextField(
                     context: context,
                     controller: _phoneController,
-                    label: 'মোবাইল নম্বর (১১ ডিজিট)',
+                    label: 'মোবাইল নম্বর',
                     hintText: '01XXXXXXXXX',
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
