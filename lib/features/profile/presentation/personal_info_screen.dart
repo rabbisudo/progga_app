@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'profile_notifier.dart';
 import '../domain/profile_model.dart';
@@ -18,6 +19,7 @@ class PersonalInfoScreen extends ConsumerStatefulWidget {
 class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _phoneController;
   late TextEditingController _bioController;
   late TextEditingController _institutionController;
   late TextEditingController _addressController;
@@ -38,6 +40,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   void _initialize(UserProfile profile) {
     if (_isInitialized) return;
     _nameController = TextEditingController(text: profile.fullName);
+    _phoneController = TextEditingController(text: profile.phoneNumber ?? '');
     _bioController = TextEditingController(text: profile.bio ?? '');
     _institutionController = TextEditingController(text: profile.institution ?? '');
     _addressController = TextEditingController(text: profile.address ?? '');
@@ -118,6 +121,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   void dispose() {
     if (_isInitialized) {
       _nameController.dispose();
+      _phoneController.dispose();
       _bioController.dispose();
       _institutionController.dispose();
       _addressController.dispose();
@@ -221,10 +225,28 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       return;
     }
 
+    final cleanPhone = _phoneController.text.trim();
+    if (cleanPhone.isNotEmpty) {
+      if (cleanPhone.length != 11 || !RegExp(r'^01[3-9]\d{8}$').hasMatch(cleanPhone)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)',
+              style: TextStyle(fontFamily: 'Li Ador Noirrit'),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isSaving = true);
     try {
       final payload = <String, dynamic>{
         'fullName': _nameController.text.trim(),
+        'phoneNumber': cleanPhone.isNotEmpty ? cleanPhone : null,
         'bio': _bioController.text.trim(),
         'institution': _institutionController.text.trim(),
         'address': _addressController.text.trim(),
@@ -355,8 +377,11 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
             isAcademicComplete = false;
           }
 
+          final String phoneText = _phoneController.text.trim();
+          final bool isPhoneValid = phoneText.isEmpty ||
+              (phoneText.length == 11 && RegExp(r'^01[3-9]\d{8}$').hasMatch(phoneText));
           final bool isNameFilled = _nameController.text.trim().isNotEmpty;
-          final bool canSave = !_isSaving && isAcademicComplete && isNameFilled;
+          final bool canSave = !_isSaving && isAcademicComplete && isNameFilled && isPhoneValid;
 
           return Form(
             key: _formKey,
@@ -375,6 +400,36 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
                         return 'নাম দেওয়া আবশ্যক';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    context: context,
+                    controller: _phoneController,
+                    label: 'মোবাইল নম্বর (১১ ডিজিট)',
+                    hintText: '01XXXXXXXXX',
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    prefixIcon: const Icon(
+                      Icons.phone_android_rounded,
+                      size: 20,
+                      color: brandTealColor,
+                    ),
+                    onChanged: (val) => setState(() {}),
+                    validator: (val) {
+                      if (val != null && val.trim().isNotEmpty) {
+                        final clean = val.trim();
+                        if (clean.length != 11) {
+                          return 'মোবাইল নম্বর অবশ্যই ১১ ডিজিট হতে হবে';
+                        }
+                        if (!RegExp(r'^01[3-9]\d{8}$').hasMatch(clean)) {
+                          return 'সঠিক বিডি মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)';
+                        }
                       }
                       return null;
                     },
@@ -577,7 +632,9 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                       child: Text(
                         !isAcademicComplete
                             ? '* শ্রেণী, বিভাগ ও ব্যাচ নির্বাচন করলে বাটন সক্রিয় হবে'
-                            : '* অনুগ্রহ করে আপনার নাম প্রদান করুন',
+                            : (!isNameFilled
+                                ? '* অনুগ্রহ করে আপনার নাম প্রদান করুন'
+                                : '* সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)'),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.white54 : Colors.grey.shade600,
@@ -635,12 +692,26 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     );
   }
 
-  InputDecoration _getInputDecoration(BuildContext context, String label) {
+  InputDecoration _getInputDecoration(
+    BuildContext context,
+    String label, {
+    String? hintText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return InputDecoration(
       labelText: label,
+      hintText: hintText,
+      hintStyle: TextStyle(
+        color: isDark ? Colors.white30 : Colors.black38,
+        fontSize: 13,
+        fontFamily: 'Li Ador Noirrit',
+      ),
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
       labelStyle: TextStyle(
         color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
         fontSize: 13,
@@ -672,12 +743,19 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     required BuildContext context,
     required TextEditingController controller,
     required String label,
+    String? hintText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     ValueChanged<String>? onChanged,
     String? Function(String?)? validator,
   }) {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       onChanged: onChanged,
       style: TextStyle(
         color: theme.textTheme.bodyLarge?.color,
@@ -685,7 +763,13 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         fontFamily: 'Li Ador Noirrit',
       ),
       validator: validator,
-      decoration: _getInputDecoration(context, label),
+      decoration: _getInputDecoration(
+        context,
+        label,
+        hintText: hintText,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
+      ),
     );
   }
 

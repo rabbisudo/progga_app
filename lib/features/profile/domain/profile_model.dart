@@ -19,6 +19,7 @@ class UserProfile with _$UserProfile {
     String? gender,
     String? address,
     String? institution,
+    String? phoneNumber,
     String? className,
     String? batch,
     String? board,

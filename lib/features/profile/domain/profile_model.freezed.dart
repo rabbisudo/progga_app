@@ -26,6 +26,7 @@ mixin _$UserProfile {
   String? get gender => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
   String? get institution => throw _privateConstructorUsedError;
+  String? get phoneNumber => throw _privateConstructorUsedError;
   String? get className => throw _privateConstructorUsedError;
   String? get batch => throw _privateConstructorUsedError;
   String? get board => throw _privateConstructorUsedError;
@@ -77,6 +78,7 @@ abstract class $UserProfileCopyWith<$Res> {
       String? gender,
       String? address,
       String? institution,
+      String? phoneNumber,
       String? className,
       String? batch,
       String? board,
@@ -130,6 +132,7 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? gender = freezed,
     Object? address = freezed,
     Object? institution = freezed,
+    Object? phoneNumber = freezed,
     Object? className = freezed,
     Object? batch = freezed,
     Object? board = freezed,
@@ -199,6 +202,10 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
       institution: freezed == institution
           ? _value.institution
           : institution // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
               as String?,
       className: freezed == className
           ? _value.className
@@ -335,6 +342,7 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       String? gender,
       String? address,
       String? institution,
+      String? phoneNumber,
       String? className,
       String? batch,
       String? board,
@@ -386,6 +394,7 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? gender = freezed,
     Object? address = freezed,
     Object? institution = freezed,
+    Object? phoneNumber = freezed,
     Object? className = freezed,
     Object? batch = freezed,
     Object? board = freezed,
@@ -455,6 +464,10 @@ class __$$UserProfileImplCopyWithImpl<$Res>
       institution: freezed == institution
           ? _value.institution
           : institution // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneNumber: freezed == phoneNumber
+          ? _value.phoneNumber
+          : phoneNumber // ignore: cast_nullable_to_non_nullable
               as String?,
       className: freezed == className
           ? _value.className
@@ -587,6 +600,7 @@ class _$UserProfileImpl extends _UserProfile {
       this.gender,
       this.address,
       this.institution,
+      this.phoneNumber,
       this.className,
       this.batch,
       this.board,
@@ -637,6 +651,8 @@ class _$UserProfileImpl extends _UserProfile {
   final String? address;
   @override
   final String? institution;
+  @override
+  final String? phoneNumber;
   @override
   final String? className;
   @override
@@ -698,7 +714,7 @@ class _$UserProfileImpl extends _UserProfile {
 
   @override
   String toString() {
-    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, birthday: $birthday, gender: $gender, address: $address, institution: $institution, className: $className, batch: $batch, board: $board, targetExam: $targetExam, classId: $classId, groupId: $groupId, batchId: $batchId, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, streakFreezes: $streakFreezes, usedStreakFreezes: $usedStreakFreezes, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
+    return 'UserProfile(id: $id, userId: $userId, fullName: $fullName, avatarKey: $avatarKey, coverPhotoKey: $coverPhotoKey, bio: $bio, birthday: $birthday, gender: $gender, address: $address, institution: $institution, phoneNumber: $phoneNumber, className: $className, batch: $batch, board: $board, targetExam: $targetExam, classId: $classId, groupId: $groupId, batchId: $batchId, targetGPA: $targetGPA, country: $country, language: $language, darkMode: $darkMode, pushNotifications: $pushNotifications, weeklyEmailReport: $weeklyEmailReport, profileVisible: $profileVisible, showStreakOnProfile: $showStreakOnProfile, solvedQuestionsCount: $solvedQuestionsCount, solvedExamsCount: $solvedExamsCount, averageAccuracy: $averageAccuracy, totalStudyTime: $totalStudyTime, currentStreak: $currentStreak, longestStreak: $longestStreak, streakFreezes: $streakFreezes, usedStreakFreezes: $usedStreakFreezes, xp: $xp, coins: $coins, level: $level, league: $league, lastActiveDate: $lastActiveDate)';
   }
 
   @override
@@ -721,6 +737,8 @@ class _$UserProfileImpl extends _UserProfile {
             (identical(other.address, address) || other.address == address) &&
             (identical(other.institution, institution) ||
                 other.institution == institution) &&
+            (identical(other.phoneNumber, phoneNumber) ||
+                other.phoneNumber == phoneNumber) &&
             (identical(other.className, className) ||
                 other.className == className) &&
             (identical(other.batch, batch) || other.batch == batch) &&
@@ -782,6 +800,7 @@ class _$UserProfileImpl extends _UserProfile {
         gender,
         address,
         institution,
+        phoneNumber,
         className,
         batch,
         board,
@@ -831,6 +850,7 @@ abstract class _UserProfile extends UserProfile {
       final String? gender,
       final String? address,
       final String? institution,
+      final String? phoneNumber,
       final String? className,
       final String? batch,
       final String? board,
@@ -881,6 +901,8 @@ abstract class _UserProfile extends UserProfile {
   String? get address;
   @override
   String? get institution;
+  @override
+  String? get phoneNumber;
   @override
   String? get className;
   @override

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../profile/presentation/profile_notifier.dart';
@@ -28,6 +29,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   DateTime? _selectedBirthday;
   
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _institutionController = TextEditingController();
   
@@ -204,6 +206,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   void dispose() {
     _talkingTimer?.cancel();
     _nameController.dispose();
+    _phoneController.dispose();
     _addressController.dispose();
     _institutionController.dispose();
     _sleepingController?.dispose();
@@ -292,6 +295,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       return;
     }
 
+    if (_phoneController.text.trim().isNotEmpty) {
+      final clean = _phoneController.text.trim();
+      if (clean.length != 11 || !RegExp(r'^01[3-9]\d{8}$').hasMatch(clean)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        setState(() => _step = 1);
+        return;
+      }
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -299,6 +317,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     try {
       await ref.read(userProfileProvider.notifier).updateProfileDetails({
         'fullName': _nameController.text.trim(),
+        'phoneNumber': _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
         'gender': _selectedGender == 'ছাত্রী' ? 'FEMALE' : 'MALE',
         'birthday': _selectedBirthday?.toUtc().toIso8601String(),
         'address': _addressController.text.trim(),
@@ -680,6 +699,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required String label,
     required String hint,
     required TextEditingController controller,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     required VoidCallback onSave,
   }) {
     showModalBottomSheet(
@@ -713,6 +734,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               TextField(
                 controller: controller,
                 autofocus: true,
+                keyboardType: keyboardType,
+                inputFormatters: inputFormatters,
                 cursorColor: const Color(0xFF017A47),
                 decoration: InputDecoration(
                   labelText: label,
@@ -845,6 +868,80 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                               color: _nameController.text.isNotEmpty
+                                  ? Colors.black87
+                                  : Colors.black38,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Mobile Number selector
+            InkWell(
+              onTap: () {
+                _showInputBottomSheet(
+                  title: 'আপনার মোবাইল নম্বর লিখুন (১১ ডিজিট)',
+                  label: 'মোবাইল নম্বর',
+                  hint: 'যেমন - 017XXXXXXXX',
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
+                  onSave: () => setState(() {}),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.phone_android_rounded, color: Color(0xFF017A47), size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'মোবাইল নম্বর (১১ ডিজিট)',
+                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _phoneController.text.isNotEmpty
+                                ? _phoneController.text
+                                : 'যেমন - 017XXXXXXXX',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: _phoneController.text.isNotEmpty
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: _phoneController.text.isNotEmpty
                                   ? Colors.black87
                                   : Colors.black38,
                             ),
@@ -1066,27 +1163,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _nameController.text.trim().isNotEmpty ? _nextStep : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF017A47),
-                  disabledBackgroundColor: const Color(0xFFE0E0E0),
-                  elevation: _nameController.text.trim().isNotEmpty ? 4 : 0,
-                  shadowColor: const Color(0xFF017A47).withOpacity(0.4),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text(
-                  'পরবর্তী',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: _nameController.text.trim().isNotEmpty ? Colors.white : Colors.black38,
+            Builder(
+              builder: (context) {
+                final phoneText = _phoneController.text.trim();
+                final bool isPhoneValid = phoneText.isEmpty ||
+                    (phoneText.length == 11 && RegExp(r'^01[3-9]\d{8}$').hasMatch(phoneText));
+                final bool canProceed = _nameController.text.trim().isNotEmpty && isPhoneValid;
+                return SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: canProceed ? _nextStep : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF017A47),
+                      disabledBackgroundColor: const Color(0xFFE0E0E0),
+                      elevation: canProceed ? 4 : 0,
+                      shadowColor: const Color(0xFF017A47).withOpacity(0.4),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Text(
+                      'পরবর্তী',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: canProceed ? Colors.white : Colors.black38,
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ),
@@ -1323,7 +1428,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final bool isClassSelected = _selectedClassModel != null;
     final bool isGroupSelected = !(_selectedClassModel != null && _selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty) || _selectedGroupModel != null;
     final bool isBatchSelected = availableBatches.isEmpty || _selectedBatchModel != null;
-    final bool isAllValid = isClassSelected && isGroupSelected && isBatchSelected && _nameController.text.trim().isNotEmpty;
+    final bool isPhoneValid = _phoneController.text.trim().isEmpty ||
+        (_phoneController.text.trim().length == 11 && RegExp(r'^01[3-9]\d{8}$').hasMatch(_phoneController.text.trim()));
+    final bool isAllValid = isClassSelected && isGroupSelected && isBatchSelected && _nameController.text.trim().isNotEmpty && isPhoneValid;
     final bool canSubmit = !_isSubmitting && isAllValid;
 
     // Step 5: Summary and Final Welcome Screen
@@ -1348,6 +1455,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryRow('নাম:', _nameController.text.trim(), onTap: () => setState(() => _step = 1)),
+              if (_phoneController.text.trim().isNotEmpty) ...[
+                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
+                _buildSummaryRow('মোবাইল নম্বর:', _phoneController.text.trim(), onTap: () => setState(() => _step = 1)),
+              ],
               Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               _buildSummaryRow('লিঙ্গ:', _selectedGender, onTap: () => setState(() => _step = 1)),
               if (_selectedBirthday != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
