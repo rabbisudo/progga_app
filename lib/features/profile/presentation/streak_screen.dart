@@ -66,7 +66,7 @@ String _getInitials(String name) {
 
 final globalStreakLeaderboardProvider = FutureProvider.autoDispose<List<LeaderboardEntryModel>>((ref) async {
   final repo = ref.watch(leaderboardRepositoryProvider);
-  return repo.fetchLeaderboard(scope: 'global');
+  return repo.fetchStreakLeaderboard();
 });
 
 class StreakScreen extends ConsumerStatefulWidget {
@@ -1416,10 +1416,10 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
 
     try {
       final repo = ref.read(leaderboardRepositoryProvider);
-      final newEntries = await repo.fetchLeaderboard(
-        scope: 'global',
+      final newEntries = await repo.fetchStreakLeaderboard(
         limit: _limit,
         offset: _offset,
+        forceRefresh: isInitial,
       );
 
       if (mounted) {

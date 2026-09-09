@@ -215,6 +215,50 @@ class LeaderboardRepository {
     }
   }
 
+  /// Fetches single unified global streak leaderboard across all students
+  Future<List<LeaderboardEntryModel>> fetchStreakLeaderboard({
+    int limit = 50,
+    int offset = 0,
+    bool forceRefresh = false,
+  }) async {
+    final cacheKey = 'streak-leaderboard-$limit-$offset';
+
+    if (!forceRefresh && offset == 0 && _cache.containsKey(cacheKey)) {
+      final cached = _cache[cacheKey]!;
+      if (!cached.isExpired()) {
+        return cached.entries;
+      }
+    }
+
+    try {
+      final response = await _apiClient.dio.get(
+        '/leaderboards/streak',
+        queryParameters: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+      List<dynamic> rawList = [];
+      if (response.data is List) {
+        rawList = response.data as List<dynamic>;
+      } else if (response.data is Map && response.data['rankings'] is List) {
+        rawList = response.data['rankings'] as List<dynamic>;
+      }
+      final result = rawList.map((e) => LeaderboardEntryModel.fromJson(e)).toList();
+
+      if (offset == 0) {
+        _cache[cacheKey] = LeaderboardCacheItem(result, DateTime.now());
+      }
+
+      return result;
+    } on DioException catch (e) {
+      if (_cache.containsKey(cacheKey)) {
+        return _cache[cacheKey]!.entries;
+      }
+      throw _apiClient.handleError(e);
+    }
+  }
+
   Future<List<LeaderboardEntryModel>> fetchLeaderboardAroundMe() async {
     try {
       final response = await _apiClient.dio.get('/leaderboards/me');
