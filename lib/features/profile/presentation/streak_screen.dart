@@ -1553,20 +1553,11 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
                 ),
               ),
 
-              Divider(height: 1, thickness: 1, color: widget.borderColor),
-
               // Rows
-              ListView.separated(
+              ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: reRanked.length + (_hasMore ? 1 : 0),
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  thickness: 0.8,
-                  color: widget.borderColor.withValues(alpha: 0.5),
-                  indent: 64,
-                  endIndent: 16,
-                ),
                 itemBuilder: (context, index) {
                   if (index == reRanked.length) {
                     return const Padding(

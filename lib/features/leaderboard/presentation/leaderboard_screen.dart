@@ -793,8 +793,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             ),
           ),
 
-          Divider(height: 1, thickness: 1, color: borderColor),
-
           // Content: Loading Skeleton, Error State, Empty State, or Ranked Members
           if (state.isLoading && state.entries.isEmpty)
             _buildListSkeleton(isDark)
@@ -857,17 +855,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               ),
             )
           else
-            ListView.separated(
+            ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: state.entries.length + (state.isLoadingMore ? 1 : 0),
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                thickness: 0.8,
-                color: borderColor.withValues(alpha: 0.5),
-                indent: 64,
-                endIndent: 16,
-              ),
               itemBuilder: (context, index) {
                 if (index == state.entries.length) {
                   return const Padding(
