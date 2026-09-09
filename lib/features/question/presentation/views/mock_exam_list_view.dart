@@ -32,7 +32,7 @@ class MockExamListView extends ConsumerWidget {
     final curriculumAsync = ref.watch(studentCurriculumProvider);
 
     return curriculumAsync.when(
-      loading: () => _buildExamSubjectGridSkeleton(),
+      loading: () => _buildExamSubjectGridSkeleton(context),
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -99,7 +99,7 @@ class MockExamListView extends ConsumerWidget {
                     width: 1.2,
                   ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
                 child: Row(
                   children: [
                     Container(
@@ -129,40 +129,14 @@ class MockExamListView extends ConsumerWidget {
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            subjectName,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
-                              fontFamily: 'Li Ador Noirrit',
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  "মক পরীক্ষা দিন",
-                                  style: TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF02A25F),
-                                    fontFamily: 'Li Ador Noirrit',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: Text(
+                        subjectName,
+                        style: TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
                       ),
                     ),
                     Icon(
@@ -180,10 +154,10 @@ class MockExamListView extends ConsumerWidget {
     );
   }
 
-  Widget _buildExamSubjectGridSkeleton() {
+  Widget _buildExamSubjectGridSkeleton(BuildContext context) {
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 16.0)),
       itemCount: 6,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) => const ShimmerSkeleton(
