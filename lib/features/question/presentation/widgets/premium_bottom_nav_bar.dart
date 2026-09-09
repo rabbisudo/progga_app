@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -57,6 +58,39 @@ const String _profileSelectedIcon = '''<svg xmlns="http://www.w3.org/2000/svg" w
 	<path fill="currentColor" d="M20 17.5c0 2.485 0 4.5-8 4.5s-8-2.015-8-4.5S7.582 13 12 13s8 2.015 8 4.5" />
 </svg>''';
 
+/// Calculates the ergonomically optimized bottom margin for the floating navigation bar.
+///
+/// Handles all platform navigation styles seamlessly:
+/// 1. iOS (iPhone X..16 with Home Indicator, bottom safe area inset ~34.0):
+///    The home indicator is a thin gesture line (~13pt from bottom).
+///    We float comfortably above it (~14-16pt) to eliminate excessive blank voids.
+/// 2. Android 3-Button Navigation (bottomInset >= 36dp, typically 48dp):
+///    The 3 hardware/system buttons (Back, Home, Recents) physically occupy the bottom 0..bottomInset.
+///    The floating pill sits completely above it (bottomInset + 8dp) so the 3 buttons
+///    NEVER overlap, touch, or block any tab buttons.
+/// 3. Android Gesture Navigation (bottomInset ~16..24dp):
+///    The bar floats with comfortable clearance above the gesture handle (bottomInset + 6dp).
+/// 4. Devices with no inset (iPhone SE, hardware buttons, desktop/web):
+///    Returns a standard 8dp margin.
+double getFloatingNavBarBottomMargin(BuildContext context) {
+  final bottomInset = MediaQuery.of(context).padding.bottom;
+  if (bottomInset <= 0) return 8.0;
+
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    return (bottomInset * 0.44).clamp(12.0, 16.0);
+  }
+
+  // Android 3-button navigation (typically 48dp):
+  // System buttons must not be touched. Provide clean 8dp clearance above them.
+  if (bottomInset >= 36.0) {
+    return bottomInset + 8.0;
+  }
+
+  // Android Gesture navigation (typically 16-24dp):
+  // Provide clean 6dp clearance above the gesture pill.
+  return bottomInset + 6.0;
+}
+
 class PremiumBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -72,8 +106,7 @@ class PremiumBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final effectiveBottom = bottomPadding > 0 ? bottomPadding : 8.0;
+    final effectiveBottom = getFloatingNavBarBottomMargin(context);
 
     return Stack(
       alignment: Alignment.bottomCenter,
@@ -82,7 +115,7 @@ class PremiumBottomNavBar extends StatelessWidget {
         // 1. Subtle bottom fade starting halfway behind the bar to cleanly conceal the bottom inset
         // without casting any dark shadow or haze over the content above the bar.
         Positioned(
-          top: 15,
+          top: 10,
           left: 0,
           right: 0,
           bottom: 0,
@@ -94,10 +127,10 @@ class PremiumBottomNavBar extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0.7),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.85),
                     theme.scaffoldBackgroundColor,
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: const [0.0, 0.45, 0.8],
                 ),
               ),
             ),
@@ -106,11 +139,11 @@ class PremiumBottomNavBar extends StatelessWidget {
 
         // 2. Floating Navigation Bar Pill with clean white background and soft subtle shadow
         Padding(
-          padding: EdgeInsets.fromLTRB(20, 4, 20, effectiveBottom),
+          padding: EdgeInsets.fromLTRB(18, 4, 18, effectiveBottom),
           child: Container(
-            height: 70,
+            height: 64,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
                   color: isDark 
@@ -129,7 +162,7 @@ class PremiumBottomNavBar extends StatelessWidget {
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(28),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
@@ -137,7 +170,7 @@ class PremiumBottomNavBar extends StatelessWidget {
                     color: isDark 
                         ? const Color(0xFF1E1E1E) 
                         : Colors.white,
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular(28),
                     border: Border.all(
                       color: isDark 
                           ? Colors.white.withValues(alpha: 0.08) 
@@ -154,10 +187,10 @@ class PremiumBottomNavBar extends StatelessWidget {
                           AnimatedPositioned(
                             duration: const Duration(milliseconds: 320),
                             curve: Curves.easeOutBack,
-                            left: selectedIndex * tabWidth + 6,
-                            top: 6,
-                            width: tabWidth - 12,
-                            height: 56,
+                            left: selectedIndex * tabWidth + 5,
+                            top: 5,
+                            width: tabWidth - 10,
+                            height: 54,
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
@@ -173,7 +206,7 @@ class PremiumBottomNavBar extends StatelessWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                                borderRadius: BorderRadius.circular(24),
+                                borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: isDark 
                                       ? const Color(0xFF017A47).withValues(alpha: 0.15) 
@@ -239,20 +272,20 @@ class PremiumBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedScale(
-              scale: isSelected ? 1.12 : 1.0,
+              scale: isSelected ? 1.10 : 1.0,
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutBack,
               child: SvgPicture.string(
                 isSelected ? selectedIconStr : iconStr,
-                width: 24,
-                height: 24,
+                width: 23,
+                height: 23,
                 colorFilter: ColorFilter.mode(
                   isSelected ? activeColor : inactiveColor, 
                   BlendMode.srcIn,
                 ),
               ),
             ),
-            const SizedBox(height: 5),
+            const SizedBox(height: 3),
             Text(
               label,
               maxLines: 1,
@@ -261,6 +294,7 @@ class PremiumBottomNavBar extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? activeColor : inactiveColor,
                 letterSpacing: -0.2,
+                fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ],
@@ -269,3 +303,4 @@ class PremiumBottomNavBar extends StatelessWidget {
     );
   }
 }
+

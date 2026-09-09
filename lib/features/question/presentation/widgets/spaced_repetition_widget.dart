@@ -86,16 +86,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
     final isSelectedCorrect = _hasAnswered && _selectedOptionId != null &&
         options.any((o) => o['id'] == _selectedOptionId && o['isCorrect'] == true);
 
-    // Identify correct option
-    final correctOption = options.firstWhere(
-      (o) => o['isCorrect'] == true,
-      orElse: () => null,
-    );
     const optionPrefixes = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
-    final correctOptionIndex = correctOption != null ? options.indexOf(correctOption) : -1;
-    final correctPrefix = correctOptionIndex >= 0 && correctOptionIndex < optionPrefixes.length
-        ? optionPrefixes[correctOptionIndex]
-        : '';
     
     final feedbackBgColor = isSelectedCorrect
         ? const Color(0xFF017A47).withOpacity(isDark ? 0.08 : 0.04)
@@ -366,47 +357,6 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                           fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
-
-                      // Highlight Correct Answer if user selected wrong
-                      if (!isSelectedCorrect && correctOption != null) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF017A47).withOpacity(isDark ? 0.12 : 0.07),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFF017A47).withOpacity(0.25),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'সঠিক উত্তর: ',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF017A47),
-                                  fontFamily: 'Li Ador Noirrit',
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  '$correctPrefix. ${correctOption['optionText'] ?? ''}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF017A47),
-                                    fontFamily: 'Li Ador Noirrit',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
 
                       // Explanation section
                       if (explanationText != null && explanationText.trim().isNotEmpty) ...[
