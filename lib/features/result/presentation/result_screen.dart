@@ -134,24 +134,55 @@ Future<Map<String, dynamic>> _fetchAndCacheExamDetails(
   }
 }
 
-// Fetch user's actual daily explanation quota
-final explanationQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
-  final repo = ref.watch(examRepositoryProvider);
-  return repo.fetchExplanationQuota();
-});
-
 // Global state provider for daily explanation quota sync
-final dailyQuotaProvider = StateNotifierProvider<DailyQuotaNotifier, int>((ref) {
-  return DailyQuotaNotifier();
-});
-
 class DailyQuotaNotifier extends StateNotifier<int> {
-  DailyQuotaNotifier() : super(10);
+  final ExamRepository _repository;
+  bool _isLoading = false;
+
+  DailyQuotaNotifier(this._repository) : super(10) {
+    refreshQuota();
+  }
+
+  Future<void> refreshQuota() async {
+    if (_isLoading) return;
+    _isLoading = true;
+    try {
+      final data = await _repository.fetchExplanationQuota();
+      final remaining = (data['remainingDaily'] as num?)?.toInt();
+      if (remaining != null) {
+        state = remaining;
+      }
+    } catch (e) {
+      debugPrint('Error fetching explanation quota: $e');
+    } finally {
+      _isLoading = false;
+    }
+  }
 
   void setQuota(int count) {
     state = count;
   }
 }
+
+final dailyQuotaProvider = StateNotifierProvider<DailyQuotaNotifier, int>((ref) {
+  final repo = ref.watch(examRepositoryProvider);
+  return DailyQuotaNotifier(repo);
+});
+
+// Fetch user's actual daily explanation quota
+final explanationQuotaProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final repo = ref.watch(examRepositoryProvider);
+  final data = await repo.fetchExplanationQuota();
+  final remaining = (data['remainingDaily'] as num?)?.toInt();
+  if (remaining != null) {
+    ref.read(dailyQuotaProvider.notifier).setQuota(remaining);
+  }
+  return data;
+});
+
+// Cache for unlocked explanations in result screen to persist across scroll & filter changes
+final unlockedExplanationsProvider = StateProvider.autoDispose<Map<String, List<dynamic>>>((ref) => {});
+final unlockedCqExplanationsProvider = StateProvider.autoDispose<Map<String, Map<String, String>>>((ref) => {});
 
 String _toBengaliDigit(dynamic number) {
   if (number == null) return '০';
@@ -264,25 +295,32 @@ Widget _buildQuestionImage(String? imageKey) {
 
 class _ExplanationCard extends ConsumerStatefulWidget {
   final String questionId;
-  final int remainingQuota;
+  final int? remainingQuota;
 
   const _ExplanationCard({
+    super.key,
     required this.questionId,
-    required this.remainingQuota,
+    this.remainingQuota,
   });
 
   @override
   ConsumerState<_ExplanationCard> createState() => _ExplanationCardState();
 }
 
-class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
+class _ExplanationCardState extends ConsumerState<_ExplanationCard> with AutomaticKeepAliveClientMixin {
   bool _isExpanded = false;
   bool _isLoading = false;
-  bool _isUnlocked = false;
-  List<dynamic> _explanations = [];
+  bool _localUnlocked = false;
+  List<dynamic> _localExplanations = [];
+
+  @override
+  bool get wantKeepAlive => _localUnlocked || _isExpanded || _isLoading;
 
   Future<void> _handleTap() async {
-    if (_isUnlocked) {
+    final cached = ref.read(unlockedExplanationsProvider)[widget.questionId];
+    final isAlreadyUnlocked = _localUnlocked || cached != null;
+
+    if (isAlreadyUnlocked) {
       setState(() {
         _isExpanded = !_isExpanded;
       });
@@ -303,9 +341,14 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
           ref.read(dailyQuotaProvider.notifier).setQuota(newRemaining);
         }
 
+        final exps = res['explanations'] as List<dynamic>? ?? [];
+
+        // Save in provider to persist across scroll & filter tabs
+        ref.read(unlockedExplanationsProvider.notifier).update((m) => {...m, widget.questionId: exps});
+
         setState(() {
-          _explanations = res['explanations'] as List<dynamic>? ?? [];
-          _isUnlocked = true;
+          _localExplanations = exps;
+          _localUnlocked = true;
           _isExpanded = true;
           _isLoading = false;
         });
@@ -315,6 +358,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
         setState(() {
           _isLoading = false;
         });
+        ref.read(dailyQuotaProvider.notifier).refreshQuota();
         _showLimitDialog(context);
       }
     }
@@ -380,7 +424,11 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final currentQuota = ref.watch(dailyQuotaProvider);
+    final cachedExps = ref.watch(unlockedExplanationsProvider)[widget.questionId];
+    final isUnlocked = _localUnlocked || cachedExps != null;
+    final explanations = cachedExps ?? _localExplanations;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -423,9 +471,13 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                           ),
                         ),
                         Text(
-                          currentQuota > 0
-                              ? 'দৈনিক ব্যাখ্যা বাকি - ${_toBengaliDigit(currentQuota)}'
-                              : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!',
+                          isUnlocked
+                              ? (_isExpanded
+                                  ? 'ব্যাখ্যা চালু রয়েছে • বন্ধ করতে ট্যাপ করুন'
+                                  : 'আনলক করা হয়েছে • ব্যাখ্যা দেখতে ট্যাপ করুন')
+                              : (currentQuota > 0
+                                  ? 'দৈনিক ব্যাখ্যা বাকি - ${_toBengaliDigit(currentQuota)}'
+                                  : 'আজকের ১০টি সীমার সবগুলো দেখা শেষ!'),
                           style: TextStyle(
                             fontSize: 11.5,
                             color: isDark ? Colors.white70 : Colors.grey.shade700,
@@ -450,7 +502,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
               ),
             ),
           ),
-          if (_isExpanded && _explanations.isNotEmpty)
+          if (_isExpanded && explanations.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
               child: Column(
@@ -458,27 +510,46 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                 children: [
                   Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
                   const SizedBox(height: 6),
-                  ..._explanations.map((expData) {
-                    final expMap = expData as Map<String, dynamic>;
+                  ...explanations.map((expData) {
+                    final expMap = expData is Map<String, dynamic> ? expData : <String, dynamic>{};
                     final expText = expMap['text'] as String? ?? '';
                     final expImgKey = expMap['imageKey'] as String?;
 
-                     return Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         _buildResultMathWidget(
-                           expText,
-                           textStyle: TextStyle(
-                             fontSize: 13.5,
-                             color: isDark ? Colors.white70 : Colors.black87,
-                             fontWeight: FontWeight.w500,
-                           ),
-                         ),
-                         if (expImgKey != null && expImgKey.isNotEmpty)
-                           _buildQuestionImage(expImgKey),
-                       ],
-                     );
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildResultMathWidget(
+                          expText,
+                          textStyle: TextStyle(
+                            fontSize: 13.5,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (expImgKey != null && expImgKey.isNotEmpty)
+                          _buildQuestionImage(expImgKey),
+                      ],
+                    );
                   }),
+                ],
+              ),
+            )
+          else if (_isExpanded && explanations.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'কোনো ব্যাখ্যা পাওয়া যায়নি।',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -607,6 +678,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
       ref.invalidate(userProfileProvider);
       ref.invalidate(leaderboardProvider);
       ref.invalidate(myLeaderboardProvider);
+      ref.read(dailyQuotaProvider.notifier).refreshQuota();
     });
   }
 
@@ -615,15 +687,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
     final resultAsync = widget.isPreview
         ? ref.watch(examDetailsProvider(widget.examId ?? ''))
         : ref.watch(examResultProvider(widget.sessionId ?? ''));
-
-    ref.listen<AsyncValue<Map<String, dynamic>>>(explanationQuotaProvider, (previous, next) {
-      next.whenOrNull(
-        data: (quotaData) {
-          final remainingDaily = (quotaData['remainingDaily'] as num?)?.toInt() ?? 0;
-          ref.read(dailyQuotaProvider.notifier).setQuota(remainingDaily);
-        },
-      );
-    });
 
     return resultAsync.when(
       loading: () => const _SkeletonResultScreen(),
@@ -662,13 +725,6 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
         final score = (data['score'] as num?)?.toDouble() ?? 0.0;
         final timeTakenSeconds = (data['timeTaken'] as num?)?.toInt() ?? 0;
         final timeTakenMinutes = (timeTakenSeconds / 60).round();
-
-        final initialQuota = ref.read(explanationQuotaProvider).value?['remainingDaily'] as int?;
-        if (initialQuota != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(dailyQuotaProvider.notifier).setQuota(initialQuota);
-          });
-        }
 
         // Points earned (1 point per correct answer)
         final points = correctCount;
@@ -1070,11 +1126,13 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                       final item = filteredItems[index];
                       final eqItem = item['eqItem'] as Map<String, dynamic>;
                       final originalIndex = item['originalIndex'] as int;
+                      final qData = (eqItem['question'] as Map<String, dynamic>?) ?? {};
+                      final qId = (qData['id'] ?? eqItem['questionId'] ?? '$originalIndex').toString();
                       return _QuestionReviewCard(
+                        key: ValueKey('review_card_$qId'),
                         eqItem: eqItem,
                         index: originalIndex,
                         answersMap: answersMap,
-                        remainingQuota: ref.watch(dailyQuotaProvider),
                       );
                     },
                   ),
@@ -1792,21 +1850,21 @@ class _QuestionReviewCard extends ConsumerStatefulWidget {
   final Map<String, dynamic> eqItem;
   final int index;
   final Map<String, Map<String, dynamic>> answersMap;
-  final int remainingQuota;
+  final int? remainingQuota;
 
   const _QuestionReviewCard({
     super.key,
     required this.eqItem,
     required this.index,
     required this.answersMap,
-    required this.remainingQuota,
+    this.remainingQuota,
   });
 
   @override
   ConsumerState<_QuestionReviewCard> createState() => _QuestionReviewCardState();
 }
 
-class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
+class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with AutomaticKeepAliveClientMixin {
   bool _isUnlocked = false;
   bool _isLoading = false;
   String? _activeSubKey;
@@ -1819,6 +1877,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
     'F': false,
   };
   final Map<String, String> _parsedExplanations = {};
+
+  @override
+  bool get wantKeepAlive => _isUnlocked || _subExplanationExpanded.values.any((v) => v);
 
   String _toBengaliDigit(dynamic number) {
     if (number == null) return '০';
@@ -2128,7 +2189,12 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
   }
 
   Future<void> _toggleSubExplanation(String questionId, String subKey) async {
-    if (_isUnlocked) {
+    final cachedCq = ref.read(unlockedCqExplanationsProvider)[questionId];
+    if (_isUnlocked || cachedCq != null) {
+      if (cachedCq != null && _parsedExplanations.isEmpty) {
+        _parsedExplanations.addAll(cachedCq);
+        _isUnlocked = true;
+      }
       setState(() {
         _subExplanationExpanded[subKey] = !(_subExplanationExpanded[subKey] ?? false);
       });
@@ -2163,6 +2229,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
           }
         }
 
+        ref.read(unlockedCqExplanationsProvider.notifier).update((m) => {...m, questionId: Map.from(_parsedExplanations)});
+
         setState(() {
           _isUnlocked = true;
           _subExplanationExpanded[subKey] = true;
@@ -2176,6 +2244,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
           _isLoading = false;
           _activeSubKey = null;
         });
+        ref.read(dailyQuotaProvider.notifier).refreshQuota();
         _showLimitDialog(context);
       }
     }
@@ -2183,6 +2252,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final qData = (widget.eqItem['question'] as Map<String, dynamic>?) ?? {};
     final qId = (qData['id'] ?? widget.eqItem['questionId']) as String? ?? '';
     final questionText = qData['questionText'] as String? ?? '';
@@ -2449,8 +2519,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
                         (subQ['explanations'] != null && (subQ['explanations'] as List).isNotEmpty)) ...[
                       const SizedBox(height: 6),
                       _ExplanationCard(
+                        key: ValueKey('sub_exp_$subQId'),
                         questionId: subQId,
-                        remainingQuota: widget.remainingQuota,
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -2867,8 +2937,8 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> {
           if (qData['hasExplanation'] == true || 
               (qData['explanations'] != null && (qData['explanations'] as List).isNotEmpty)) ...[
             _ExplanationCard(
+              key: ValueKey('exp_$qId'),
               questionId: qId,
-              remainingQuota: widget.remainingQuota,
             ),
             const SizedBox(height: 12),
           ],

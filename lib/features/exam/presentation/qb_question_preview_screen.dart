@@ -577,10 +577,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(explanationQuotaProvider.future).then((quotaMap) {
-        final remaining = (quotaMap['remainingDaily'] as num?)?.toInt() ?? 10;
-        ref.read(dailyQuotaProvider.notifier).setQuota(remaining);
-      }).catchError((_) {});
+      ref.read(dailyQuotaProvider.notifier).refreshQuota();
     });
   }
 
