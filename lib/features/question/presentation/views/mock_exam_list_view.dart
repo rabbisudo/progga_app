@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../academics/data/academics_repository.dart';
 import '../../../profile/presentation/profile_notifier.dart';
@@ -65,6 +66,27 @@ class MockExamListView extends ConsumerWidget {
           );
         }
 
+        // Precache subject icons so they are loaded instantly from disk/memory cache with 0 delay
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          for (final sub in subjects) {
+            if (sub is Map) {
+              final rawIcon = sub['icon'] as String?;
+              final rawImageUrl = sub['imageUrl'] as String?;
+              final url = (rawIcon != null && (rawIcon.startsWith('http://') || rawIcon.startsWith('https://')))
+                  ? rawIcon
+                  : ((rawImageUrl != null && rawImageUrl.isNotEmpty && (rawImageUrl.startsWith('http://') || rawImageUrl.startsWith('https://')))
+                      ? rawImageUrl
+                      : null);
+              if (url != null && url.isNotEmpty) {
+                precacheImage(
+                  CachedNetworkImageProvider(url, maxHeight: 66, maxWidth: 66),
+                  context,
+                );
+              }
+            }
+          }
+        });
+
         return ListView.separated(
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 16.0)),
@@ -111,12 +133,16 @@ class MockExamListView extends ConsumerWidget {
                       ),
                       child: Center(
                         child: iconImageUrl != null
-                            ? Image.network(
-                                iconImageUrl,
+                            ? CachedNetworkImage(
+                                imageUrl: iconImageUrl,
                                 width: 22,
                                 height: 22,
+                                memCacheWidth: 66,
+                                memCacheHeight: 66,
                                 fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) => Text(
+                                filterQuality: FilterQuality.medium,
+                                fadeInDuration: const Duration(milliseconds: 150),
+                                errorWidget: (context, error, stackTrace) => Text(
                                   emojiIcon,
                                   style: const TextStyle(fontSize: 18),
                                 ),
