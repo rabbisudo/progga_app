@@ -20,29 +20,40 @@ class SpacedRepetitionWidget extends ConsumerStatefulWidget {
 }
 
 class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget> {
+  late List<dynamic> _sessionCards;
   int _currentIndex = 0;
   String? _selectedOptionId;
   bool _hasAnswered = false;
   final Map<String, Widget> _mathWidgetCache = {};
 
   @override
+  void initState() {
+    super.initState();
+    _sessionCards = List.from(widget.cards);
+  }
+
+  @override
   void didUpdateWidget(covariant SpacedRepetitionWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_currentIndex >= widget.cards.length) {
-      _currentIndex = 0;
-      _selectedOptionId = null;
-      _hasAnswered = false;
+    // Only refresh session cards if previous session completed or was empty
+    if ((_sessionCards.isEmpty || _currentIndex >= _sessionCards.length) && widget.cards.isNotEmpty) {
+      setState(() {
+        _sessionCards = List.from(widget.cards);
+        _currentIndex = 0;
+        _selectedOptionId = null;
+        _hasAnswered = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.cards.isEmpty || _currentIndex >= widget.cards.length) {
+    if (_sessionCards.isEmpty || _currentIndex >= _sessionCards.length) {
       return const SizedBox.shrink();
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final card = widget.cards[_currentIndex];
+    final card = _sessionCards[_currentIndex];
     final question = card['question'];
     if (question == null) return const SizedBox.shrink();
 
@@ -51,8 +62,22 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
     if (!isTypeMcq || options.length < 2) return const SizedBox.shrink();
 
     final questionText = question['questionText'] ?? 'প্রশ্ন';
+
+    // Flexible explanation extraction
     final explanations = question['explanations'] as List<dynamic>? ?? [];
-    final explanationText = explanations.isNotEmpty ? explanations[0]['text'] : null;
+    String? explanationText;
+    String? explanationImageKey;
+    if (explanations.isNotEmpty) {
+      final first = explanations[0];
+      if (first is Map) {
+        explanationText = first['text']?.toString();
+        explanationImageKey = first['imageKey']?.toString();
+      } else if (first is String) {
+        explanationText = first;
+      }
+    } else if (question['explanation'] != null) {
+      explanationText = question['explanation'].toString();
+    }
 
     final isQB = question['isQB'] ?? false;
     final consecutiveCorrect = card['consecutiveCorrect'] ?? 0;
@@ -60,6 +85,17 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
 
     final isSelectedCorrect = _hasAnswered && _selectedOptionId != null &&
         options.any((o) => o['id'] == _selectedOptionId && o['isCorrect'] == true);
+
+    // Identify correct option
+    final correctOption = options.firstWhere(
+      (o) => o['isCorrect'] == true,
+      orElse: () => null,
+    );
+    const optionPrefixes = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
+    final correctOptionIndex = correctOption != null ? options.indexOf(correctOption) : -1;
+    final correctPrefix = correctOptionIndex >= 0 && correctOptionIndex < optionPrefixes.length
+        ? optionPrefixes[correctOptionIndex]
+        : '';
     
     final feedbackBgColor = isSelectedCorrect
         ? const Color(0xFF017A47).withOpacity(isDark ? 0.08 : 0.04)
@@ -117,19 +153,19 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
+                      const Text(
                         'স্পেসড রিপিটেশন রিভিশন 🧠',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF017A47),
+                          color: Color(0xFF017A47),
                           fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
                     ],
                   ),
                   Text(
-                    '${toBengali((_currentIndex + 1).toString())}/${toBengali(widget.cards.length.toString())}',
+                    '${toBengali((_currentIndex + 1).toString())}/${toBengali(_sessionCards.length.toString())}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -141,7 +177,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
               ),
               const SizedBox(height: 12),
 
-              // Anki Context Tip
+              // Context Tip
               Text(
                 consecutiveCorrect == 0
                     ? 'আগে এই প্রশ্নটি ভুল করেছিলেন। আজ মনে আছে তো?'
@@ -177,8 +213,8 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                 final optionId = opt['id'];
                 final optionText = opt['optionText'] ?? '';
                 final isCorrect = opt['isCorrect'] as bool? ?? false;
+                final isUserSelected = _selectedOptionId == optionId;
 
-                final optionPrefixes = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
                 final prefix = index < optionPrefixes.length ? optionPrefixes[index] : '';
 
                 Color tileColor = Colors.transparent;
@@ -186,18 +222,31 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                 
                 Color prefixBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
                 Color prefixTextColor = isDark ? Colors.white70 : Colors.black54;
+                Widget? statusIcon;
 
                 if (_hasAnswered) {
                   if (isCorrect) {
-                    tileColor = const Color(0xFF017A47).withOpacity(isDark ? 0.08 : 0.04);
-                    borderColor = const Color(0xFF017A47).withOpacity(0.3);
+                    // Correct answer always highlighted in Green
+                    tileColor = const Color(0xFF017A47).withOpacity(isDark ? 0.12 : 0.07);
+                    borderColor = const Color(0xFF017A47).withOpacity(0.4);
                     prefixBgColor = const Color(0xFF017A47);
                     prefixTextColor = Colors.white;
-                  } else if (_selectedOptionId == optionId) {
-                    tileColor = const Color(0xFFD32F2F).withOpacity(isDark ? 0.08 : 0.04);
-                    borderColor = const Color(0xFFD32F2F).withOpacity(0.3);
+                    statusIcon = const Icon(
+                      Icons.check_circle_rounded,
+                      color: Color(0xFF017A47),
+                      size: 20,
+                    );
+                  } else if (isUserSelected) {
+                    // Wrong selection highlighted in Red
+                    tileColor = const Color(0xFFD32F2F).withOpacity(isDark ? 0.12 : 0.07);
+                    borderColor = const Color(0xFFD32F2F).withOpacity(0.4);
                     prefixBgColor = const Color(0xFFD32F2F);
                     prefixTextColor = Colors.white;
+                    statusIcon = const Icon(
+                      Icons.cancel_rounded,
+                      color: Color(0xFFD32F2F),
+                      size: 20,
+                    );
                   }
                 }
 
@@ -212,7 +261,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                               _hasAnswered = true;
                             });
 
-                            // Submit to spaced repetition engine
+                            // Submit to spaced repetition engine in background without resetting active card
                             ref.read(spacedRepetitionProvider.notifier).submitAttempt(
                                   questionId: isQB ? null : question['id'],
                                   qbQuestionId: isQB ? question['id'] : null,
@@ -261,6 +310,10 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                               fontSize: 13,
                             ),
                           ),
+                          if (statusIcon != null) ...[
+                            const SizedBox(width: 8),
+                            statusIcon,
+                          ],
                         ],
                       ),
                     ),
@@ -272,7 +325,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
               if (_hasAnswered) ...[
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: feedbackBgColor,
                     borderRadius: BorderRadius.circular(16),
@@ -284,50 +337,121 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Interval calculation tip
+                      // Status row
                       Row(
                         children: [
                           Icon(
                             isSelectedCorrect ? Icons.verified_rounded : Icons.info_outline_rounded,
                             color: isSelectedCorrect ? const Color(0xFF017A47) : const Color(0xFFD32F2F),
-                            size: 16,
+                            size: 18,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isSelectedCorrect
-                                ? 'অভিনন্দন! পরবর্তী রিভিশন ${toBengali((interval * 2).clamp(3, 30).toString())} দিন পর।'
-                                : 'ভুল হয়েছে। আগামীকাল এটি আবার প্র্যাকটিস করবেন।',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: isSelectedCorrect ? const Color(0xFF017A47) : const Color(0xFFD32F2F),
-                              fontFamily: 'Li Ador Noirrit',
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              isSelectedCorrect
+                                  ? 'অভিনন্দন! আপনার উত্তর সঠিক হয়েছে।'
+                                  : 'আপনার উত্তর ভুল হয়েছে।',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: isSelectedCorrect ? const Color(0xFF017A47) : const Color(0xFFD32F2F),
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      if (explanationText != null && explanationText.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'ব্যাখ্যা:',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white54 : Colors.black54,
-                            fontFamily: 'Li Ador Noirrit',
+                      const SizedBox(height: 4),
+                      Text(
+                        isSelectedCorrect
+                            ? 'পরবর্তী রিভিশন ${toBengali((interval * 2).clamp(3, 30).toString())} দিন পর।'
+                            : 'আগামীকাল এই প্রশ্নটি পুনরায় প্র্যাকটিস করবেন।',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white38 : Colors.black54,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                      ),
+
+                      // Highlight Correct Answer if user selected wrong
+                      if (!isSelectedCorrect && correctOption != null) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF017A47).withOpacity(isDark ? 0.12 : 0.07),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: const Color(0xFF017A47).withOpacity(0.25),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'সঠিক উত্তর: ',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF017A47),
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  '$correctPrefix. ${correctOption['optionText'] ?? ''}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF017A47),
+                                    fontFamily: 'Li Ador Noirrit',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 3),
+                      ],
+
+                      // Explanation section
+                      if (explanationText != null && explanationText.trim().isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline_rounded,
+                              size: 15,
+                              color: isDark ? const Color(0xFFF59E0B) : const Color(0xFFD97706),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'ব্যাখ্যা:',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
                         _buildMathWidget(
                           explanationText,
                           textStyle: TextStyle(
                             fontSize: 11.5,
-                            color: isDark ? Colors.white38 : Colors.black45,
-                            height: 1.35,
+                            color: isDark ? Colors.white60 : Colors.black87,
+                            height: 1.4,
                           ),
-                          mathColor: isDark ? Colors.white60 : Colors.black54,
+                          mathColor: isDark ? Colors.white70 : Colors.black87,
                           fontSize: 11.5,
                         ),
+                        if (explanationImageKey != null && explanationImageKey.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          _buildQuestionImage(explanationImageKey),
+                        ],
                       ],
                     ],
                   ),
@@ -340,7 +464,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                   children: [
                     BouncingCard(
                       onTap: () {
-                        if (_currentIndex + 1 < widget.cards.length) {
+                        if (_currentIndex + 1 < _sessionCards.length) {
                           setState(() {
                             _currentIndex += 1;
                             _selectedOptionId = null;
@@ -360,7 +484,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              _currentIndex + 1 < widget.cards.length ? 'পরবর্তী প্রশ্ন' : 'রিভিউ সম্পন্ন',
+                              _currentIndex + 1 < _sessionCards.length ? 'পরবর্তী প্রশ্ন' : 'রিভিউ সম্পন্ন',
                               style: const TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
@@ -369,8 +493,10 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward_rounded,
+                            Icon(
+                              _currentIndex + 1 < _sessionCards.length
+                                  ? Icons.arrow_forward_rounded
+                                  : Icons.check_circle_rounded,
                               color: Colors.white,
                               size: 14,
                             ),

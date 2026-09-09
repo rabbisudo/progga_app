@@ -300,6 +300,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   return SpacedRepetitionWidget(
                     cards: validMcqCards,
                     onFinished: () {
+                      ref.read(spacedRepetitionProvider.notifier).clearAnsweredFromState();
                       ref.read(spacedRepetitionProvider.notifier).refresh();
                     },
                   );

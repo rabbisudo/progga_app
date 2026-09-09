@@ -80,21 +80,17 @@ class SpacedRepetitionNotifier extends AsyncNotifier<List<dynamic>> {
     if (questionId != null) _answeredQuestionIds.add(questionId);
     if (qbQuestionId != null) _answeredQuestionIds.add(qbQuestionId);
 
+    // Update Hive cache so answered cards won't be returned on next launch or fetch
+    final hiveService = ref.read(hiveServiceProvider);
     final currentList = state.value ?? [];
-    
-    // Immediately remove the answered card from the active list for instant local feedback
     final updatedList = currentList.where((card) {
       final q = card['question'];
       if (q == null) return true;
-      final qId = q['id'];
+      final qId = q['id']?.toString();
       if (questionId != null && qId == questionId) return false;
       if (qbQuestionId != null && qId == qbQuestionId) return false;
       return true;
     }).toList();
-
-    state = AsyncValue.data(updatedList);
-    
-    final hiveService = ref.read(hiveServiceProvider);
     await hiveService.cacheList('spaced_repetition_pending', updatedList);
 
     // Call server API in background to save attempt
@@ -108,6 +104,12 @@ class SpacedRepetitionNotifier extends AsyncNotifier<List<dynamic>> {
     } catch (_) {
       // Offline fallback: update local scheduling if API fails
     }
+  }
+
+  void clearAnsweredFromState() {
+    final currentList = state.value ?? [];
+    final updatedList = currentList.where(_isValidAndUnanswered).toList();
+    state = AsyncValue.data(updatedList);
   }
 
   Future<void> refresh() async {
