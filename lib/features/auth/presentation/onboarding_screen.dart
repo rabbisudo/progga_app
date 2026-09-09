@@ -237,7 +237,60 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _submitOnboarding() async {
-    if (_nameController.text.trim().isEmpty) return;
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('অনুগ্রহ করে আপনার নাম দিন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _step = 1);
+      return;
+    }
+
+    if (_selectedClassModel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('অনুগ্রহ করে শ্রেণী নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _step = 2);
+      return;
+    }
+
+    if (_selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty && _selectedGroupModel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('অনুগ্রহ করে বিভাগ / গ্রুপ নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _step = 3);
+      return;
+    }
+
+    List<AcademicBatchModel> availableBatches = [];
+    if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
+      availableBatches = _selectedGroupModel!.batches;
+    } else if (_selectedClassModel!.batches.isNotEmpty) {
+      availableBatches = _selectedClassModel!.batches;
+    }
+
+    if (availableBatches.isNotEmpty && _selectedBatchModel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('অনুগ্রহ করে ব্যাচ নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _step = 4);
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -250,8 +303,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         'birthday': _selectedBirthday?.toUtc().toIso8601String(),
         'address': _addressController.text.trim(),
         'institution': '',
-        'className': _selectedClassModel?.name ?? _selectedClass,
-        'classId': _selectedClassModel?.id,
+        'className': _selectedClassModel!.name,
+        'classId': _selectedClassModel!.id,
         'groupId': _selectedGroupModel?.id,
         'batchId': _selectedBatchModel?.id,
         'targetExam': _selectedGroupModel?.name ?? _selectedGroup ?? '',
@@ -263,7 +316,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ত্রুটি ঘটেছে: $e')),
+          SnackBar(
+            content: Text('ত্রুটি ঘটেছে: $e', style: const TextStyle(fontFamily: 'Li Ador Noirrit')),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -1256,6 +1313,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
     }
 
+    List<AcademicBatchModel> availableBatches = [];
+    if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
+      availableBatches = _selectedGroupModel!.batches;
+    } else if (_selectedClassModel != null && _selectedClassModel!.batches.isNotEmpty) {
+      availableBatches = _selectedClassModel!.batches;
+    }
+
+    final bool isClassSelected = _selectedClassModel != null;
+    final bool isGroupSelected = !(_selectedClassModel != null && _selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty) || _selectedGroupModel != null;
+    final bool isBatchSelected = availableBatches.isEmpty || _selectedBatchModel != null;
+    final bool isAllValid = isClassSelected && isGroupSelected && isBatchSelected && _nameController.text.trim().isNotEmpty;
+    final bool canSubmit = !_isSubmitting && isAllValid;
+
     // Step 5: Summary and Final Welcome Screen
     return Column(
       children: [
@@ -1277,21 +1347,40 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSummaryRow('নাম:', _nameController.text.trim()),
+              _buildSummaryRow('নাম:', _nameController.text.trim(), onTap: () => setState(() => _step = 1)),
               Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              _buildSummaryRow('লিঙ্গ:', _selectedGender),
+              _buildSummaryRow('লিঙ্গ:', _selectedGender, onTap: () => setState(() => _step = 1)),
               if (_selectedBirthday != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_selectedBirthday != null)
-                _buildSummaryRow('জন্মতারিখ:', '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'),
+                _buildSummaryRow('জন্মতারিখ:', '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}', onTap: () => setState(() => _step = 1)),
               if (_addressController.text.trim().isNotEmpty) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
               if (_addressController.text.trim().isNotEmpty)
-                _buildSummaryRow('ঠিকানা:', _addressController.text.trim()),
+                _buildSummaryRow('ঠিকানা:', _addressController.text.trim(), onTap: () => setState(() => _step = 1)),
               Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              _buildSummaryRow('শ্রেণী:', _selectedClass ?? 'নির্বাচন করা হয়নি'),
-              if (_selectedGroup != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              if (_selectedGroup != null) _buildSummaryRow('বিভাগ:', _selectedGroup!),
-              if (_selectedBatch != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              if (_selectedBatch != null) _buildSummaryRow('ব্যাচ:', _selectedBatch!),
+              _buildSummaryRow(
+                'শ্রেণী:',
+                _selectedClass ?? 'নির্বাচন করা আবশ্যক *',
+                isMissing: _selectedClass == null,
+                onTap: () => setState(() => _step = 2),
+              ),
+              if (_selectedClassModel?.hasGroup == true && _selectedClassModel!.groups.isNotEmpty) ...[
+                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
+                _buildSummaryRow(
+                  'বিভাগ:',
+                  _selectedGroup ?? 'নির্বাচন করা আবশ্যক *',
+                  isMissing: _selectedGroup == null,
+                  onTap: () => setState(() => _step = 3),
+                ),
+              ],
+              if (availableBatches.isNotEmpty) ...[
+                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
+                _buildSummaryRow(
+                  'ব্যাচ:',
+                  _selectedBatch ?? 'নির্বাচন করা আবশ্যক *',
+                  isMissing: _selectedBatch == null,
+                  onTap: () => setState(() => _step = 4),
+                ),
+              ],
             ],
           ),
         ),
@@ -1300,10 +1389,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           width: double.infinity,
           height: 52,
           child: ElevatedButton(
-            onPressed: !_isSubmitting ? _submitOnboarding : null,
+            onPressed: canSubmit ? _submitOnboarding : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF017A47),
-              elevation: 4,
+              disabledBackgroundColor: const Color(0xFFE0E0E0),
+              disabledForegroundColor: Colors.black38,
+              elevation: canSubmit ? 4 : 0,
               shadowColor: const Color(0xFF017A47).withOpacity(0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -1315,31 +1406,68 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     height: 24,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
                   )
-                : const Text(
+                : Text(
                     'শুরু করি!',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: canSubmit ? Colors.white : Colors.black38,
+                    ),
                   ),
           ),
         ),
+        if (!isAllValid && !_isSubmitting) ...[
+          const SizedBox(height: 10),
+          const Text(
+            '* শ্রেণী, বিভাগ ও ব্যাচ নির্বাচন সম্পন্ন করতে উপরের সারিতে ট্যাপ করুন',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.redAccent,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF263238)),
-          ),
-        ],
+  Widget _buildSummaryRow(String label, String value, {bool isMissing = false, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: isMissing ? Colors.redAccent : const Color(0xFF263238),
+                  ),
+                ),
+                if (onTap != null) ...[
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.edit_outlined,
+                    size: 14,
+                    color: isMissing ? Colors.redAccent : Colors.black38,
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

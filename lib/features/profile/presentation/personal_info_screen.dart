@@ -31,6 +31,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   bool _isSaving = false;
   bool _isInitialized = false;
   bool _isAcademicsInitialized = false;
+  bool _showValidationErrors = false;
 
   static const Color brandTealColor = Color(0xFF086057); // Deep teal color
 
@@ -56,12 +57,28 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         _selectedClass = classes.firstWhere((c) => c.id == profile.classId);
       } catch (_) {}
     }
+    if (_selectedClass == null && profile.className != null && profile.className!.trim().isNotEmpty) {
+      try {
+        _selectedClass = classes.firstWhere(
+          (c) => c.name.trim().toLowerCase() == profile.className!.trim().toLowerCase(),
+        );
+      } catch (_) {}
+    }
 
     // 2. Initialize Group
-    if (_selectedClass != null && profile.groupId != null) {
-      try {
-        _selectedGroup = _selectedClass!.groups.firstWhere((g) => g.id == profile.groupId);
-      } catch (_) {}
+    if (_selectedClass != null) {
+      if (profile.groupId != null) {
+        try {
+          _selectedGroup = _selectedClass!.groups.firstWhere((g) => g.id == profile.groupId);
+        } catch (_) {}
+      }
+      if (_selectedGroup == null && profile.targetExam != null && profile.targetExam!.trim().isNotEmpty) {
+        try {
+          _selectedGroup = _selectedClass!.groups.firstWhere(
+            (g) => g.name.trim().toLowerCase() == profile.targetExam!.trim().toLowerCase(),
+          );
+        } catch (_) {}
+      }
     }
 
     // 3. Initialize Batch
@@ -74,6 +91,22 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       if (_selectedBatch == null && _selectedClass != null) {
         try {
           _selectedBatch = _selectedClass!.batches.firstWhere((b) => b.id == profile.batchId);
+        } catch (_) {}
+      }
+    }
+    if (_selectedBatch == null && profile.batch != null && profile.batch!.trim().isNotEmpty) {
+      if (_selectedGroup != null) {
+        try {
+          _selectedBatch = _selectedGroup!.batches.firstWhere(
+            (b) => b.name.trim().toLowerCase() == profile.batch!.trim().toLowerCase(),
+          );
+        } catch (_) {}
+      }
+      if (_selectedBatch == null && _selectedClass != null) {
+        try {
+          _selectedBatch = _selectedClass!.batches.firstWhere(
+            (b) => b.name.trim().toLowerCase() == profile.batch!.trim().toLowerCase(),
+          );
         } catch (_) {}
       }
     }
@@ -140,7 +173,53 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formValid = _formKey.currentState?.validate() ?? false;
+
+    final availableClasses = ref.read(activeClassesProvider).value ?? [];
+    bool hasAcademicError = false;
+    String? academicErrorMessage;
+
+    if (availableClasses.isNotEmpty) {
+      if (_selectedClass == null) {
+        hasAcademicError = true;
+        academicErrorMessage = 'অনুগ্রহ করে শ্রেণী নির্বাচন করুন';
+      } else {
+        final availableGroups = _selectedClass!.groups;
+        if (availableGroups.isNotEmpty && _selectedGroup == null) {
+          hasAcademicError = true;
+          academicErrorMessage = 'অনুগ্রহ করে বিভাগ / গ্রুপ নির্বাচন করুন';
+        } else {
+          List<AcademicBatchModel> availableBatches = [];
+          if (_selectedGroup != null && _selectedGroup!.batches.isNotEmpty) {
+            availableBatches = _selectedGroup!.batches;
+          } else if (_selectedClass!.batches.isNotEmpty) {
+            availableBatches = _selectedClass!.batches;
+          }
+
+          if (availableBatches.isNotEmpty && _selectedBatch == null) {
+            hasAcademicError = true;
+            academicErrorMessage = 'অনুগ্রহ করে ব্যাচ নির্বাচন করুন';
+          }
+        }
+      }
+    }
+
+    if (!formValid || hasAcademicError) {
+      setState(() => _showValidationErrors = true);
+      if (academicErrorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              academicErrorMessage,
+              style: const TextStyle(fontFamily: 'Li Ador Noirrit'),
+            ),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
 
     setState(() => _isSaving = true);
     try {
@@ -186,12 +265,12 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
+          const SnackBar(
+            content: Text(
               'প্রোফাইল সফলভাবে আপডেট করা হয়েছে!',
               style: TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
-            backgroundColor: const Color(0xFF017A47),
+            backgroundColor: Color(0xFF017A47),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -249,6 +328,36 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
             _initializeAcademics(profile, activeClassesAsync.value!);
           }
 
+          final availableClasses = activeClassesAsync.value ?? [];
+          
+          bool isAcademicComplete = true;
+          if (availableClasses.isNotEmpty) {
+            if (_selectedClass == null) {
+              isAcademicComplete = false;
+            } else {
+              final availableGroups = _selectedClass!.groups;
+              if (availableGroups.isNotEmpty && _selectedGroup == null) {
+                isAcademicComplete = false;
+              } else {
+                List<AcademicBatchModel> availableBatches = [];
+                if (_selectedGroup != null && _selectedGroup!.batches.isNotEmpty) {
+                  availableBatches = _selectedGroup!.batches;
+                } else if (_selectedClass!.batches.isNotEmpty) {
+                  availableBatches = _selectedClass!.batches;
+                }
+
+                if (availableBatches.isNotEmpty && _selectedBatch == null) {
+                  isAcademicComplete = false;
+                }
+              }
+            }
+          } else if (activeClassesAsync.isLoading) {
+            isAcademicComplete = false;
+          }
+
+          final bool isNameFilled = _nameController.text.trim().isNotEmpty;
+          final bool canSave = !_isSaving && isAcademicComplete && isNameFilled;
+
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -262,6 +371,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                     context: context,
                     controller: _nameController,
                     label: 'পূর্ণ নাম',
+                    onChanged: (val) => setState(() {}),
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
                         return 'নাম দেওয়া আবশ্যক';
@@ -332,10 +442,22 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                         availableBatches = _selectedClass!.batches;
                       }
 
+                      final String? classError = (_showValidationErrors && _selectedClass == null)
+                          ? 'শ্রেণী নির্বাচন করা আবশ্যক'
+                          : null;
+
+                      final String? groupError = (_showValidationErrors && availableGroups.isNotEmpty && _selectedGroup == null)
+                          ? 'বিভাগ / গ্রুপ নির্বাচন করা আবশ্যক'
+                          : null;
+
+                      final String? batchError = (_showValidationErrors && availableBatches.isNotEmpty && _selectedBatch == null)
+                          ? 'ব্যাচ নির্বাচন করা আবশ্যক'
+                          : null;
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildSectionHeader('অ্যাকাডেমিক বিবরণী', theme),
+                          _buildSectionHeader('অ্যাকাডেমিক বিবরণী', theme, isRequired: true),
                           const SizedBox(height: 12),
                           _buildTextField(
                             context: context,
@@ -346,8 +468,10 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                           _buildCustomDropdown<AcademicClassModel>(
                             context: context,
                             label: 'শ্রেণী',
+                            isRequired: true,
                             value: _selectedClass,
-                            hintText: profile.className ?? 'শ্রেণী নির্বাচন করুন',
+                            hintText: 'শ্রেণী নির্বাচন করুন',
+                            errorText: classError,
                             items: classes
                                 .map((c) => DropdownMenuItem(
                                       value: c,
@@ -370,8 +494,10 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             _buildCustomDropdown<SubjectGroupModel>(
                               context: context,
                               label: 'বিভাগ / গ্রুপ',
+                              isRequired: true,
                               value: _selectedGroup,
-                              hintText: profile.targetExam ?? 'বিভাগ নির্বাচন করুন',
+                              hintText: 'বিভাগ নির্বাচন করুন',
+                              errorText: groupError,
                               items: availableGroups
                                   .map((g) => DropdownMenuItem(
                                         value: g,
@@ -394,8 +520,10 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                             _buildCustomDropdown<AcademicBatchModel>(
                               context: context,
                               label: 'ব্যাচ',
+                              isRequired: true,
                               value: _selectedBatch,
-                              hintText: profile.batch ?? 'ব্যাচ নির্বাচন করুন',
+                              hintText: 'ব্যাচ নির্বাচন করুন',
+                              errorText: batchError,
                               items: availableBatches
                                   .map((b) => DropdownMenuItem(
                                         value: b,
@@ -418,11 +546,13 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _isSaving ? null : _save,
+                      onPressed: canSave ? _save : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: brandTealColor,
+                        disabledBackgroundColor: isDark ? Colors.white12 : const Color(0xFFE0E0E0),
+                        disabledForegroundColor: isDark ? Colors.white38 : Colors.black38,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                        elevation: canSave ? 2 : 0,
                       ),
                       child: _isSaving
                           ? const SizedBox(
@@ -430,12 +560,32 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                               height: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : const Text(
+                          : Text(
                               'সংরক্ষণ করুন',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15, fontFamily: 'Li Ador Noirrit'),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: canSave ? Colors.white : (isDark ? Colors.white38 : Colors.black38),
+                                fontSize: 15,
+                                fontFamily: 'Li Ador Noirrit',
+                              ),
                             ),
                     ),
                   ),
+                  if (!canSave && !_isSaving) ...[
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Text(
+                        !isAcademicComplete
+                            ? '* শ্রেণী, বিভাগ ও ব্যাচ নির্বাচন করলে বাটন সক্রিয় হবে'
+                            : '* অনুগ্রহ করে আপনার নাম প্রদান করুন',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white54 : Colors.grey.shade600,
+                          fontFamily: 'Li Ador Noirrit',
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                 ],
               ),
@@ -446,18 +596,41 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, ThemeData theme) {
+  Widget _buildSectionHeader(String title, ThemeData theme, {bool isRequired = false}) {
     final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 4.0, bottom: 4.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 13.5,
-          fontWeight: FontWeight.bold,
-          color: isDark ? Colors.grey[400] : Colors.grey.shade700,
-          fontFamily: 'Li Ador Noirrit',
-        ),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.grey[400] : Colors.grey.shade700,
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+          if (isRequired) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'বাধ্যতামূলক',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                  fontFamily: 'Li Ador Noirrit',
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -499,11 +672,13 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     required BuildContext context,
     required TextEditingController controller,
     required String label,
+    ValueChanged<String>? onChanged,
     String? Function(String?)? validator,
   }) {
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
+      onChanged: onChanged,
       style: TextStyle(
         color: theme.textTheme.bodyLarge?.color,
         fontSize: 14,
@@ -521,9 +696,12 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
     required List<DropdownMenuItem<T>> items,
     required ValueChanged<T?> onChanged,
     String? hintText,
+    String? errorText,
+    bool isRequired = false,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final hasError = errorText != null && errorText.isNotEmpty;
 
     String displayText = hintText ?? '';
     if (value != null) {
@@ -540,14 +718,29 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label.isNotEmpty) ...[
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.grey[400] : Colors.grey.shade700,
-              fontFamily: 'Li Ador Noirrit',
-            ),
+          Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.grey[400] : Colors.grey.shade700,
+                  fontFamily: 'Li Ador Noirrit',
+                ),
+              ),
+              if (isRequired) ...[
+                const SizedBox(width: 4),
+                const Text(
+                  '*',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 6),
         ],
@@ -558,7 +751,10 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
             shape: MaterialStateProperty.all(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+                side: BorderSide(
+                  color: hasError ? Colors.redAccent : (isDark ? Colors.white10 : Colors.grey.shade200),
+                  width: hasError ? 1.5 : 1.2,
+                ),
               ),
             ),
             elevation: MaterialStateProperty.all(4),
@@ -579,10 +775,12 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                   color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFF8F9FA),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: controller.isOpen
-                        ? brandTealColor
-                        : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06)),
-                    width: controller.isOpen ? 1.5 : 1.0,
+                    color: hasError
+                        ? Colors.redAccent
+                        : (controller.isOpen
+                            ? brandTealColor
+                            : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06))),
+                    width: (hasError || controller.isOpen) ? 1.5 : 1.0,
                   ),
                 ),
                 child: Row(
@@ -601,7 +799,9 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                     ),
                     Icon(
                       Icons.keyboard_arrow_down_rounded, 
-                      color: isDark ? Colors.white54 : Colors.black45,
+                      color: hasError
+                          ? Colors.redAccent
+                          : (isDark ? Colors.white54 : Colors.black45),
                       size: 20,
                     ),
                   ],
@@ -628,6 +828,26 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
             );
           }).toList(),
         ),
+        if (hasError) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 14, color: Colors.redAccent),
+                const SizedBox(width: 4),
+                Text(
+                  errorText,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.redAccent,
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
