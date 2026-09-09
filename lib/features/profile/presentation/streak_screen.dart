@@ -386,23 +386,16 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              TweenAnimationBuilder<int>(
-                tween: IntTween(begin: 0, end: currentStreak),
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutCubic,
-                builder: (context, val, child) {
-                  return Text(
-                    _toBengaliDigits(val.toString()),
-                    style: TextStyle(
-                      fontSize: 52,
-                      fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : const Color(0xFF111D15),
-                      fontFamily: 'Li Ador Noirrit',
-                      letterSpacing: -1.5,
-                      height: 1,
-                    ),
-                  );
-                },
+              Text(
+                _toBengaliDigits(currentStreak.toString()),
+                style: TextStyle(
+                  fontSize: 52,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : const Color(0xFF111D15),
+                  fontFamily: 'Li Ador Noirrit',
+                  letterSpacing: -1.5,
+                  height: 1,
+                ),
               ),
               const SizedBox(width: 8),
               Text(

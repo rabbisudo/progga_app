@@ -77,7 +77,7 @@ double getFloatingNavBarBottomMargin(BuildContext context) {
   if (bottomInset <= 0) return 8.0;
 
   if (defaultTargetPlatform == TargetPlatform.iOS) {
-    return (bottomInset * 0.44).clamp(12.0, 16.0);
+    return (bottomInset * 0.56).clamp(14.0, 19.5);
   }
 
   // Android 3-button navigation (typically 48dp):
@@ -115,7 +115,7 @@ class PremiumBottomNavBar extends StatelessWidget {
         // 1. Subtle bottom fade starting halfway behind the bar to cleanly conceal the bottom inset
         // without casting any dark shadow or haze over the content above the bar.
         Positioned(
-          top: 10,
+          top: 18,
           left: 0,
           right: 0,
           bottom: 0,
@@ -126,11 +126,11 @@ class PremiumBottomNavBar extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
-                    theme.scaffoldBackgroundColor.withValues(alpha: 0.85),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.12),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.72),
                     theme.scaffoldBackgroundColor,
                   ],
-                  stops: const [0.0, 0.45, 0.8],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
@@ -164,17 +164,17 @@ class PremiumBottomNavBar extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(28),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDark 
-                        ? const Color(0xFF1E1E1E) 
-                        : Colors.white,
+                        ? const Color(0xFF1E1E1E).withValues(alpha: 0.85) 
+                        : Colors.white.withValues(alpha: 0.88),
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(
                       color: isDark 
-                          ? Colors.white.withValues(alpha: 0.08) 
-                          : const Color(0xFFE9ECEF),
+                          ? Colors.white.withValues(alpha: 0.12) 
+                          : const Color(0xFFE9ECEF).withValues(alpha: 0.8),
                       width: 1.0,
                     ),
                   ),

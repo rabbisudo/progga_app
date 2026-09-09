@@ -25,20 +25,23 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
       );
     }
 
-    UserData? initialUser;
-    final currentAuth = ref.read(authProvider);
-    currentAuth.maybeWhen(
-      authenticated: (user, token) {
-        if (user.isNotEmpty) {
-          try {
-            initialUser = UserData.fromJson(user);
-          } catch (_) {}
-        }
-      },
-      orElse: () {},
-    );
+    // 1. Always prioritize the freshest local Hive cache first for 0ms instant UI rendering
+    UserData? initialUser = _loadCachedProfile();
 
-    initialUser ??= _loadCachedProfile();
+    // 2. If Hive cache is empty or incomplete, fall back to authProvider's user data
+    if (initialUser == null || initialUser.id.isEmpty || initialUser.profile == null) {
+      final currentAuth = ref.read(authProvider);
+      currentAuth.maybeWhen(
+        authenticated: (user, token) {
+          if (user.isNotEmpty) {
+            try {
+              initialUser = UserData.fromJson(user);
+            } catch (_) {}
+          }
+        },
+        orElse: () {},
+      );
+    }
 
     if (initialUser != null && initialUser!.id.isNotEmpty && initialUser!.profile != null) {
       // Instant cache hit: return synchronously for 0ms immediate UI render!
@@ -53,7 +56,9 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
   Future<UserData> _fetchFreshInitialProfile(ProfileRepository repository, UserData? fallback) async {
     try {
       final fresh = await repository.fetchMyProfile();
-      _cacheProfile(_toMap(fresh));
+      final map = _toMap(fresh);
+      _cacheProfile(map);
+      ref.read(authProvider.notifier).updateUserData(map);
       return fresh;
     } catch (_) {
       return fallback ?? const UserData(
@@ -68,7 +73,9 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
 
   void _fetchFreshProfileSilently(ProfileRepository repository) {
     repository.fetchMyProfile().then((fresh) {
-      _cacheProfile(_toMap(fresh));
+      final map = _toMap(fresh);
+      _cacheProfile(map);
+      ref.read(authProvider.notifier).updateUserData(map);
       state = AsyncData(fresh);
     }).catchError((_) {
       // Silently ignore background network errors without disturbing local UI
@@ -80,7 +87,9 @@ class ProfileNotifier extends AsyncNotifier<UserData> {
     final repository = ref.read(profileRepositoryProvider);
     try {
       final fresh = await repository.fetchMyProfile();
-      _cacheProfile(_toMap(fresh));
+      final map = _toMap(fresh);
+      _cacheProfile(map);
+      ref.read(authProvider.notifier).updateUserData(map);
       state = AsyncData(fresh);
     } catch (_) {}
   }
