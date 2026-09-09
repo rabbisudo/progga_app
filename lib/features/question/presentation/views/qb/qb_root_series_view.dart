@@ -112,7 +112,7 @@ class QbRootSeriesView extends ConsumerWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(22),
                     border: Border.all(
                       color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
                       width: 1,
@@ -130,26 +130,12 @@ class QbRootSeriesView extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
                   child: Row(
                     children: [
-                      // Left dynamic gradient icon container
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: _getLeftIconGradient(index, isDark),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: _getLeftIconGradient(index, isDark).colors.first.withOpacity(isDark ? 0.15 : 0.22),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          _getLeftIcon(index),
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                      // Leading Thumbnail
+                      QbThumbnailWidget(
+                        seriesMap: firstSeries,
+                        index: index,
+                        size: 50,
+                        borderRadius: 16,
                       ),
                       const SizedBox(width: 14),
                       // Middle Title & Subtitle
@@ -165,7 +151,7 @@ class QbRootSeriesView extends ConsumerWidget {
                                 color: isDark ? Colors.white : Colors.black87,
                                 fontFamily: 'Li Ador Noirrit',
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
@@ -178,7 +164,7 @@ class QbRootSeriesView extends ConsumerWidget {
                                     color: subSeriesListIds.isNotEmpty
                                         ? const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08)
                                         : const Color(0xFF1E88E5).withOpacity(isDark ? 0.16 : 0.08),
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
                                     subtitleText,

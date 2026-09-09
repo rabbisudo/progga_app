@@ -144,8 +144,15 @@ class QbSubSeriesScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
                       color: isDark ? Colors.white.withOpacity(0.08) : textColor.withOpacity(0.15), 
-                      width: 1.5,
+                      width: 1.2,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark ? Colors.black.withOpacity(0.25) : textColor.withOpacity(0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
@@ -202,7 +209,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
           itemBuilder: (context, index) => const ShimmerSkeleton(
             width: double.infinity,
             height: double.infinity,
-            borderRadius: 20,
+            borderRadius: 22,
           ),
         ),
         error: (err, _) => Center(

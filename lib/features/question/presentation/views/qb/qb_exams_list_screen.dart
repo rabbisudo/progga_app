@@ -146,15 +146,15 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                         prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade500, size: 20),
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
                         ),
                         filled: true,
@@ -179,15 +179,15 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                               _searchQuery = '';
                             });
                           },
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF017A47)
+                                   ? const Color(0xFF017A47)
                                   : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5)),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
                                     ? const Color(0xFF017A47)
@@ -289,8 +289,15 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                 margin: const EdgeInsets.only(bottom: 14),
                                 decoration: BoxDecoration(
                                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(22),
                                   border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.025),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -318,7 +325,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                               color: isDark ? const Color(0xFF3D1616) : const Color(0xFFFFF5F5),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(10),
                                               border: Border.all(color: isDark ? const Color(0xFF731D1D) : const Color(0xFFFFE3E3), width: 1),
                                             ),
                                             child: Row(
@@ -347,7 +354,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                               color: isDark ? const Color(0xFF00381C) : const Color(0xFFE6FCF5),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(10),
                                               border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFC3FAE8), width: 1),
                                             ),
                                             child: Row(
@@ -376,7 +383,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                               color: isDark ? const Color(0xFF1E2B5C) : const Color(0xFFEDF2FF),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius: BorderRadius.circular(10),
                                               border: Border.all(color: isDark ? const Color(0xFF2D3B73) : const Color(0xFFDBE4FF), width: 1),
                                             ),
                                             child: Row(
@@ -492,7 +499,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
               child: ShimmerSkeleton(
                 width: MediaQuery.of(context).size.width - 32,
                 height: 44,
-                borderRadius: 12,
+                borderRadius: 16,
               ),
             ),
             Container(
@@ -500,13 +507,13 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: const [
-                  ShimmerSkeleton(width: 55, height: 38, borderRadius: 12),
+                  ShimmerSkeleton(width: 55, height: 38, borderRadius: 16),
                   SizedBox(width: 8),
-                  ShimmerSkeleton(width: 70, height: 38, borderRadius: 12),
+                  ShimmerSkeleton(width: 70, height: 38, borderRadius: 16),
                   SizedBox(width: 8),
-                  ShimmerSkeleton(width: 60, height: 38, borderRadius: 12),
+                  ShimmerSkeleton(width: 60, height: 38, borderRadius: 16),
                   SizedBox(width: 8),
-                  ShimmerSkeleton(width: 65, height: 38, borderRadius: 12),
+                  ShimmerSkeleton(width: 65, height: 38, borderRadius: 16),
                 ],
               ),
             ),
@@ -522,7 +529,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200, width: 1.2),
                 ),
                 child: Column(
@@ -531,7 +538,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     const ShimmerSkeleton(
                       width: 180,
                       height: 16,
-                      borderRadius: 4,
+                      borderRadius: 6,
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -540,27 +547,27 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFFFF5F5),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 4),
                         ),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 3),
+                          child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 4),
                         ),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFEDF2FF),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 3),
+                          child: const ShimmerSkeleton(width: 65, height: 11, borderRadius: 4),
                         ),
                       ],
                     ),
@@ -597,7 +604,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
       isScrollControlled: true,
       backgroundColor: cardColor,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
         return SafeArea(
@@ -614,7 +621,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
               children: [
                 Center(
                   child: Container(
-                    width: 38,
+                    width: 44,
                     height: 4.5,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
@@ -638,7 +645,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20.0),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF121212) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: borderColor, width: 1.5),
                   ),
                   child: Row(
@@ -703,7 +710,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   child: const Text(
@@ -728,7 +735,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFECEFF1).withOpacity(0.5),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
                   icon: const Icon(Icons.remove_red_eye_outlined, size: 18),

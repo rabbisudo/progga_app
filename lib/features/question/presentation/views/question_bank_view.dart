@@ -1,6 +1,7 @@
- import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../academics/data/academics_repository.dart';
 import '../../../profile/presentation/profile_notifier.dart';
@@ -67,7 +68,7 @@ class QuestionBankView extends ConsumerWidget {
                       color: isDark ? Colors.white.withOpacity(0.12) : Colors.grey.shade300,
                       width: 1.2,
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(26),
                   ),
                   child: TabBar(
                     isScrollable: sectionsList.length > 3,
@@ -76,7 +77,7 @@ class QuestionBankView extends ConsumerWidget {
                     overlayColor: WidgetStateProperty.all(Colors.transparent),
                     indicator: BoxDecoration(
                       color: const Color(0xFF017A47),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
                     ),
                     labelColor: Colors.white,
                     unselectedLabelColor: isDark ? Colors.white38 : Colors.black54,
@@ -131,11 +132,40 @@ class QuestionBankView extends ConsumerWidget {
       );
     }
 
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 100.0),
+    // Precache first few images for instant, 120fps stutter-free scroll
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final count = seriesList.length > 8 ? 8 : seriesList.length;
+      for (int i = 0; i < count; i++) {
+        final sMap = seriesList[i] as Map<String, dynamic>;
+        final imgUrl = resolveSeriesImageUrl(sMap);
+        if (imgUrl != null && imgUrl.isNotEmpty) {
+          precacheImage(
+            CachedNetworkImageProvider(
+              imgUrl,
+              maxHeight: 360,
+              maxWidth: 360,
+            ),
+            context,
+          );
+        }
+      }
+    });
+
+    return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      cacheExtent: 600,
+      addAutomaticKeepAlives: true,
+      addRepaintBoundaries: true,
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 14.0, bottom: 100.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 1.0,
+      ),
       itemCount: seriesList.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final seriesMap = seriesList[index] as Map<String, dynamic>;
         final name = seriesMap['name']?.toString() ?? '';
@@ -162,108 +192,36 @@ class QuestionBankView extends ConsumerWidget {
           }
         }
 
-        int itemsCount = subSeriesCount;
-        if (itemsCount == 0) {
-          final labelNameMap = Map<String, dynamic>.from(seriesMap['labelName'] as Map? ?? {});
-          if (labelNameMap.isNotEmpty) {
-            for (final val in labelNameMap.values) {
-              if (val is List) itemsCount += val.length;
-            }
-          }
-        }
-        if (itemsCount == 0) {
-          final examsStr = seriesMap['exams']?.toString() ?? '';
-          if (examsStr.isNotEmpty) {
-            itemsCount = examsStr.split(',').where((x) => x.trim().isNotEmpty).length;
-          }
-        }
-
-        String subtitleText = 'অনুশীলন শুরু করুন';
-        if (subSeriesCount > 0) {
-          subtitleText = '${toBengaliDigits(subSeriesCount.toString())}টি অধ্যায় বা ক্যাটাগরি';
-        } else if (itemsCount > 0) {
-          subtitleText = '${toBengaliDigits(itemsCount.toString())}টি পরীক্ষা রয়েছে';
-        }
-
-        return BouncingCard(
-          onTap: handleNavigation,
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
-                width: 1,
+        return RepaintBoundary(
+          child: BouncingCard(
+            onTap: handleNavigation,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark ? Colors.black.withOpacity(0.25) : Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 14.0),
-            child: Row(
-              children: [
-                // Middle Title & Subtitle
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontFamily: 'Li Ador Noirrit',
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      // Styled info badge
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: subSeriesCount > 0
-                                  ? const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08)
-                                  : const Color(0xFF1E88E5).withOpacity(isDark ? 0.16 : 0.08),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              subtitleText,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: subSeriesCount > 0
-                                    ? const Color(0xFF02A25F)
-                                    : const Color(0xFF1E88E5),
-                                fontFamily: 'Li Ador Noirrit',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Right Chevron Arrow with circular plate
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey.shade50,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.chevron_right_rounded,
-                    color: isDark ? Colors.white30 : Colors.grey.shade400,
-                    size: 18,
-                  ),
-                ),
-              ],
+              clipBehavior: Clip.antiAlias,
+              child: QbThumbnailWidget(
+                seriesMap: seriesMap,
+                index: index,
+                width: double.infinity,
+                height: double.infinity,
+                borderRadius: 22,
+                hasBorder: false,
+                hasShadow: false,
+                memCacheSize: 360,
+              ),
             ),
           ),
         );
@@ -284,47 +242,22 @@ class QuestionBankView extends ConsumerWidget {
     );
   }
 
-
-
   Widget _buildSubjectListSkeleton() {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-      itemCount: 6,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: 8,
       itemBuilder: (context, index) => const ShimmerSkeleton(
         width: double.infinity,
-        height: 80,
-        borderRadius: 20,
+        height: double.infinity,
+        borderRadius: 22,
       ),
     );
-  }
-
-  LinearGradient _getLeftIconGradient(int index, bool isDark) {
-    final gradients = [
-      [const Color(0xFF00B09B), const Color(0xFF96C93D)],
-      [const Color(0xFF4A00E0), const Color(0xFF8E2DE2)],
-      [const Color(0xFFF12711), const Color(0xFFF5AF19)],
-      [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
-      [const Color(0xFFF857A6), const Color(0xFFFF5858)],
-      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
-    ];
-    final selected = gradients[index % gradients.length];
-    return LinearGradient(
-      colors: selected.map((c) => isDark ? c.withOpacity(0.85) : c).toList(),
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    );
-  }
-
-  IconData _getLeftIcon(int index) {
-    final icons = [
-      Icons.menu_book_rounded,
-      Icons.school_rounded,
-      Icons.emoji_events_rounded,
-      Icons.workspace_premium_rounded,
-      Icons.assignment_rounded,
-      Icons.auto_stories_rounded,
-    ];
-    return icons[index % icons.length];
   }
 }

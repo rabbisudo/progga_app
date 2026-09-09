@@ -353,7 +353,7 @@ final qbExamsProvider = FutureProvider.family<List<dynamic>, String>((ref, idsSt
 final qbClassSeriesProvider = FutureProvider.family<List<dynamic>, String>((ref, classId) async {
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cacheKey = 'cached_qb_series_$classId';
+  final cacheKey = 'cached_qb_series_v2_$classId';
 
   final cached = hive.getCachedList(cacheKey);
   final lastFetch = _lastAcademicsFetchTimestamps[cacheKey] ?? 0;
@@ -393,7 +393,7 @@ final qbClassSectionsProvider = FutureProvider.family<List<dynamic>, String>((re
   final batchId = ref.watch(userProfileProvider.select((u) => u.value?.profile?.batchId));
   final repo = ref.watch(academicsRepositoryProvider);
   final hive = ref.read(hiveServiceProvider);
-  final cacheKey = 'cached_qb_sections_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
+  final cacheKey = 'cached_qb_sections_v2_${classId}_${groupId ?? "none"}_${batchId ?? "none"}';
 
   final cached = hive.getCachedList(cacheKey);
   final lastFetch = _lastAcademicsFetchTimestamps[cacheKey] ?? 0;
