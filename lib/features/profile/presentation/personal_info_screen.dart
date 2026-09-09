@@ -415,11 +415,6 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(11),
                     ],
-                    prefixIcon: const Icon(
-                      Icons.phone_android_rounded,
-                      size: 20,
-                      color: brandTealColor,
-                    ),
                     onChanged: (val) => setState(() {}),
                     validator: (val) {
                       if (val != null && val.trim().isNotEmpty) {

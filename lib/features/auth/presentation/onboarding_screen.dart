@@ -920,7 +920,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         color: const Color(0xFF017A47).withOpacity(0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.phone_android_rounded, color: Color(0xFF017A47), size: 20),
+                      child: const Icon(Icons.call_rounded, color: Color(0xFF017A47), size: 20),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -928,7 +928,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'মোবাইল নম্বর (১১ ডিজিট)',
+                            'মোবাইল নম্বর',
                             style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 3),
