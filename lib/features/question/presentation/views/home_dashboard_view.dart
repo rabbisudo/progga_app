@@ -519,15 +519,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
 
                           return Column(
                             children: [
-                              for (int i = 0; i < top3Players.length; i++) ...[
-                                if (i > 0)
-                                  Divider(
-                                    height: 1,
-                                    thickness: 0.8,
-                                    color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5ECE8),
-                                    indent: 70,
-                                    endIndent: 18,
-                                  ),
+                              for (int i = 0; i < top3Players.length; i++)
                                 _buildLeaderboardRow(
                                   name: top3Players[i].name,
                                   score: top3Players[i].score,
@@ -537,7 +529,6 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                   rank: i + 1,
                                   context: context,
                                 ),
-                              ],
                             ],
                           );
                         }
@@ -665,15 +656,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                   ),
 
                   // 3 Player Rows
-                  for (int i = 0; i < 3; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        thickness: 0.8,
-                        color: isDark ? const Color(0xFF26282E) : const Color(0xFFE5ECE8),
-                        indent: 70,
-                        endIndent: 18,
-                      ),
+                  for (int i = 0; i < 3; i++)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       child: Row(
@@ -721,7 +704,6 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                         ],
                       ),
                     ),
-                  ],
                   const SizedBox(height: 8),
                 ],
               ),
