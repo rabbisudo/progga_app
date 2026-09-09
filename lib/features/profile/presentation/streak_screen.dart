@@ -285,7 +285,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           const SizedBox(height: 16),
 
           // 2. 7-DAY WEEKLY HORIZON
-          _buildWeeklyHorizon(streakHistory, isDark, cardBg, borderColor),
+          _buildWeeklyHorizon(streakHistory, frozenStreakDates, isDark, cardBg, borderColor),
           const SizedBox(height: 16),
 
           // 3. ASYMMETRICAL BENTO STATS
@@ -446,6 +446,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
   // --- 2. 7-Day Weekly Horizon ---
   Widget _buildWeeklyHorizon(
     List<bool> streakHistory,
+    List<String> frozenStreakDates,
     bool isDark,
     Color cardBg,
     Color borderColor,
@@ -454,7 +455,9 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     final now = DateTime.now();
     final currentDay = now.getDayBanglaIndex();
     const brandGreen = Color(0xFF017A47);
+    const freezeCyan = Color(0xFF0284C7);
     final completedCount = streakHistory.where((e) => e).length;
+    final saturday = now.subtract(Duration(days: currentDay));
 
     return Container(
       width: double.infinity,
@@ -503,6 +506,12 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
             children: List.generate(7, (index) {
               final isCompleted = index < streakHistory.length && streakHistory[index];
               final isToday = index == currentDay;
+              final dayDate = saturday.add(Duration(days: index));
+              final yr = dayDate.year;
+              final mn = dayDate.month.toString().padLeft(2, '0');
+              final dy = dayDate.day.toString().padLeft(2, '0');
+              final dateStr = '$yr-$mn-$dy';
+              final isFrozen = frozenStreakDates.contains(dateStr);
 
               return Column(
                 children: [
@@ -523,7 +532,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                     height: 34,
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? brandGreen
+                          ? (isFrozen ? freezeCyan : brandGreen)
                           : (isToday
                               ? brandGreen.withValues(alpha: isDark ? 0.18 : 0.1)
                               : (isDark ? const Color(0xFF19231D) : const Color(0xFFF3F6F4))),
@@ -534,7 +543,9 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                     ),
                     child: Center(
                       child: isCompleted
-                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                          ? (isFrozen
+                              ? const Icon(Icons.ac_unit_rounded, color: Colors.white, size: 16)
+                              : const Icon(Icons.check_rounded, color: Colors.white, size: 18))
                           : (isToday
                               ? Container(
                                   width: 6,
