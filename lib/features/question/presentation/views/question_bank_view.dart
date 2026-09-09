@@ -151,7 +151,7 @@ class QuestionBankView extends ConsumerWidget {
       }
     });
 
-    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 20.0);
+    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 16.0);
 
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(
@@ -245,7 +245,7 @@ class QuestionBankView extends ConsumerWidget {
   }
 
   Widget _buildSubjectListSkeleton(BuildContext context) {
-    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 20.0);
+    final bottomPadding = getFloatingBottomBarPadding(context, extraClearance: 16.0);
 
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),

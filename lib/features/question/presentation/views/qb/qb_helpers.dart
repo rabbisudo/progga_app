@@ -432,8 +432,16 @@ class QbThumbnailWidget extends StatelessWidget {
 /// Calculates the exact bottom padding required for scroll views rendered above the floating bottom navigation bar.
 /// Dynamically accounts for device safe area insets, navigation bar height (72), floating bottom margin,
 /// and adds comfortable breathing room [extraClearance] above the bar.
-double getFloatingBottomBarPadding(BuildContext context, {double extraClearance = 20.0}) {
+/// Calculates the exact bottom padding required for scroll views rendered above the floating bottom navigation bar.
+/// Dynamically accounts for device safe area insets and navigation bar height,
+/// ensuring a clean, comfortable breathing room [extraClearance] above the bar without double-counting.
+double getFloatingBottomBarPadding(BuildContext context, {double extraClearance = 16.0}) {
   final bottomInset = MediaQuery.of(context).padding.bottom;
+  // If bottomInset >= 72.0, Scaffold has already injected the bottom navigation bar into MediaQuery.
+  // We only need to add extraClearance above it to prevent double-counting.
+  if (bottomInset >= 72.0) {
+    return bottomInset + extraClearance;
+  }
   const navBarHeight = 72.0;
   final navBarBottomMargin = bottomInset > 0 ? bottomInset : 6.0;
   return navBarHeight + navBarBottomMargin + extraClearance;

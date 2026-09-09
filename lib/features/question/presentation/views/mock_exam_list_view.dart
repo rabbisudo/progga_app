@@ -67,7 +67,7 @@ class MockExamListView extends ConsumerWidget {
 
         return ListView.separated(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 20.0)),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 16.0)),
           itemCount: subjects.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {

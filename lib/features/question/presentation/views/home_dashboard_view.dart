@@ -547,7 +547,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                 ),
               ),
             ),
-            SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 20.0)),
+            SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 16.0)),
           ],
         ),
       ),
@@ -726,7 +726,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
               ),
             ),
           ),
-          SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 20.0)),
+          SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 16.0)),
         ],
       ),
     );

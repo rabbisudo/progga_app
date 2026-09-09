@@ -208,7 +208,7 @@ class QbRootSeriesView extends ConsumerWidget {
               );
             },
           ),
-          SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 20.0)),
+          SizedBox(height: getFloatingBottomBarPadding(context, extraClearance: 16.0)),
         ],
       ),
     );
