@@ -222,26 +222,29 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                 
                 Color prefixBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
                 Color prefixTextColor = isDark ? Colors.white70 : Colors.black54;
+                Color optionTextColor = isDark ? Colors.white70 : Colors.black87;
                 Widget? statusIcon;
 
                 if (_hasAnswered) {
                   if (isCorrect) {
-                    // Correct answer always highlighted in Green
-                    tileColor = const Color(0xFF017A47).withOpacity(isDark ? 0.12 : 0.07);
-                    borderColor = const Color(0xFF017A47).withOpacity(0.4);
+                    // Correct answer highlighted in Green
+                    tileColor = const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08);
+                    borderColor = const Color(0xFF017A47);
                     prefixBgColor = const Color(0xFF017A47);
                     prefixTextColor = Colors.white;
+                    optionTextColor = isDark ? const Color(0xFF38D9A9) : const Color(0xFF017A47);
                     statusIcon = const Icon(
                       Icons.check_circle_rounded,
                       color: Color(0xFF017A47),
                       size: 20,
                     );
                   } else if (isUserSelected) {
-                    // Wrong selection highlighted in Red
-                    tileColor = const Color(0xFFD32F2F).withOpacity(isDark ? 0.12 : 0.07);
-                    borderColor = const Color(0xFFD32F2F).withOpacity(0.4);
+                    // Wrong selection highlighted in prominent Red
+                    tileColor = const Color(0xFFD32F2F).withOpacity(isDark ? 0.16 : 0.08);
+                    borderColor = const Color(0xFFD32F2F);
                     prefixBgColor = const Color(0xFFD32F2F);
                     prefixTextColor = Colors.white;
+                    optionTextColor = isDark ? const Color(0xFFFF6B6B) : const Color(0xFFD32F2F);
                     statusIcon = const Icon(
                       Icons.cancel_rounded,
                       color: Color(0xFFD32F2F),
@@ -273,7 +276,10 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                       decoration: BoxDecoration(
                         color: tileColor,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: borderColor, width: 1.2),
+                        border: Border.all(
+                          color: borderColor,
+                          width: (isCorrect || isUserSelected) && _hasAnswered ? 1.5 : 1.2,
+                        ),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       child: Row(
@@ -302,11 +308,13 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                               optionText,
                               textStyle: TextStyle(
                                 fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.white70 : Colors.black87,
+                                fontWeight: (isCorrect || isUserSelected) && _hasAnswered
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: optionTextColor,
                                 fontFamily: 'Li Ador Noirrit',
                               ),
-                              mathColor: isDark ? Colors.white : Colors.black87,
+                              mathColor: optionTextColor,
                               fontSize: 13,
                             ),
                           ),
