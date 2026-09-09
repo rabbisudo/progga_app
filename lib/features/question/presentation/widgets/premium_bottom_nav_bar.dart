@@ -73,102 +73,149 @@ class PremiumBottomNavBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final effectiveBottom = bottomPadding > 0 ? bottomPadding : 8.0;
 
-    return Container(
-      height: 72,
-      margin: EdgeInsets.fromLTRB(20, 0, 20, bottomPadding > 0 ? bottomPadding : 6),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark 
-                  ? const Color(0xFF1E1E1E).withOpacity(0.8) 
-                  : Colors.white.withOpacity(0.82),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withOpacity(0.08) 
-                    : const Color(0xFF017A47).withOpacity(0.12),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark 
-                      ? Colors.black.withOpacity(0.4) 
-                      : const Color(0xFF017A47).withOpacity(0.06),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final tabWidth = constraints.maxWidth / 4;
-                return Stack(
-                  children: [
-                    // Sliding active capsule background with a soft gradient
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 320),
-                      curve: Curves.easeOutBack,
-                      left: selectedIndex * tabWidth + 6,
-                      top: 6,
-                      width: tabWidth - 12,
-                      height: 56,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: isDark
-                                ? [
-                                    const Color(0xFF017A47).withOpacity(0.18),
-                                    const Color(0xFF017A47).withOpacity(0.08)
-                                  ]
-                                : [
-                                    const Color(0xFFE0ECE6),
-                                    const Color(0xFFB9D8C9).withOpacity(0.4)
-                                  ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: isDark 
-                                ? const Color(0xFF017A47).withOpacity(0.15) 
-                                : const Color(0xFF017A47).withOpacity(0.06),
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Tab Items
-                    Row(
-                      children: [
-                        _buildTab(context, 0, 'হোম', 
-                          iconStr: _homeIcon, 
-                          selectedIconStr: _homeSelectedIcon,
-                        ),
-                        _buildTab(context, 1, 'প্রশ্নব্যাংক', 
-                          iconStr: _qbIcon, 
-                          selectedIconStr: _qbSelectedIcon,
-                        ),
-                        _buildTab(context, 2, 'পরীক্ষা', 
-                          iconStr: _examIcon, 
-                          selectedIconStr: _examSelectedIcon,
-                        ),
-                        _buildTab(context, 3, 'প্রোফাইল', 
-                          iconStr: _profileIcon, 
-                          selectedIconStr: _profileSelectedIcon,
-                        ),
-                      ],
-                    ),
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      clipBehavior: Clip.none,
+      children: [
+        // 1. Bottom atmospheric gradient scrim to smoothly dissolve scrolling content
+        // and cleanly conceal the gesture navigation inset at the screen bottom.
+        Positioned(
+          top: -24,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
+                    theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+                    theme.scaffoldBackgroundColor,
                   ],
-                );
-              },
+                  stops: const [0.0, 0.35, 0.7, 1.0],
+                ),
+              ),
             ),
           ),
         ),
-      ),
+
+        // 2. Floating Navigation Bar Pill with prominent floating BoxShadow
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, 6, 20, effectiveBottom),
+          child: Container(
+            height: 70,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.6) 
+                      : const Color(0xFF017A47).withValues(alpha: 0.16),
+                  blurRadius: 26,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: isDark 
+                      ? Colors.black.withValues(alpha: 0.35) 
+                      : Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? const Color(0xFF1E1E1E).withValues(alpha: 0.88) 
+                        : Colors.white.withValues(alpha: 0.90),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: isDark 
+                          ? Colors.white.withValues(alpha: 0.09) 
+                          : const Color(0xFF017A47).withValues(alpha: 0.14),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final tabWidth = constraints.maxWidth / 4;
+                      return Stack(
+                        children: [
+                          // Sliding active capsule background with a soft gradient
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 320),
+                            curve: Curves.easeOutBack,
+                            left: selectedIndex * tabWidth + 6,
+                            top: 6,
+                            width: tabWidth - 12,
+                            height: 56,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isDark
+                                      ? [
+                                          const Color(0xFF017A47).withValues(alpha: 0.18),
+                                          const Color(0xFF017A47).withValues(alpha: 0.08)
+                                        ]
+                                      : [
+                                          const Color(0xFFE0ECE6),
+                                          const Color(0xFFB9D8C9).withValues(alpha: 0.4)
+                                        ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: isDark 
+                                      ? const Color(0xFF017A47).withValues(alpha: 0.15) 
+                                      : const Color(0xFF017A47).withValues(alpha: 0.06),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Tab Items
+                          Row(
+                            children: [
+                              _buildTab(context, 0, 'হোম', 
+                                iconStr: _homeIcon, 
+                                selectedIconStr: _homeSelectedIcon,
+                              ),
+                              _buildTab(context, 1, 'প্রশ্নব্যাংক', 
+                                iconStr: _qbIcon, 
+                                selectedIconStr: _qbSelectedIcon,
+                              ),
+                              _buildTab(context, 2, 'পরীক্ষা', 
+                                iconStr: _examIcon, 
+                                selectedIconStr: _examSelectedIcon,
+                              ),
+                              _buildTab(context, 3, 'প্রোফাইল', 
+                                iconStr: _profileIcon, 
+                                selectedIconStr: _profileSelectedIcon,
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -183,7 +230,7 @@ class PremiumBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final activeColor = const Color(0xFF017A47);
+    const activeColor = Color(0xFF017A47);
     final inactiveColor = isDark ? Colors.grey[400]! : const Color(0xFF495057);
 
     return Expanded(
