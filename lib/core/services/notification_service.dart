@@ -38,6 +38,15 @@ class NotificationService {
     _isInitialized = true;
   }
 
+  bool isRealFcmToken(String? token) {
+    if (token == null) return false;
+    final trimmed = token.trim();
+    if (trimmed.length < 50) return false;
+    if (trimmed.contains(' ') || trimmed.contains('dummy') || trimmed.contains('test')) return false;
+    final isUuid = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(trimmed);
+    return !isUuid;
+  }
+
   Future<String?> getValidToken() async {
     try {
       if (Platform.isIOS) {
@@ -50,8 +59,8 @@ class NotificationService {
         }
       }
       final token = await FirebaseMessaging.instance.getToken();
-      if (token != null && token.isNotEmpty && token.length >= 50 && !token.contains('-')) {
-        return token;
+      if (isRealFcmToken(token)) {
+        return token!.trim();
       }
     } catch (_) {}
     return null;
@@ -75,11 +84,11 @@ class NotificationService {
     try {
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
         try {
-          if (newToken.length >= 50 && !newToken.contains('-')) {
+          if (isRealFcmToken(newToken)) {
             final deviceUuid = await storageService.getOrGenerateDeviceUuid();
             final deviceOs = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'web');
             await apiClient.dio.post('/notifications/register-device', data: {
-              'deviceToken': newToken,
+              'deviceToken': newToken.trim(),
               'deviceUuid': deviceUuid,
               'deviceOs': deviceOs,
             });

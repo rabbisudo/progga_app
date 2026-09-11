@@ -1,5 +1,6 @@
 package com.progga.app
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -27,6 +28,8 @@ class MainActivity: FlutterActivity() {
                 enableLights(true)
                 lightColor = Color.parseColor("#005944")
                 enableVibration(true)
+                vibrationPattern = longArrayOf(0, 250, 250, 250)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 setShowBadge(true)
             }
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
