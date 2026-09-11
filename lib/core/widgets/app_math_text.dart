@@ -7,12 +7,64 @@ String stripHtmlTags(String htmlString) {
   if (htmlString.isEmpty) return htmlString;
   String result = htmlString;
 
+  // 0. Convert sub and sup tags to unicode subscripts and superscripts!
+  const subMap = {
+    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+    '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+    '০': '₀', '১': '₁', '২': '₂', '৩': '₃', '৪': '₄',
+    '৫': '₅', '৬': '₆', '৭': '₇', '৮': '₈', '৯': '₉',
+    '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
+    'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ', 'v': 'ᵥ', 'x': 'ₓ',
+  };
+  const supMap = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+    '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    '০': '⁰', '১': '¹', '২': '²', '৩': '³', '৪': '⁴',
+    '৫': '⁵', '৬': '⁶', '৭': '⁷', '৮': '⁸', '৯': '⁹',
+    '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+    'n': 'ⁿ', 'i': 'ⁱ',
+  };
+
+  result = result.replaceAllMapped(RegExp(r'<sub[^>]*>([\s\S]*?)<\/sub>', caseSensitive: false), (m) {
+    final text = m.group(1)!.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    return text.split('').map((c) => subMap[c] ?? c).join('');
+  });
+  result = result.replaceAllMapped(RegExp(r'<sup[^>]*>([\s\S]*?)<\/sup>', caseSensitive: false), (m) {
+    final text = m.group(1)!.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    return text.split('').map((c) => supMap[c] ?? c).join('');
+  });
+
+  // Convert <ol> list items to Roman numerals (i., ii., iii.) if not already numbered
+  result = result.replaceAllMapped(RegExp(r'<ol[^>]*>([\s\S]*?)<\/ol>', caseSensitive: false), (olMatch) {
+    final inner = olMatch.group(1)!;
+    final romanNumerals = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x'];
+    int index = 0;
+    final replaced = inner.replaceAllMapped(RegExp(r'<li[^>]*>([\s\S]*?)<\/li>', caseSensitive: false), (liMatch) {
+      final liContent = liMatch.group(1)!;
+      // Strip tags temporarily to check if it already starts with numbering
+      final plain = liContent.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+      final hasNumbering = RegExp(r'^(\(?[0-9ivx০-৯a-zA-Z]{1,3}[\.\)])', caseSensitive: false).hasMatch(plain);
+      index++;
+      final prefix = (!hasNumbering && index <= romanNumerals.length) ? '${romanNumerals[index - 1]}. ' : '';
+      return '\n$prefix$liContent\n';
+    });
+    return '$replaced\n';
+  });
+
   // 1. Replace block-level tags or line breaks first with newlines
-  result = result.replaceAll(RegExp(r'</p>\s*<p>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</p>\s*<p[^>]*>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</p>', caseSensitive: false), '\n');
   result = result.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
-  result = result.replaceAll(RegExp(r'</li>\s*<li>', caseSensitive: false), '\n');
-  result = result.replaceAll(RegExp(r'</div>\s*<div>', caseSensitive: false), '\n');
-  result = result.replaceAll(RegExp(r'</tr>\s*<tr>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</li>\s*<li[^>]*>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</li>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</ol>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</ul>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</div>\s*<div[^>]*>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</div>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</tr>\s*<tr[^>]*>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</tr>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'</h[1-6]>', caseSensitive: false), '\n');
+  result = result.replaceAll(RegExp(r'<hr\s*/?>', caseSensitive: false), '\n');
 
   // 2. Remove all HTML tags FIRST before decoding &lt; and &gt;!
   // (Prevents mathematical inequalities like < and > from being mistakenly stripped as HTML tags)
@@ -35,6 +87,9 @@ String stripHtmlTags(String htmlString) {
   result = result.replaceAll('&ndash;', '–');
   result = result.replaceAll(r'\"', '"');
   result = result.replaceAll(r"\'", "'");
+
+  // Clean excessive blank lines (max 2 consecutive newlines)
+  result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
 
   return result.trim();
 }
@@ -281,7 +336,63 @@ class AppMathText extends StatelessWidget {
   Widget build(BuildContext context) {
     if (text.isEmpty) return const SizedBox.shrink();
 
+    // 0. Check for HTML <table>...</table> tags before stripping HTML
+    final tableRegex = RegExp(r'<table[^>]*>[\s\S]*?<\/table>', caseSensitive: false);
+    if (tableRegex.hasMatch(text)) {
+      final List<Widget> widgets = [];
+      int lastIndex = 0;
+
+      for (final Match match in tableRegex.allMatches(text)) {
+        if (match.start > lastIndex) {
+          final textPart = text.substring(lastIndex, match.start).trim();
+          if (cleanAndNormalizeMath(textPart).isNotEmpty) {
+            widgets.add(AppMathText(
+              text: textPart,
+              textStyle: textStyle,
+              mathColor: mathColor,
+              fontSize: fontSize,
+              customImageBuilder: customImageBuilder,
+            ));
+          }
+        }
+
+        final tableHtml = match.group(0)!;
+        widgets.add(_buildHtmlTable(
+          tableHtml,
+          context,
+          textStyle,
+          mathColor,
+          fontSize,
+        ));
+
+        lastIndex = match.end;
+      }
+
+      if (lastIndex < text.length) {
+        final remainingText = text.substring(lastIndex).trim();
+        if (cleanAndNormalizeMath(remainingText).isNotEmpty) {
+          widgets.add(AppMathText(
+            text: remainingText,
+            textStyle: textStyle,
+            mathColor: mathColor,
+            fontSize: fontSize,
+            customImageBuilder: customImageBuilder,
+          ));
+        }
+      }
+
+      if (widgets.isEmpty) return const SizedBox.shrink();
+      if (widgets.length == 1) return widgets.first;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: widgets,
+      );
+    }
+
     final cleanedText = cleanAndNormalizeMath(text);
+    if (cleanedText.isEmpty) return const SizedBox.shrink();
 
     // 1. Check for embedded [IMAGE: url] tags
     final imageRegex = RegExp(r'\[IMAGE:\s*([^\]]+)\]', caseSensitive: false);
@@ -821,4 +932,181 @@ class AppMathText extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildHtmlTable(
+    String tableHtml,
+    BuildContext context,
+    TextStyle? textStyle,
+    Color? mathColor,
+    double fontSize,
+  ) {
+    final rows = _parseHtmlTable(tableHtml);
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    int maxCols = 0;
+    for (final row in rows) {
+      if (row.cells.length > maxCols) {
+        maxCols = row.cells.length;
+      }
+    }
+    if (maxCols == 0) return const SizedBox.shrink();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white24 : const Color(0xFFE2E8F0);
+    final headerBgColor = isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFF8FAFC);
+    final altRowBgColor = isDark ? Colors.white.withValues(alpha: 0.03) : const Color(0xFFFAFAFA);
+
+    final List<TableRow> tableRowWidgets = [];
+    for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+      final row = rows[rowIndex];
+      final List<Widget> cellWidgets = [];
+      for (int colIndex = 0; colIndex < maxCols; colIndex++) {
+        if (colIndex < row.cells.length) {
+          final cell = row.cells[colIndex];
+          cellWidgets.add(_buildTableCell(
+            cell,
+            row.isHeader,
+            context,
+            textStyle,
+            mathColor,
+            fontSize,
+          ));
+        } else {
+          cellWidgets.add(_buildEmptyTableCell(context, fontSize));
+        }
+      }
+
+      final rowColor = row.isHeader
+          ? headerBgColor
+          : (rowIndex % 2 == 1 && rows.length > 3 ? altRowBgColor : null);
+
+      tableRowWidgets.add(TableRow(
+        decoration: rowColor != null ? BoxDecoration(color: rowColor) : null,
+        children: cellWidgets,
+      ));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : Colors.white,
+          border: Border.all(color: borderColor, width: 1.0),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Table(
+            defaultColumnWidth: const IntrinsicColumnWidth(),
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            border: TableBorder(
+              horizontalInside: BorderSide(color: borderColor, width: 1.0),
+              verticalInside: BorderSide(color: borderColor, width: 1.0),
+            ),
+            children: tableRowWidgets,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableCell(
+    _ParsedTableCell cell,
+    bool isHeaderRow,
+    BuildContext context,
+    TextStyle? textStyle,
+    Color? mathColor,
+    double fontSize,
+  ) {
+    final isHeader = cell.isHeader || isHeaderRow;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+
+    final effectiveStyle = (textStyle ??
+            TextStyle(
+              fontSize: fontSize,
+              color: mathColor ?? defaultTextColor,
+              fontFamily: 'Li Ador Noirrit',
+            ))
+        .copyWith(
+      fontWeight: isHeader ? FontWeight.bold : FontWeight.w500,
+      fontSize: fontSize,
+      color: mathColor ?? textStyle?.color ?? defaultTextColor,
+    );
+
+    final cleaned = cleanAndNormalizeMath(cell.text);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+      alignment: Alignment.center,
+      child: cleaned.isEmpty
+          ? SizedBox(height: fontSize * 1.4)
+          : AppMathText(
+              text: cell.text,
+              textStyle: effectiveStyle,
+              mathColor: mathColor,
+              fontSize: fontSize,
+              customImageBuilder: customImageBuilder,
+            ),
+    );
+  }
+
+  Widget _buildEmptyTableCell(BuildContext context, double fontSize) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+      alignment: Alignment.center,
+      child: SizedBox(height: fontSize * 1.4),
+    );
+  }
+
+  static List<_ParsedTableRow> _parseHtmlTable(String tableHtml) {
+    final List<_ParsedTableRow> rows = [];
+    final rowRegex = RegExp(r'<tr[^>]*>([\s\S]*?)<\/tr>', caseSensitive: false);
+    final cellRegex = RegExp(r'<(td|th)([^>]*)>([\s\S]*?)<\/\1>', caseSensitive: false);
+
+    final rowMatches = rowRegex.allMatches(tableHtml).toList();
+    for (int rowIndex = 0; rowIndex < rowMatches.length; rowIndex++) {
+      final rowContent = rowMatches[rowIndex].group(1)!;
+      final cellMatches = cellRegex.allMatches(rowContent).toList();
+      if (cellMatches.isEmpty) continue;
+
+      final List<_ParsedTableCell> cells = [];
+      bool rowHasTh = false;
+
+      for (final cellMatch in cellMatches) {
+        final tag = cellMatch.group(1)!.toLowerCase();
+        final isHeaderCell = tag == 'th';
+        if (isHeaderCell) rowHasTh = true;
+
+        final rawCellContent = cellMatch.group(3)!;
+        cells.add(_ParsedTableCell(
+          text: rawCellContent.trim(),
+          isHeader: isHeaderCell,
+        ));
+      }
+
+      if (cells.isNotEmpty) {
+        final isHeaderRow = rowHasTh || rowIndex == 0;
+        rows.add(_ParsedTableRow(cells: cells, isHeader: isHeaderRow));
+      }
+    }
+
+    return rows;
+  }
+}
+
+class _ParsedTableRow {
+  final List<_ParsedTableCell> cells;
+  final bool isHeader;
+
+  const _ParsedTableRow({required this.cells, this.isHeader = false});
+}
+
+class _ParsedTableCell {
+  final String text;
+  final bool isHeader;
+
+  const _ParsedTableCell({required this.text, this.isHeader = false});
 }
