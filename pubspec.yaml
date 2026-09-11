@@ -1,7 +1,7 @@
 name: progga
 description: "Progga - Comprehensive MCQ Exam, Academic & Admission Preparation Platform"
 publish_to: 'none' # Prevents accidental publishing to pub.dev
-version: 1.2.0+18
+version: 1.2.1+19
 homepage: "https://progga.com.bd"
 repository: "https://github.com/rabbisudo/progga_app"
 issue_tracker: "https://github.com/rabbisudo/progga_app/issues"
