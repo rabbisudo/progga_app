@@ -49,4 +49,38 @@ iii. লঘিষ্ঠ গণন = \\frac{বৃত্তাকার স্ক
     expect(find.text('বৃত্তাকার স্কেলের ভাগ সংখ্যা'), findsOneWidget);
     expect(find.text('পিচ'), findsOneWidget);
   });
+
+  testWidgets('AppMathText cleanly strips \\text { ... } with spaces and renders clean Bengali words', (WidgetTester tester) async {
+    const inputWithTextSpaces = r'''
+7. পরিমাপের ক্ষেত্রে -
+i. আপেক্ষিক ত্রুটি - \frac{\text { চূড়ান্ত ত্রুটি }}{\text { পরিমাপ করা মান }}
+ii. ভার্নিয়ার ধ্রুবক - \frac{\text { প্রধান স্কেলের ক্ষুদ্রতম 1 ঘরের মান }}{\text { ভার্নিয়ার স্কেলে মোট ভাগ সংখ্যা }}
+iii. লঘিষ্ঠ গণন = \frac{\text { বৃত্তাকার স্কেলের ভাগ সংখ্যা }}{\text { পিচ }}
+''';
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: AppMathText(text: inputWithTextSpaces),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify raw \text { is NOT rendered
+    expect(find.textContaining(r'\text'), findsNothing);
+    expect(find.textContaining('{'), findsNothing);
+    expect(find.textContaining('}'), findsNothing);
+
+    // Verify clean Bengali words are rendered
+    expect(find.text('চূড়ান্ত ত্রুটি'), findsOneWidget);
+    expect(find.text('পরিমাপ করা মান'), findsOneWidget);
+    expect(find.text('প্রধান স্কেলের ক্ষুদ্রতম 1 ঘরের মান'), findsOneWidget);
+    expect(find.text('ভার্নিয়ার স্কেলে মোট ভাগ সংখ্যা'), findsOneWidget);
+    expect(find.text('বৃত্তাকার স্কেলের ভাগ সংখ্যা'), findsOneWidget);
+    expect(find.text('পিচ'), findsOneWidget);
+  });
 }

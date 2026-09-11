@@ -486,18 +486,34 @@ class AppMathText extends StatelessWidget {
 
   static String _cleanMathArg(String arg) {
     var s = arg.trim();
-    // Strip LaTeX text wrapping commands: \text{...}, \mathrm{...}, etc.
-    s = s.replaceAllMapped(
-      RegExp(r'\\(text|mathrm|textrm|textbf|textit)\{((?:[^{}]|\{[^{}]*\})*)\}'),
-      (m) => m.group(2) ?? '',
+
+    // 1. Strip LaTeX text wrapping commands with optional whitespace: \text { ... }, \mathrm { ... }, etc.
+    final textCmdRegex = RegExp(
+      r'\\(text|mathrm|textrm|textbf|textit|textnormal|textsf|texttt|mathbf|mathit)\s*\{((?:[^{}]|\{[^{}]*\})*)\}',
+      caseSensitive: false,
     );
+    while (textCmdRegex.hasMatch(s)) {
+      s = s.replaceAllMapped(textCmdRegex, (m) => (m.group(2) ?? '').trim());
+    }
+
+    // 2. Remove \left, \right, and LaTeX spacing commands
     s = s.replaceAll(r'\left', '').replaceAll(r'\right', '');
     s = s.replaceAll(r'\,', ' ');
     s = s.replaceAll(r'\;', ' ');
     s = s.replaceAll(r'\:', ' ');
     s = s.replaceAll(r'\ ', ' ');
+    s = s.replaceAll(r'\!', ' ');
     s = s.replaceAll(r'~', ' ');
-    // Replace standard math symbols with clean unicode
+
+    // 3. Clean up any residual loose \text, \mathrm keywords
+    s = s.replaceAll(RegExp(r'\\(text|mathrm|textrm|textbf|textit|textnormal|textsf|texttt)\b', caseSensitive: false), '');
+
+    // 4. If string contains Bengali, remove any lingering LaTeX grouping braces { or }
+    if (s.contains(RegExp(r'[\u0980-\u09FF]'))) {
+      s = s.replaceAll('{', '').replaceAll('}', '');
+    }
+
+    // 5. Replace standard math symbols with clean unicode
     s = s.replaceAll(r'\times', '×');
     s = s.replaceAll(r'\div', '÷');
     s = s.replaceAll(r'\pm', '±');
@@ -519,6 +535,10 @@ class AppMathText extends StatelessWidget {
     s = s.replaceAll(r'\omega', 'ω');
     s = s.replaceAll(r'\sigma', 'σ');
     s = _convertSuperscripts(s);
+
+    // 6. Normalize multiple spaces
+    s = s.replaceAll(RegExp(r'\s{2,}'), ' ');
+
     return s.trim();
   }
 
