@@ -430,15 +430,30 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         
         final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
         for (var chapter in chapters) {
+          final cId = chapter['id'] as String? ?? '';
+          final isChSelected = selectedChapterIds.contains(cId);
           final topics = (chapter['topics'] as List<dynamic>?) ?? [];
+
+          bool anyTopicSelected = false;
           for (var topic in topics) {
             final tId = topic['id'] as String? ?? '';
             if (selectedTopicIds.isEmpty || selectedTopicIds.contains(tId)) {
+              anyTopicSelected = true;
               final stds = (topic['standards'] as List<dynamic>?)?.cast<String>() ?? [];
               for (var std in stds) {
                 if (allowedStandardNames.contains(std)) {
                   uniqueTopicStandards.add(std);
                 }
+              }
+            }
+          }
+
+          // If chapter is selected or topics in chapter are selected, also check chapter standards
+          if (isChSelected || anyTopicSelected || selectedTopicIds.isEmpty) {
+            final chStds = (chapter['standards'] as List<dynamic>?)?.cast<String>() ?? [];
+            for (var std in chStds) {
+              if (allowedStandardNames.contains(std)) {
+                uniqueTopicStandards.add(std);
               }
             }
           }
@@ -468,32 +483,18 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
         final sId = subject['id'] as String? ?? '';
         if (!selectedSubjectIds.contains(sId)) continue;
 
-        // If specific topics are selected
-        if (selectedTopicIds.isNotEmpty) {
-          final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
-          for (var chapter in chapters) {
-            final topics = (chapter['topics'] as List<dynamic>?) ?? [];
-            for (var topic in topics) {
-              final tId = topic['id'] as String? ?? '';
-              if (selectedTopicIds.contains(tId)) {
-                final types = (topic['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
-                for (var t in types) {
-                  final mapped = _mapDbQuestionType(t);
-                  if (mapped != null) {
-                    availableTypes.add(mapped);
-                  }
-                }
-              }
-            }
-          }
-        }
-        // If no topics are selected but specific chapters are selected
-        else if (selectedChapterIds.isNotEmpty) {
-          final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
-          for (var chapter in chapters) {
-            final cId = chapter['id'] as String? ?? '';
-            if (selectedChapterIds.contains(cId)) {
-              final types = (chapter['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+        final chapters = (subject['chapters'] as List<dynamic>?) ?? [];
+        for (var chapter in chapters) {
+          final cId = chapter['id'] as String? ?? '';
+          final isChSelected = selectedChapterIds.contains(cId);
+          final topics = (chapter['topics'] as List<dynamic>?) ?? [];
+
+          bool anyTopicSelected = false;
+          for (var topic in topics) {
+            final tId = topic['id'] as String? ?? '';
+            if (selectedTopicIds.isEmpty || selectedTopicIds.contains(tId)) {
+              anyTopicSelected = true;
+              final types = (topic['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
               for (var t in types) {
                 final mapped = _mapDbQuestionType(t);
                 if (mapped != null) {
@@ -502,24 +503,38 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
               }
             }
           }
-        }
-        // If only subjects are selected
-        else {
-          final types = (subject['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
-          for (var t in types) {
-            final mapped = _mapDbQuestionType(t);
-            if (mapped != null) {
-              availableTypes.add(mapped);
+
+          // If chapter is selected, or any topic in this chapter was selected, or if availableTypes is empty:
+          // ALSO collect from chapter['questionTypes'] (handles direct chapter questions added via admin panel)
+          if (isChSelected || anyTopicSelected || selectedChapterIds.isEmpty || selectedTopicIds.isEmpty) {
+            final types = (chapter['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+            for (var t in types) {
+              final mapped = _mapDbQuestionType(t);
+              if (mapped != null) {
+                availableTypes.add(mapped);
+              }
             }
+          }
+        }
+
+        // Also check subject questionTypes
+        final types = (subject['questionTypes'] as List<dynamic>?)?.cast<String>() ?? [];
+        for (var t in types) {
+          final mapped = _mapDbQuestionType(t);
+          if (mapped != null) {
+            availableTypes.add(mapped);
           }
         }
       }
     });
 
+    // Default fallback: Always ensure MCQ is available so question types never disappear
+    if (availableTypes.isEmpty) {
+      availableTypes.add('MCQ');
+    }
+
     final isCurriculumLoading = curriculumAsync.isLoading;
-    final typesToDisplay = isCurriculumLoading 
-        ? <String>[] 
-        : availableTypes.toList();
+    final typesToDisplay = availableTypes.isNotEmpty ? availableTypes.toList() : <String>['MCQ'];
 
     const sortOrder = ['MCQ', 'CQ', 'WRITTEN', 'FILL'];
     typesToDisplay.sort((a, b) {
@@ -530,7 +545,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
       return indexA.compareTo(indexB);
     });
 
-    // Question type locked to MCQ currently
+    if (!typesToDisplay.contains(_selectedQuestionType)) {
+      _selectedQuestionType = typesToDisplay.first;
+    }
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
