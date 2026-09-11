@@ -9,6 +9,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../data/ai_repository.dart';
 import '../../../core/widgets/custom_back_button.dart';
+import '../../../core/widgets/app_math_text.dart';
 
 class AiChatMessage {
   final String id;
@@ -1456,15 +1457,15 @@ class MathMarkdown extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Math.tex(
-                part.trim(),
-                textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47), fontWeight: FontWeight.bold),
-                onErrorFallback: (err) => Text(
-                  '\$$part\$',
-                  style: const TextStyle(color: Color(0xFF017A47), fontWeight: FontWeight.bold),
-                ),
+            child: AppMathText(
+              text: part.trim(),
+              fontSize: 16,
+              mathColor: const Color(0xFF017A47),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF017A47),
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Li Ador Noirrit',
               ),
             ),
           ),

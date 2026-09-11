@@ -234,12 +234,14 @@ class MyReportsScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
                             ),
-                            child: Math.tex(
-                              latexFormula,
-                              textStyle: const TextStyle(fontSize: 16, color: Color(0xFF017A47)),
-                              onErrorFallback: (err) => Text(
-                                latexFormula,
-                                style: const TextStyle(fontSize: 15, fontStyle: FontStyle.italic, color: Color(0xFF017A47)),
+                            child: AppMathText(
+                              text: latexFormula,
+                              fontSize: 16,
+                              mathColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                              textStyle: TextStyle(
+                                fontSize: 16,
+                                color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                                fontFamily: 'Li Ador Noirrit',
                               ),
                             ),
                           ),

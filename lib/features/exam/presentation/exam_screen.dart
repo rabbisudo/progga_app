@@ -1745,12 +1745,14 @@ class _ExamScreenState extends ConsumerState<ExamScreen> {
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
                             ),
-                            child: Math.tex(
-                              q.latexFormula!,
-                              textStyle: TextStyle(fontSize: 17.5, color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
-                              onErrorFallback: (err) => Text(
-                                q.latexFormula!,
-                                style: TextStyle(fontSize: 16.5, fontStyle: FontStyle.italic, color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47)),
+                            child: AppMathText(
+                              text: q.latexFormula!,
+                              fontSize: 17.5,
+                              mathColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                              textStyle: TextStyle(
+                                fontSize: 17.5,
+                                color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                                fontFamily: 'Li Ador Noirrit',
                               ),
                             ),
                           ),
