@@ -26,7 +26,7 @@ class MainActivity: FlutterActivity() {
             val channel = NotificationChannel(channelId, channelName, importance).apply {
                 description = channelDescription
                 enableLights(true)
-                lightColor = Color.parseColor("#005944")
+                lightColor = Color.parseColor("#0061ed")
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 250, 250, 250)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC

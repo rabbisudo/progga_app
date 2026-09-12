@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'progga_animated_avatar.dart';
 
 class CustomAvatar extends StatelessWidget {
   final String? avatarUrl;
   final double radius;
   final Color? backgroundColor;
   final Widget? fallbackWidget;
+  final bool animate;
 
   const CustomAvatar({
     super.key,
@@ -14,10 +16,10 @@ class CustomAvatar extends StatelessWidget {
     this.radius = 20,
     this.backgroundColor,
     this.fallbackWidget,
+    this.animate = true,
   });
 
-  static const String defaultAvatarUrl =
-      'https://api.dicebear.com/9.x/avataaars/svg?top=dreads02&topProbability=100&hairColor=2c1b18&hatColor=262e33&eyes=default&eyebrows=default&mouth=smile&skinColor=ffdbb4&clothing=shirtCrewNeck&clothesColor=3c4f76&accessoriesProbability=0&facialHairProbability=0&backgroundColor=b1c9ef';
+  static const String defaultAvatarKey = 'progga:bg=086057&skin=ffdbb4&hair=shortCurly&hairColor=2c1b18&eyes=default&mouth=smile&clothing=shirtCrewNeck&clothingColor=086057';
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +40,19 @@ class CustomAvatar extends StatelessWidget {
 
     final effectiveUrl = (avatarUrl != null && avatarUrl!.trim().isNotEmpty)
         ? avatarUrl!.trim()
-        : defaultAvatarUrl;
+        : defaultAvatarKey;
 
-    // Check if it is an SVG from Dicebear or similar
-    if (effectiveUrl.toLowerCase().contains('.svg') || effectiveUrl.contains('api.dicebear.com')) {
+    // 1. In-House Progga format or legacy DiceBear: Render locally with zero network latency & animations
+    if (effectiveUrl.startsWith('progga:') || effectiveUrl.contains('api.dicebear.com') || effectiveUrl.startsWith('avatar:')) {
+      return ProggaAnimatedAvatar(
+        avatarKey: effectiveUrl,
+        radius: radius,
+        isAnimated: animate && radius >= 28, // animate for profile / hero, keep lightweight for tiny thumbnails
+      );
+    }
+
+    // 2. Generic local or external standalone SVG file
+    if (effectiveUrl.toLowerCase().endsWith('.svg')) {
       return Container(
         width: radius * 2,
         height: radius * 2,

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
 import '../../question/presentation/practice_notifier.dart';
-import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/widgets/custom_back_button.dart';
+import '../../../core/avatar/progga_avatar_engine.dart';
+import '../../../core/widgets/progga_animated_avatar.dart';
 
 class AvatarEditorScreen extends ConsumerStatefulWidget {
   const AvatarEditorScreen({super.key});
@@ -18,166 +19,208 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
   bool _isSaving = false;
   bool _isInitialized = false;
 
-  // Scroll and Tab synchronization variables
+  // Scroll and Tab synchronization variables (9 sections)
   late ScrollController _scrollController;
   late TabController _tabController;
-  final List<GlobalKey> _sectionKeys = List.generate(6, (_) => GlobalKey());
+  final List<GlobalKey> _sectionKeys = List.generate(9, (_) => GlobalKey());
   bool _isAutoScrolling = false;
 
-  // Selected avatar options matching DiceBear avataaars schema
-  String _selectedHair = 'shortFlat';
-  String _selectedHairColor = '2c1b18';
+  // Selected avatar options
+  String _selectedFaceShape = 'chiseledSquare';
+  String _selectedHair = 'modernQuiff';
+  String _selectedHairColor = '1b203a';
+  String _selectedHat = 'none';
   String _selectedHatColor = '262e33';
-  String _selectedEyes = 'default';
+  String _selectedEyes = 'confident';
   String _selectedEyebrows = 'default';
-  String _selectedMouth = 'smile';
+  String _selectedMouth = 'smirk';
   String _selectedSkinColor = 'ffdbb4';
   String _selectedClothing = 'shirtCrewNeck';
-  String _selectedClothingColor = '3c4f76';
+  String _selectedClothingColor = '86198f';
+  String _selectedGlasses = 'rectShades';
+  String _selectedGlassesColor = '18181b';
   String _selectedAccessories = 'none';
-  String _selectedAccessoriesColor = '262e33';
-  String _selectedFacialHair = 'none';
-  String _selectedFacialHairColor = '2c1b18';
-  String _selectedBgColor = 'b1c9ef';
+  String _selectedAccessoriesColor = '18181b';
+  String _selectedBeard = 'none';
+  String _selectedBeardColor = '1b203a';
+  String _selectedMoustache = 'none';
+  String _selectedMoustacheColor = '1b203a';
+  String _selectedBgColor = 'd8b4fe';
+  String _selectedBgStyle = 'cloud';
 
-  // Option lists with descriptions
+  // Face Shape Options
+  final List<Map<String, String>> _faceShapeOptions = [
+    {'id': 'chiseledSquare', 'name': 'শার্প স্কয়ার জ'},
+    {'id': 'slenderOval', 'name': 'স্লিম ওভাল / ভি-লাইন'},
+    {'id': 'softRound', 'name': 'সফট রাউন্ড'},
+    {'id': 'diamondSharp', 'name': 'ডায়মন্ড কাট'},
+  ];
+
+  // Option lists with descriptions (Separated Hair and Hats!)
   final List<Map<String, String>> _hairOptions = [
-    {'id': 'shortFlat', 'name': 'সোজা ছোট'},
-    {'id': 'shortRound', 'name': 'গোল ছোট'},
-    {'id': 'shortCurly', 'name': 'কোঁকড়া ছোট'},
-    {'id': 'shortWaved', 'name': 'ঢেউ খেলানো ছোট'},
-    {'id': 'shavedSides', 'name': 'সাইড ছাঁটা'},
-    {'id': 'dreads', 'name': 'ড্রেইডলক'},
-    {'id': 'dreads01', 'name': 'ড্রেইডলক ১'},
-    {'id': 'dreads02', 'name': 'ড্রেইডলক ২'},
-    {'id': 'frizzle', 'name': 'ঝাঁকড়া'},
-    {'id': 'shaggy', 'name': 'এলোমেলো'},
-    {'id': 'shaggyMullet', 'name': 'মালেট'},
+    {'id': 'modernQuiff', 'name': 'মডার্ন কুইফ'},
+    {'id': 'sideChignon', 'name': 'সাইড খোঁপা'},
+    {'id': 'bald', 'name': 'নেড়া মাথা'},
+    {'id': 'shortFlat', 'name': 'সাইড পার্ট'},
+    {'id': 'shortRound', 'name': 'মাঝখানে সিঁথি'},
     {'id': 'theCaesar', 'name': 'সিজার কাট'},
-    {'id': 'theCaesarAndSidePart', 'name': 'সিজার ও সাইড পার্ট'},
-    {'id': 'straight01', 'name': 'লম্বা সোজা ১'},
-    {'id': 'straight02', 'name': 'লম্বা সোজা ২'},
+    {'id': 'shortCurly', 'name': 'কোঁকড়া ছোট'},
+    {'id': 'frizzle', 'name': 'ফক্স হক / স্ট্রাইক'},
+    {'id': 'shavedSides', 'name': 'ফেড কাট'},
+    {'id': 'shaggy', 'name': 'পম্পাডোর'},
+    {'id': 'shortWaved', 'name': 'ঢেউ খেলানো'},
+    {'id': 'theCaesarAndSidePart', 'name': 'স্পাইক কাট'},
     {'id': 'bob', 'name': 'বব কাট'},
-    {'id': 'bun', 'name': 'খোঁপা'},
+    {'id': 'bun', 'name': 'টপ নট / খোঁপা'},
     {'id': 'curly', 'name': 'কোঁকড়া লম্বা'},
     {'id': 'curvy', 'name': 'ঢেউ খেলানো লম্বা'},
     {'id': 'fro', 'name': 'আফ্রো'},
-    {'id': 'froBand', 'name': 'হেডব্যান্ড আফ্রো'},
-    {'id': 'longButNotTooLong', 'name': 'মাঝারি লম্বা'},
-    {'id': 'miaWallace', 'name': 'মিয়া স্টাইল'},
-    {'id': 'straightAndStrand', 'name': 'সোজা ও স্ট্র্যান্ড'},
-    {'id': 'bigHair', 'name': 'ফোলানো'},
-    {'id': 'frida', 'name': 'ফ্রিদা কাট'},
-    {'id': 'hijab', 'name': 'হিজাব'},
-    {'id': 'hat', 'name': 'টুপি'},
-    {'id': 'turban', 'name': 'পাগড়ি'},
-    {'id': 'winterHat1', 'name': 'শীতের টুপি ১'},
-    {'id': 'winterHat02', 'name': 'শীতের টুপি ২'},
-    {'id': 'winterHat03', 'name': 'শীতের টুপি ৩'},
-    {'id': 'winterHat04', 'name': 'শীতের টুপি ৪'},
-    {'id': 'bald', 'name': 'নেড়া মাথা'},
+  ];
+
+  final List<Map<String, String>> _hatOptions = [
+    {'id': 'none', 'name': 'টুপি ছাড়া'},
+    {'id': 'cap', 'name': 'বেসবল ক্যাপ'},
+    {'id': 'snapback', 'name': 'স্ন্যাপব্যাক ক্যাপ'},
+    {'id': 'helmetMoto', 'name': 'রেসিং হেলমেট'},
+    {'id': 'helmetSkate', 'name': 'স্কেট হেলমেট'},
+    {'id': 'beanie', 'name': 'শীতের বিনি টুপি'},
+    {'id': 'beaniePom', 'name': 'পম-পম বিনি'},
+    {'id': 'bucketHat', 'name': 'ট্রেন্ডি বাকেট হ্যাট'},
+    {'id': 'fedora', 'name': 'ক্লাসিক ফেডোরা'},
+    {'id': 'beret', 'name': 'ফ্রেঞ্চ বেরেট'},
+    {'id': 'hijab', 'name': 'মার্জিত হিজাব'},
+    {'id': 'turban', 'name': 'রয়্যাল পাগড়ি'},
+    {'id': 'headband', 'name': 'স্পোর্টস হেডব্যান্ড'},
+    {'id': 'bandana', 'name': 'স্টাইলিশ ব্যান্ডানা'},
+    {'id': 'kufi', 'name': 'ইসলামিক কুফি টুপি'},
+    {'id': 'cowboy', 'name': 'ওয়েস্টার্ন কাউবয় হ্যাট'},
   ];
 
   final List<Map<String, String>> _eyeOptions = [
+    {'id': 'confident', 'name': 'আত্মবিশ্বাসী'},
+    {'id': 'intense', 'name': 'তীক্ষ্ণ দৃষ্টি'},
     {'id': 'default', 'name': 'স্বাভাবিক'},
-    {'id': 'happy', 'name': 'খুশি'},
+    {'id': 'happy', 'name': 'হাসিখুশি'},
     {'id': 'wink', 'name': 'চোখ টেপা'},
-    {'id': 'eyeRoll', 'name': 'বিরক্ত'},
-    {'id': 'closed', 'name': 'বন্ধ'},
-    {'id': 'squint', 'name': 'তাকানো'},
     {'id': 'surprised', 'name': 'অবাক'},
-    {'id': 'cry', 'name': 'কান্না'},
-    {'id': 'hearts', 'name': 'ভালোবাসা'},
-    {'id': 'side', 'name': 'পাশে তাকানো'},
-    {'id': 'winkWacky', 'name': 'উদ্ভট চোখ টেপা'},
-    {'id': 'xDizzy', 'name': 'ক্লান্ত'},
+    {'id': 'eyeRoll', 'name': 'বিরক্ত ভাব'},
+    {'id': 'sparkle', 'name': 'উজ্জ্বল তারা'},
+    {'id': 'cool', 'name': 'কুল ভাব'},
+    {'id': 'sleepy', 'name': 'ঘুম ঘুম / ক্লান্ত'},
+    {'id': 'cryingJoy', 'name': 'আনন্দের অশ্রু'},
   ];
 
   final List<Map<String, String>> _eyebrowOptions = [
     {'id': 'default', 'name': 'স্বাভাবিক'},
-    {'id': 'defaultNatural', 'name': 'স্বাভাবিক প্রাকৃত'},
-    {'id': 'angry', 'name': 'রাগী'},
-    {'id': 'angryNatural', 'name': 'রাগী প্রাকৃত'},
-    {'id': 'flatNatural', 'name': 'সোজা প্রাকৃত'},
-    {'id': 'frownNatural', 'name': 'কুঁচকানো প্রাকৃত'},
-    {'id': 'raisedExcited', 'name': 'উত্তেজিত উঁচানো'},
-    {'id': 'raisedExcitedNatural', 'name': 'উত্তেজিত প্রাকৃত'},
-    {'id': 'sadConcerned', 'name': 'চিন্তিত'},
-    {'id': 'sadConcernedNatural', 'name': 'চিন্তিত প্রাকৃত'},
-    {'id': 'unibrowNatural', 'name': 'জোড়া ভ্রু'},
-    {'id': 'upDown', 'name': 'উপরে নিচে'},
-    {'id': 'upDownNatural', 'name': 'উপরে নিচে প্রাকৃত'},
+    {'id': 'angryFierce', 'name': 'তীক্ষ্ণ রাগী'},
+    {'id': 'determined', 'name': 'দৃঢ়প্রতিজ্ঞ'},
+    {'id': 'raisedExcited', 'name': 'উত্তেজিত'},
   ];
 
   final List<Map<String, String>> _mouthOptions = [
-    {'id': 'smile', 'name': 'হাসি'},
-    {'id': 'default', 'name': 'স্বাভাবিক'},
-    {'id': 'concerned', 'name': 'চিন্তিত'},
-    {'id': 'disbelief', 'name': 'অবিশ্বাস'},
-    {'id': 'eating', 'name': 'খাচ্ছে'},
-    {'id': 'grimace', 'name': 'বিরক্তি'},
-    {'id': 'sad', 'name': 'দুঃখী'},
-    {'id': 'screamOpen', 'name': 'চিৎকার'},
-    {'id': 'serious', 'name': 'গম্ভীর'},
-    {'id': 'tongue', 'name': 'জিভ বের করা'},
+    {'id': 'smirk', 'name': 'মুচকি হাসি'},
+    {'id': 'smileTeeth', 'name': 'উজ্জ্বল হাসি'},
+    {'id': 'grit', 'name': 'দাঁত কিড়মিড়'},
+    {'id': 'smile', 'name': 'স্বাভাবিক হাসি'},
     {'id': 'twinkle', 'name': 'ঝিলিক'},
-    {'id': 'vomit', 'name': 'বমি'},
+    {'id': 'default', 'name': 'স্বাভাবিক'},
+    {'id': 'eating', 'name': 'খাচ্ছে'},
+    {'id': 'concerned', 'name': 'চিন্তিত'},
   ];
 
   final List<Map<String, String>> _clothingOptions = [
     {'id': 'shirtCrewNeck', 'name': 'গোল গলা টিশার্ট'},
-    {'id': 'shirtVNeck', 'name': 'ভি-নেক টিশার্ট'},
-    {'id': 'shirtScoopNeck', 'name': 'স্কুপ গলা টিশার্ট'},
+    {'id': 'shirtScoopNeck', 'name': 'স্কুপ নেক টপ'},
     {'id': 'hoodie', 'name': 'হুডি'},
     {'id': 'blazerAndShirt', 'name': 'ব্লেজার ও শার্ট'},
-    {'id': 'blazerAndSweater', 'name': 'ব্লেজার ও সোয়েটার'},
     {'id': 'collarAndSweater', 'name': 'কলার ও সোয়েটার'},
     {'id': 'graphicShirt', 'name': 'গ্রাফিক শার্ট'},
-    {'id': 'overall', 'name': 'ওভারঅল পোশাক'},
   ];
 
-  final List<Map<String, String>> _accessoriesOptions = [
+  // Dedicated high-definition Glasses Styles
+  final List<Map<String, String>> _glassesOptions = [
     {'id': 'none', 'name': 'চশমা ছাড়া'},
-    {'id': 'prescription01', 'name': 'পাওয়ার চশমা ১'},
-    {'id': 'prescription02', 'name': 'পাওয়ার চশমা ২'},
-    {'id': 'round', 'name': 'গোল চশমা'},
-    {'id': 'sunglasses', 'name': 'সানগ্লাস'},
-    {'id': 'wayfarers', 'name': 'ওয়েফেয়ারার'},
-    {'id': 'kurt', 'name': 'কুর্ট চশমা'},
-    {'id': 'eyepatch', 'name': 'এক চোখের পট্টি'},
+    {'id': 'roundWire', 'name': 'রাউন্ড ওয়্যারফ্রেম'},
+    {'id': 'wayfarers', 'name': 'ক্লাসিক ওয়েফেয়ারার'},
+    {'id': 'clubmaster', 'name': 'ক্লাবমাস্টার ব্রো-লাইন'},
+    {'id': 'aviator', 'name': 'এভিয়েটর পাইলট'},
+    {'id': 'catEye', 'name': 'ভিন্টেজ ক্যাট-আই'},
+    {'id': 'rectOptical', 'name': 'রেক্ট্যাঙ্গেল অপটিক্যাল'},
+    {'id': 'rectShades', 'name': 'ডার্ক শেডস'},
+    {'id': 'hexagonal', 'name': 'হেক্সাগোনাল ওয়্যার'},
+    {'id': 'roundShades', 'name': 'ডার্ক রাউন্ড শেডস'},
+    {'id': 'cyberVisor', 'name': 'সাইবারপঙ্ক ভাইজর'},
+    {'id': 'halfRim', 'name': 'সেমি-রিমলেস'},
   ];
 
-  final List<Map<String, String>> _facialHairOptions = [
+  // Headgear & Jewelry Accessories
+  final List<Map<String, String>> _accessoriesOptions = [
+    {'id': 'none', 'name': 'কিছু ছাড়া'},
+    {'id': 'headphones', 'name': 'স্টুডিও হেডফোন'},
+    {'id': 'hoopEarrings', 'name': 'গোল দুল (হুপ)'},
+    {'id': 'studEarrings', 'name': 'টপ দুল (স্টাড)'},
+    {'id': 'bindi', 'name': 'কপালের টিপ'},
+  ];
+
+  final List<Map<String, String>> _beardOptions = [
     {'id': 'none', 'name': 'দাড়ি ছাড়া'},
-    {'id': 'beardLight', 'name': 'হালকা দাড়ি'},
+    {'id': 'stubble', 'name': 'খোঁচা দাড়ি'},
+    {'id': 'chinStrap', 'name': 'চিনস্ট্র্যাপ'},
+    {'id': 'goatee', 'name': 'গোটি'},
     {'id': 'beardMedium', 'name': 'মাঝারি দাড়ি'},
     {'id': 'beardMajestic', 'name': 'ঘন দাড়ি'},
-    {'id': 'moustacheFancy', 'name': 'স্টাইলিশ গোঁফ'},
-    {'id': 'moustacheMagnum', 'name': 'ভারী গোঁফ'},
+    {'id': 'anchor', 'name': 'অ্যাঙ্কর দাড়ি'},
+  ];
+
+  final List<Map<String, String>> _moustacheOptions = [
+    {'id': 'none', 'name': 'গোঁফ ছাড়া'},
+    {'id': 'pencil', 'name': 'পেন্সিল গোঁফ'},
+    {'id': 'classic', 'name': 'ক্লাসিক গোঁফ'},
+    {'id': 'handlebar', 'name': 'হ্যান্ডেলবার'},
+    {'id': 'chevron', 'name': 'শেভরন'},
+    {'id': 'horseshoe', 'name': 'হর্সশু'},
+  ];
+
+  final List<Map<String, String>> _bgStyleOptions = [
+    {'id': 'cloud', 'name': 'ক্লাউড ব্যাজ'},
+    {'id': 'circle', 'name': 'বৃত্তাকার'},
+    {'id': 'squircle', 'name': 'স্কয়ার্কেল'},
   ];
 
   // Hex Colors
   final List<String> _hairColors = [
-    '2c1b18', '4a312c', '724133', 'a55728', 'b58143', 'd6b370', 'ecdcbf', 'f59797', 'c93305', 'e8e1e1'
+    '1b203a', '6d381c', '2c1b18', '4a312c', '724133', 'a55728', 'b58143', '1a1a1a', 'e8e1e1'
+  ];
+
+  final List<String> _hatColors = [
+    '262e33', '25557c', '86198f', '086057', '1d4ed8', 'ff5c5c', 'f59e0b', 'ffffff', '1a1a1a', '7f1d1d', '064e3b', 'b45309'
   ];
 
   final List<String> _skinColors = [
-    'ffdbb4', 'edb98a', 'f8d25c', 'fd9841', 'd08b5b', 'ae5d29', '614335'
+    'ffdbb4', 'edb98a', 'fde047', 'ffedd5', 'fed7aa', 'fd9841', 'd08b5b', 'ae5d29'
   ];
 
   final List<String> _clothingColors = [
-    '25557c', '3c4f5c', '5199e4', '65c9ff', 'b1e2ff', 'a7ffc4', 'ffdeb5', 'ffafb9', 'ffffb1', 'ff488e', 'ff5c5c', '262e33', 'e6e6e6', '929598', 'ffffff'
+    '86198f', '1d4ed8', '9333ea', '086057', '25557c', '5199e4', 'ff5c5c', '262e33', 'e6e6e6', 'ffffff'
+  ];
+
+  final List<String> _glassesColors = [
+    '18181b', 'd4af37', 'a8a29e', 'b58143', 'ef4444', '2563eb', '10b981', '7c3aed', 'ffffff'
+  ];
+
+  final List<String> _accessoriesColors = [
+    '18181b', '086057', 'f59e0b', 'ef4444', 'c026d3', '2563eb', '10b981', 'b58143', '262e33'
   ];
 
   final List<String> _bgColors = [
-    'b1c9ef', 'c4efb1', 'efb1e4', 'efd9b1', 'e3edf7', 'd6d6d6', '1a1a1a', 'ffffff'
+    'd8b4fe', 'fdba74', '2dd4bf', '7dd3fc', 'f472b6', '34d399', '086057', '6366f1', '1e293b', 'ffffff'
   ];
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 9, vsync: this);
     
     _scrollController.addListener(_onScroll);
     _tabController.addListener(_onTabChanged);
@@ -199,7 +242,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       final profileState = ref.read(userProfileProvider);
       profileState.whenData((userData) {
         final avatarUrl = userData.profile?.avatarKey;
-        if (avatarUrl != null && avatarUrl.contains('api.dicebear.com')) {
+        if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
           _parseAvatarUrl(avatarUrl);
         }
       });
@@ -212,9 +255,9 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
 
     int activeIndex = 0;
     double closestDiff = double.infinity;
-    const targetY = 345.0; // The threshold near the top of vertical options view
+    const targetY = 420.0;
 
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 9; i++) {
       final context = _sectionKeys[i].currentContext;
       if (context != null) {
         final renderBox = context.findRenderObject() as RenderBox?;
@@ -258,7 +301,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
         context,
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
-        alignment: 0.0, // Scroll to top of viewport
+        alignment: 0.0,
       );
     }
 
@@ -266,114 +309,174 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
     _isAutoScrolling = false;
   }
 
+  ProggaAvatarConfig get _currentConfig => ProggaAvatarConfig(
+    faceShape: _selectedFaceShape,
+    hair: _selectedHair,
+    hairColor: _selectedHairColor,
+    hat: _selectedHat,
+    hatColor: _selectedHatColor,
+    skinColor: _selectedSkinColor,
+    eyes: _selectedEyes,
+    eyebrows: _selectedEyebrows,
+    mouth: _selectedMouth,
+    clothing: _selectedClothing,
+    clothingColor: _selectedClothingColor,
+    glasses: _selectedGlasses,
+    glassesColor: _selectedGlassesColor,
+    accessories: _selectedAccessories,
+    accessoriesColor: _selectedAccessoriesColor,
+    beard: _selectedBeard,
+    beardColor: _selectedBeardColor,
+    moustache: _selectedMoustache,
+    moustacheColor: _selectedMoustacheColor,
+    bgColor: _selectedBgColor,
+    bgStyle: _selectedBgStyle,
+  );
+
+  String get _avatarUrl => _currentConfig.toProggaKey();
+
+  void _applyPreset(ProggaAvatarConfig config) {
+    setState(() {
+      _selectedFaceShape = config.faceShape;
+      _selectedHair = config.hair;
+      _selectedHairColor = config.hairColor;
+      _selectedHat = config.hat;
+      _selectedHatColor = config.hatColor;
+      _selectedSkinColor = config.skinColor;
+      _selectedEyes = config.eyes;
+      _selectedEyebrows = config.eyebrows;
+      _selectedMouth = config.mouth;
+      _selectedClothing = config.clothing;
+      _selectedClothingColor = config.clothingColor;
+      _selectedGlasses = config.glasses;
+      _selectedGlassesColor = config.glassesColor;
+      _selectedAccessories = config.accessories;
+      _selectedAccessoriesColor = config.accessoriesColor;
+      _selectedBeard = config.beard;
+      _selectedBeardColor = config.beardColor;
+      _selectedMoustache = config.moustache;
+      _selectedMoustacheColor = config.moustacheColor;
+      _selectedBgColor = config.bgColor;
+      _selectedBgStyle = config.bgStyle;
+    });
+  }
+
   void _parseAvatarUrl(String url) {
     try {
-      final uri = Uri.parse(url);
-      final params = uri.queryParameters;
-
-      setState(() {
-        if (params.containsKey('topProbability') && params['topProbability'] == '0') {
-          _selectedHair = 'bald';
-        } else if (params.containsKey('top')) {
-          _selectedHair = params['top']!;
-        }
-
-        if (params.containsKey('hairColor')) {
-          _selectedHairColor = params['hairColor']!;
-        }
-        if (params.containsKey('hatColor')) {
-          _selectedHatColor = params['hatColor']!;
-        }
-        if (params.containsKey('eyes')) {
-          _selectedEyes = params['eyes']!;
-        }
-        if (params.containsKey('eyebrows')) {
-          _selectedEyebrows = params['eyebrows']!;
-        }
-        if (params.containsKey('mouth')) {
-          _selectedMouth = params['mouth']!;
-        }
-        if (params.containsKey('skinColor')) {
-          _selectedSkinColor = params['skinColor']!;
-        }
-        if (params.containsKey('clothing')) {
-          _selectedClothing = params['clothing']!;
-        }
-        if (params.containsKey('clothesColor')) {
-          _selectedClothingColor = params['clothesColor']!;
-        }
-        
-        if (params.containsKey('accessoriesProbability') && params['accessoriesProbability'] == '0') {
-          _selectedAccessories = 'none';
-        } else if (params.containsKey('accessories')) {
-          _selectedAccessories = params['accessories']!;
-        }
-        if (params.containsKey('accessoriesColor')) {
-          _selectedAccessoriesColor = params['accessoriesColor']!;
-        }
-
-        if (params.containsKey('facialHairProbability') && params['facialHairProbability'] == '0') {
-          _selectedFacialHair = 'none';
-        } else if (params.containsKey('facialHair')) {
-          _selectedFacialHair = params['facialHair']!;
-        }
-        if (params.containsKey('facialHairColor')) {
-          _selectedFacialHairColor = params['facialHairColor']!;
-        }
-
-        if (params.containsKey('backgroundColor')) {
-          _selectedBgColor = params['backgroundColor']!;
-        }
-      });
+      final config = ProggaAvatarConfig.fromKey(url);
+      _applyPreset(config);
     } catch (_) {}
   }
 
-  String get _avatarUrl {
-    final params = <String, String>{};
-
-    // Hair / Hats
-    if (_selectedHair == 'bald') {
-      params['topProbability'] = '0';
-    } else {
-      params['top'] = _selectedHair;
-      params['topProbability'] = '100';
-      params['hairColor'] = _selectedHairColor;
-      params['hatColor'] = _selectedHatColor;
-    }
-
-    // Face elements
-    params['eyes'] = _selectedEyes;
-    params['eyebrows'] = _selectedEyebrows;
-    params['mouth'] = _selectedMouth;
-    params['skinColor'] = _selectedSkinColor;
-
-    // Clothes
-    params['clothing'] = _selectedClothing;
-    params['clothesColor'] = _selectedClothingColor;
-
-    // Accessories
-    if (_selectedAccessories != 'none') {
-      params['accessories'] = _selectedAccessories;
-      params['accessoriesProbability'] = '100';
-      params['accessoriesColor'] = _selectedAccessoriesColor;
-    } else {
-      params['accessoriesProbability'] = '0';
-    }
-
-    // Facial Hair
-    if (_selectedFacialHair != 'none') {
-      params['facialHair'] = _selectedFacialHair;
-      params['facialHairProbability'] = '100';
-      params['facialHairColor'] = _selectedFacialHairColor;
-    } else {
-      params['facialHairProbability'] = '0';
-    }
-
-    // Background
-    params['backgroundColor'] = _selectedBgColor;
-
-    final queryString = Uri(queryParameters: params).query;
-    return 'https://api.dicebear.com/9.x/avataaars/svg?$queryString';
+  void _showPresetsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'স্পেশাল চরিত্র প্রিসেট',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontFamily: 'Li Ador Noirrit',
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        _applyPreset(ProggaAvatarConfig.random());
+                        Navigator.pop(ctx);
+                      },
+                      icon: const Icon(Icons.shuffle_rounded, size: 18),
+                      label: const Text('র‍্যান্ডম'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: 175,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: ProggaAvatarConfig.presets.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    itemBuilder: (ctx, i) {
+                      final p = ProggaAvatarConfig.presets[i];
+                      final config = p['config'] as ProggaAvatarConfig;
+                      return GestureDetector(
+                        onTap: () {
+                          _applyPreset(config);
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          width: 125,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: const Color(0xFF086057).withValues(alpha: 0.15),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ProggaAnimatedAvatar(
+                                config: config,
+                                radius: 36,
+                                isAnimated: false,
+                                isCircle: false,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                p['title'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  fontFamily: 'Li Ador Noirrit',
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _saveAvatar() async {
@@ -424,186 +527,274 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     const brandTealColor = Color(0xFF086057);
+    final canvasBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F3FA);
+    final topBarFgColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: Text(
-          'অ্যাভাটার এডিট করো',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            fontFamily: 'Li Ador Noirrit',
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        centerTitle: true,
-        leading: CustomBackButton(
-          color: isDark ? Colors.white : Colors.black87,
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: canvasBg,
       body: Column(
         children: [
-          // 1. Sticky Live Preview Panel (Always on top)
-          Container(
+          // 1. Character Hero Canvas
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
             width: double.infinity,
-            height: 250,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E272C), const Color(0xFF0F1518)]
-                    : [const Color(0xFFE3EDF7), const Color(0xFFF5F7FA)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Glowing radial backdrop for 3D depth and pop
-                Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        brandTealColor.withValues(alpha: isDark ? 0.25 : 0.15),
-                        brandTealColor.withValues(alpha: 0),
+            color: canvasBg,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  // Top Custom App Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: CustomBackButton(
+                            color: topBarFgColor,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                        Text(
+                          'অ্যাভাটার কাস্টমাইজ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            fontFamily: 'Li Ador Noirrit',
+                            color: topBarFgColor,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: Icon(Icons.auto_awesome_rounded, color: topBarFgColor),
+                            tooltip: 'প্রিসেট চরিত্র',
+                            onPressed: _showPresetsModal,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ),
-                // Premium outer ring ornament
-                Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: brandTealColor.withValues(alpha: 0.12),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-                CustomAvatar(
-                  avatarUrl: _avatarUrl,
-                  radius: 80,
-                  backgroundColor: Colors.transparent,
-                ),
-                if (_isSaving)
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
-                  ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 2),
 
-          // 2. Sticky Tab Horizontal Menu (Automatically syncs on scrolling using native TabBar)
-          Container(
-            height: 54,
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade200,
-                ),
+                  // Character Area:
+                  SizedBox(
+                    height: 280,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          bottom: 0,
+                          child: ProggaAnimatedAvatar(
+                            config: _currentConfig,
+                            radius: 135,
+                            hasBg: true,
+                            isCircle: false,
+                            isAnimated: true,
+                            showAura: false,
+                          ),
+                        ),
+                        if (_isSaving)
+                          Positioned.fill(
+                            child: Container(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              child: const Center(
+                                child: CircularProgressIndicator(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              indicatorColor: brandTealColor,
-              indicatorWeight: 3.0,
-              labelColor: brandTealColor,
-              unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Li Ador Noirrit'),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14, fontFamily: 'Li Ador Noirrit'),
-              dividerColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              tabs: [
-                _buildTab('চুল ও টুপি', Icons.face_retouching_natural),
-                _buildTab('চোখ ও ভ্রু', Icons.visibility_rounded),
-                _buildTab('মুখ ও দাড়ি', Icons.sentiment_satisfied_alt_rounded),
-                _buildTab('পোশাক', Icons.checkroom_rounded),
-                _buildTab('চশমা', Icons.face_unlock_rounded),
-                _buildTab('গায়ের রঙ ও ব্যাকগ্রাউন্ড', Icons.palette_rounded),
-              ],
-            ),
           ),
 
-          // 3. Vertically Scrollable Content Panel with all options together
+          // 2. Customization Sheet
           Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF141A1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section 0: Hair and Hats
-                  _buildSectionHeader(0, 'চুল ও টুপি (Hair & Hats)'),
-                  const SizedBox(height: 12),
-                  _buildHairGrid(),
-                  const SizedBox(height: 32),
+                  // Drag handle bar
+                  Container(
+                    margin: const EdgeInsets.only(top: 10, bottom: 6),
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.15) : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
 
-                  // Section 1: Eyes & Brows
-                  _buildSectionHeader(1, 'চোখ ও ভ্রু (Eyes & Brows)'),
-                  const SizedBox(height: 12),
-                  _buildSubTitle('চোখের ভঙ্গি (Eyes)'),
-                  const SizedBox(height: 8),
-                  _buildEyesGrid(),
-                  const SizedBox(height: 20),
-                  _buildSubTitle('ভ্রু-র ডিজাইন (Eyebrows)'),
-                  const SizedBox(height: 8),
-                  _buildEyebrowsGrid(),
-                  const SizedBox(height: 32),
+                  // Sticky Tab Menu (7 separated tabs)
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade200,
+                        ),
+                      ),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
+                      indicatorColor: brandTealColor,
+                      indicatorWeight: 3.0,
+                      labelColor: brandTealColor,
+                      unselectedLabelColor: Colors.grey,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Li Ador Noirrit'),
+                      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13, fontFamily: 'Li Ador Noirrit'),
+                      dividerColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      tabs: [
+                        _buildTab('চুল', Icons.face_retouching_natural),
+                        _buildTab('ফেস শেপ', Icons.face_rounded),
+                        _buildTab('টুপি ও হেডওয়্যার', Icons.sports_baseball_rounded),
+                        _buildTab('চোখ ও ভ্রু', Icons.visibility_rounded),
+                        _buildTab('মুখ ও দাড়ি', Icons.sentiment_satisfied_alt_rounded),
+                        _buildTab('পোশাক', Icons.checkroom_rounded),
+                        _buildTab('চশমা', Icons.remove_red_eye_outlined),
+                        _buildTab('এক্সেসরিজ', Icons.headset_rounded),
+                        _buildTab('ব্যাকগ্রাউন্ড ও রঙ', Icons.palette_rounded),
+                      ],
+                    ),
+                  ),
 
-                  // Section 2: Mouth & Beard
-                  _buildSectionHeader(2, 'মুখ ও দাড়ি (Mouth & Facial Hair)'),
-                  const SizedBox(height: 12),
-                  _buildSubTitle('মুখের অভিব্যক্তি (Mouth)'),
-                  const SizedBox(height: 8),
-                  _buildMouthGrid(),
-                  const SizedBox(height: 20),
-                  _buildSubTitle('দাড়ি ও গোঁফ (Facial Hair)'),
-                  const SizedBox(height: 8),
-                  _buildFacialHairGrid(),
-                  const SizedBox(height: 32),
+                  // 3. Vertically Scrollable Content Panel
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Section 0: Hair Only
+                          _buildSectionHeader(0, 'চুল (Hairstyles)'),
+                          const SizedBox(height: 12),
+                          _buildHairGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('চুলের রঙ (Hair Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_hairColors, _selectedHairColor, (color) {
+                            setState(() => _selectedHairColor = color);
+                          }),
+                          const SizedBox(height: 32),
 
-                  // Section 3: Clothing
-                  _buildSectionHeader(3, 'পোশাক (Clothing Style)'),
-                  const SizedBox(height: 12),
-                  _buildClothingGrid(),
-                  const SizedBox(height: 32),
+                          // Section 1: Face Shape Structure
+                          _buildSectionHeader(1, 'ফেসের গঠন (Face Shape)'),
+                          const SizedBox(height: 12),
+                          _buildFaceShapeGrid(),
+                          const SizedBox(height: 32),
 
-                  // Section 4: Accessories
-                  _buildSectionHeader(4, 'চশমা (Eyewear & Accessories)'),
-                  const SizedBox(height: 12),
-                  _buildAccessoriesGrid(),
-                  const SizedBox(height: 32),
+                          // Section 2: Hats & Headwear Only
+                          _buildSectionHeader(2, 'টুপি ও হেডওয়্যার (Hats & Headwear)'),
+                          const SizedBox(height: 12),
+                          _buildHatGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('টুপির রঙ (Hat Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_hatColors, _selectedHatColor, (color) {
+                            setState(() => _selectedHatColor = color);
+                          }),
+                          const SizedBox(height: 32),
 
-                  // Section 5: Colors
-                  _buildSectionHeader(5, 'রঙের প্যালেট (Color Options)'),
-                  const SizedBox(height: 16),
-                  _buildColorsPanel(),
-                  const SizedBox(height: 80), // Extra bottom padding for floating button
+                          // Section 3: Eyes & Brows
+                          _buildSectionHeader(3, 'চোখ ও ভ্রু (Eyes & Brows)'),
+                          const SizedBox(height: 12),
+                          _buildSubTitle('চোখের ভঙ্গি (Eyes) • ${_getSelectedEyeName()}'),
+                          const SizedBox(height: 8),
+                          _buildEyesGrid(),
+                          const SizedBox(height: 20),
+                          _buildSubTitle('ভ্রু-র ডিজাইন (Eyebrows)'),
+                          const SizedBox(height: 8),
+                          _buildEyebrowsGrid(),
+                          const SizedBox(height: 32),
+
+                          // Section 4: Mouth, Beard & Moustache
+                          _buildSectionHeader(4, 'মুখ, দাড়ি ও গোঁফ (Mouth, Beard & Moustache)'),
+                          const SizedBox(height: 12),
+                          _buildSubTitle('মুখের অভিব্যক্তি (Mouth Expression)'),
+                          const SizedBox(height: 8),
+                          _buildMouthGrid(),
+                          const SizedBox(height: 24),
+
+                          _buildSubTitle('দাড়ির স্টাইল (Beard Style)'),
+                          const SizedBox(height: 8),
+                          _buildBeardGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('দাড়ির রঙ (Beard Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_hairColors, _selectedBeardColor, (color) {
+                            setState(() => _selectedBeardColor = color);
+                          }),
+                          const SizedBox(height: 24),
+
+                          _buildSubTitle('গোঁফের স্টাইল (Moustache Style)'),
+                          const SizedBox(height: 8),
+                          _buildMoustacheGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('গোঁফের রঙ (Moustache Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_hairColors, _selectedMoustacheColor, (color) {
+                            setState(() => _selectedMoustacheColor = color);
+                          }),
+                          const SizedBox(height: 32),
+
+                          // Section 5: Clothing
+                          _buildSectionHeader(5, 'পোশাক (Clothing Style)'),
+                          const SizedBox(height: 12),
+                          _buildClothingGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('পোশাকের রঙ (Clothes Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_clothingColors, _selectedClothingColor, (color) {
+                            setState(() => _selectedClothingColor = color);
+                          }),
+                          const SizedBox(height: 32),
+
+                          // Section 6: Glasses (Dedicated)
+                          _buildSectionHeader(6, 'চশমা ও শেডস (Glasses & Shades)'),
+                          const SizedBox(height: 12),
+                          _buildGlassesGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('চশমার ফ্রেমের রঙ (Frame Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_glassesColors, _selectedGlassesColor, (color) {
+                            setState(() => _selectedGlassesColor = color);
+                          }),
+                          const SizedBox(height: 32),
+
+                          // Section 7: Accessories (Headphones & Jewelry)
+                          _buildSectionHeader(7, 'এক্সেসরিজ ও হেডফোন (Accessories)'),
+                          const SizedBox(height: 12),
+                          _buildAccessoriesGrid(),
+                          const SizedBox(height: 16),
+                          _buildColorRowTitle('এক্সেসরিজের রঙ (Accessories Color)'),
+                          const SizedBox(height: 8),
+                          _buildColorRow(_accessoriesColors, _selectedAccessoriesColor, (color) {
+                            setState(() => _selectedAccessoriesColor = color);
+                          }),
+                          const SizedBox(height: 32),
+
+                          // Section 8: Colors & Backdrop
+                          _buildSectionHeader(8, 'ব্যাকগ্রাউন্ড ও গায়ের রঙ (Backdrop & Skin)'),
+                          const SizedBox(height: 16),
+                          _buildColorsPanel(),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -622,7 +813,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              elevation: 4, // Slightly higher elevation for floating look
+              elevation: 4,
               shadowColor: Colors.black.withValues(alpha: 0.15),
             ),
             child: _isSaving
@@ -658,7 +849,6 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
 
   Widget _buildSectionHeader(int index, String title) {
     const brandTealColor = Color(0xFF086057);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       key: _sectionKeys[index],
@@ -673,74 +863,146 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       ),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
+        style: const TextStyle(
           fontWeight: FontWeight.bold,
-          color: isDark ? Colors.white : brandTealColor,
+          fontSize: 15,
+          color: brandTealColor,
           fontFamily: 'Li Ador Noirrit',
         ),
       ),
     );
   }
 
-  Widget _buildSubTitle(String text) {
+  String _getSelectedEyeName() {
+    final match = _eyeOptions.firstWhere(
+      (e) => e['id'] == _selectedEyes,
+      orElse: () => _eyeOptions.first,
+    );
+    return match['name'] ?? '';
+  }
+
+  Widget _buildSubTitle(String title) {
     return Text(
-      text,
+      title,
       style: const TextStyle(
-        fontSize: 14,
         fontWeight: FontWeight.bold,
+        fontSize: 14,
         color: Colors.grey,
         fontFamily: 'Li Ador Noirrit',
       ),
     );
   }
 
-  // Segmented Grid components
+  Widget _buildThumbnailCard({
+    required String svgContent,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const selectedColor = Color(0xFF017A47);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E252B) : const Color(0xFFF4F6F8),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? selectedColor : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
+            width: isSelected ? 2.5 : 1.0,
+          ),
+        ),
+        padding: const EdgeInsets.all(4),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SvgPicture.string(
+            svgContent,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFaceShapeGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 1.15,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: _faceShapeOptions.length,
+      itemBuilder: (context, index) {
+        final option = _faceShapeOptions[index];
+        final isSelected = _selectedFaceShape == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildFaceShapeThumbnailSvg(
+          faceShape: option['id']!,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedFaceShape = option['id']!),
+        );
+      },
+    );
+  }
+
   Widget _buildHairGrid() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _hairOptions.length,
       itemBuilder: (context, index) {
         final option = _hairOptions[index];
         final isSelected = _selectedHair == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildHairThumbnailSvg(
+          hairStyle: option['id']!,
+          hairColor: _selectedHairColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedHair = option['id']!),
+        );
+      },
+    );
+  }
 
-        final topProb = option['id'] == 'bald' ? '0' : '100';
-        final topOption = option['id'] == 'bald' ? 'shortFlat' : option['id'];
-
-        final previewUrl = 'https://api.dicebear.com/9.x/avataaars/svg?'
-            'top=$topOption&'
-            'topProbability=$topProb&'
-            'hairColor=$_selectedHairColor&'
-            'hatColor=$_selectedHatColor&'
-            'eyes=default&'
-            'mouth=default&'
-            'skinColor=$_selectedSkinColor&'
-            'clothesColor=$_selectedClothingColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedHair = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+  Widget _buildHatGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: _hatOptions.length,
+      itemBuilder: (context, index) {
+        final option = _hatOptions[index];
+        final isSelected = _selectedHat == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildHatThumbnailSvg(
+          hat: option['id']!,
+          hatColor: _selectedHatColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedHat = option['id']!),
         );
       },
     );
@@ -751,39 +1013,23 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _eyeOptions.length,
       itemBuilder: (context, index) {
         final option = _eyeOptions[index];
         final isSelected = _selectedEyes == option['id'];
-        final previewUrl = 'https://api.dicebear.com/9.x/avataaars/svg?'
-            'topProbability=0&'
-            'eyes=${option['id']}&'
-            'eyebrows=default&'
-            'mouth=default&'
-            'skinColor=$_selectedSkinColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedEyes = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        final svg = ProggaAvatarSvgBuilder.buildEyesThumbnailSvg(
+          eyeType: option['id']!,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedEyes = option['id']!),
         );
       },
     );
@@ -794,39 +1040,24 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _eyebrowOptions.length,
       itemBuilder: (context, index) {
         final option = _eyebrowOptions[index];
         final isSelected = _selectedEyebrows == option['id'];
-        final previewUrl = 'https://api.dicebear.com/9.x/avataaars/svg?'
-            'topProbability=0&'
-            'eyes=default&'
-            'eyebrows=${option['id']}&'
-            'mouth=default&'
-            'skinColor=$_selectedSkinColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedEyebrows = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        final svg = ProggaAvatarSvgBuilder.buildEyebrowThumbnailSvg(
+          eyebrowType: option['id']!,
+          hairColor: _selectedHairColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedEyebrows = option['id']!),
         );
       },
     );
@@ -837,79 +1068,79 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _mouthOptions.length,
       itemBuilder: (context, index) {
         final option = _mouthOptions[index];
         final isSelected = _selectedMouth == option['id'];
-        final previewUrl = 'https://api.dicebear.com/9.x/avataaars/svg?'
-            'topProbability=0&'
-            'eyes=default&'
-            'mouth=${option['id']}&'
-            'skinColor=$_selectedSkinColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedMouth = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        final svg = ProggaAvatarSvgBuilder.buildMouthThumbnailSvg(
+          mouthType: option['id']!,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedMouth = option['id']!),
         );
       },
     );
   }
 
-  Widget _buildFacialHairGrid() {
+  Widget _buildBeardGrid() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
-      itemCount: _facialHairOptions.length,
+      itemCount: _beardOptions.length,
       itemBuilder: (context, index) {
-        final option = _facialHairOptions[index];
-        final isSelected = _selectedFacialHair == option['id'];
+        final option = _beardOptions[index];
+        final isSelected = _selectedBeard == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildBeardThumbnailSvg(
+          beard: option['id']!,
+          beardColor: _selectedBeardColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedBeard = option['id']!),
+        );
+      },
+    );
+  }
 
-        final previewUrl = option['id'] == 'none'
-            ? 'https://api.dicebear.com/9.x/avataaars/svg?topProbability=0&eyes=default&mouth=default&skinColor=$_selectedSkinColor&facialHairProbability=0'
-            : 'https://api.dicebear.com/9.x/avataaars/svg?topProbability=0&eyes=default&mouth=default&skinColor=$_selectedSkinColor&facialHair=${option['id']}&facialHairProbability=100&facialHairColor=$_selectedFacialHairColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedFacialHair = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+  Widget _buildMoustacheGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: _moustacheOptions.length,
+      itemBuilder: (context, index) {
+        final option = _moustacheOptions[index];
+        final isSelected = _selectedMoustache == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildMoustacheThumbnailSvg(
+          moustache: option['id']!,
+          moustacheColor: _selectedMoustacheColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedMoustache = option['id']!),
         );
       },
     );
@@ -920,41 +1151,51 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _clothingOptions.length,
       itemBuilder: (context, index) {
         final option = _clothingOptions[index];
         final isSelected = _selectedClothing == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildClothingThumbnailSvg(
+          clothing: option['id']!,
+          clothingColor: _selectedClothingColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedClothing = option['id']!),
+        );
+      },
+    );
+  }
 
-        final previewUrl = 'https://api.dicebear.com/9.x/avataaars/svg?'
-            'topProbability=0&'
-            'eyes=default&'
-            'mouth=default&'
-            'skinColor=$_selectedSkinColor&'
-            'clothing=${option['id']}&'
-            'clothesColor=$_selectedClothingColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedClothing = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+  Widget _buildGlassesGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: _glassesOptions.length,
+      itemBuilder: (context, index) {
+        final option = _glassesOptions[index];
+        final isSelected = _selectedGlasses == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildGlassesThumbnailSvg(
+          glasses: option['id']!,
+          glassesColor: _selectedGlassesColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedGlasses = option['id']!),
         );
       },
     );
@@ -965,37 +1206,24 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.78,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisCount: 4,
+        childAspectRatio: 1.0,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: _accessoriesOptions.length,
       itemBuilder: (context, index) {
         final option = _accessoriesOptions[index];
         final isSelected = _selectedAccessories == option['id'];
-
-        final previewUrl = option['id'] == 'none'
-            ? 'https://api.dicebear.com/9.x/avataaars/svg?topProbability=0&eyes=default&mouth=default&skinColor=transparent&accessoriesProbability=0'
-            : 'https://api.dicebear.com/9.x/avataaars/svg?topProbability=0&eyes=default&mouth=default&skinColor=transparent&accessories=${option['id']}&accessoriesProbability=100&accessoriesColor=$_selectedAccessoriesColor';
-
-        return Column(
-          children: [
-            Expanded(
-              child: _buildOptionButton(
-                previewUrl: previewUrl,
-                isSelected: isSelected,
-                onTap: () => setState(() => _selectedAccessories = option['id']!),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              option['name'] ?? option['id']!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500, fontFamily: 'Li Ador Noirrit'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+        final svg = ProggaAvatarSvgBuilder.buildAccessoriesThumbnailSvg(
+          accessory: option['id']!,
+          accessoryColor: _selectedAccessoriesColor,
+          skinColor: _selectedSkinColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedAccessories = option['id']!),
         );
       },
     );
@@ -1005,103 +1233,49 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildColorRowTitle('ব্যাকগ্রাউন্ডের ধরন (Backdrop Shape)'),
+        const SizedBox(height: 8),
+        _buildBackdropStyleGrid(),
+        const SizedBox(height: 20),
+        _buildColorRowTitle('ব্যাকগ্রাউন্ডের রঙ (Backdrop Color)'),
+        const SizedBox(height: 8),
+        _buildColorRow(_bgColors, _selectedBgColor, (color) {
+          setState(() => _selectedBgColor = color);
+        }),
+        const Divider(height: 28),
         _buildColorRowTitle('গায়ের রঙ (Skin Color)'),
         const SizedBox(height: 8),
         _buildColorRow(_skinColors, _selectedSkinColor, (color) {
           setState(() => _selectedSkinColor = color);
         }),
-        const Divider(height: 24),
-        _buildColorRowTitle('চুলের রঙ (Hair Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_hairColors, _selectedHairColor, (color) {
-          setState(() => _selectedHairColor = color);
-        }),
-        const Divider(height: 24),
-        _buildColorRowTitle('টুপির রঙ (Hat Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_clothingColors, _selectedHatColor, (color) {
-          setState(() => _selectedHatColor = color);
-        }),
-        const Divider(height: 24),
-        _buildColorRowTitle('দাড়ির রঙ (Beard Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_hairColors, _selectedFacialHairColor, (color) {
-          setState(() => _selectedFacialHairColor = color);
-        }),
-        const Divider(height: 24),
-        _buildColorRowTitle('পোশাকের রঙ (Clothes Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_clothingColors, _selectedClothingColor, (color) {
-          setState(() => _selectedClothingColor = color);
-        }),
-        const Divider(height: 24),
-        _buildColorRowTitle('চশমার রঙ (Glasses Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_clothingColors, _selectedAccessoriesColor, (color) {
-          setState(() => _selectedAccessoriesColor = color);
-        }),
-        const Divider(height: 24),
-        _buildColorRowTitle('ব্যাকগ্রাউন্ডের রঙ (Background Color)'),
-        const SizedBox(height: 8),
-        _buildColorRow(_bgColors, _selectedBgColor, (color) {
-          setState(() => _selectedBgColor = color);
-        }),
       ],
     );
   }
 
-  Widget _buildOptionButton({
-    required String previewUrl,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    const brandTealColor = Color(0xFF086057);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? brandTealColor.withValues(alpha: 0.15) : brandTealColor.withValues(alpha: 0.08))
-              : (isDark ? const Color(0xFF1E262B) : Colors.white),
-          border: Border.all(
-            color: isSelected
-                ? brandTealColor
-                : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
-            width: isSelected ? 2.0 : 1.0,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: brandTealColor.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  )
-                ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Center(
-            child: CustomAvatar(
-              avatarUrl: previewUrl,
-              radius: 36,
-              backgroundColor: Colors.transparent,
-            ),
-          ),
-        ),
+  Widget _buildBackdropStyleGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: 1.1,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
+      itemCount: _bgStyleOptions.length,
+      itemBuilder: (context, index) {
+        final option = _bgStyleOptions[index];
+        final isSelected = _selectedBgStyle == option['id'];
+        final svg = ProggaAvatarSvgBuilder.buildBackdropThumbnailSvg(
+          bgStyle: option['id']!,
+          bgColor: _selectedBgColor,
+        );
+        return _buildThumbnailCard(
+          svgContent: svg,
+          isSelected: isSelected,
+          onTap: () => setState(() => _selectedBgStyle = option['id']!),
+        );
+      },
     );
   }
 
@@ -1147,7 +1321,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF086057).withOpacity(0.3),
+                          color: const Color(0xFF086057).withValues(alpha: 0.3),
                           blurRadius: 6,
                           spreadRadius: 1,
                         )
@@ -1160,31 +1334,4 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
       ),
     );
   }
-}
-
-class CheckerboardPainter extends CustomPainter {
-  final Color checkColor;
-
-  CheckerboardPainter({required this.checkColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = checkColor;
-    const double squareSize = 6.0;
-
-    for (double y = 0; y < size.height; y += squareSize) {
-      final bool offset = (y ~/ squareSize) % 2 == 1;
-      for (double x = 0; x < size.width; x += squareSize) {
-        if (((x ~/ squareSize) % 2 == 1) != offset) {
-          canvas.drawRect(
-            Rect.fromLTWH(x, y, squareSize, squareSize),
-            paint,
-          );
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
