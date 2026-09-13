@@ -87,7 +87,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
     // Redirect to onboarding if profile is loaded and user has not completed onboarding
     if (profileAsync.value != null && profileAsync.value!.id.isNotEmpty) {
       final userData = profileAsync.value!;
-      if (userData.profile != null && (userData.profile!.className == null || userData.profile!.className!.isEmpty)) {
+      if (userData.profile == null || userData.profile!.className == null || userData.profile!.className!.isEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) context.go('/onboarding');
         });

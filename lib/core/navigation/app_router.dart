@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../storage/secure_storage_service.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/auth_notifier.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -44,7 +43,6 @@ class RouterTransitionNotifier extends ChangeNotifier {
 final initialLocationProvider = Provider<String>((ref) => '/login');
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final secureStorage = ref.watch(secureStorageServiceProvider);
   final notifier = RouterTransitionNotifier(ref);
   final initialLocation = ref.watch(initialLocationProvider);
 
@@ -67,6 +65,15 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Force forward from login if already authenticated
       if (isLoggingIn) {
+        final user = authState.maybeWhen(
+          authenticated: (u, _) => u,
+          orElse: () => const {},
+        );
+        final profile = user['profile'];
+        final className = profile is Map ? profile['className'] : null;
+        if (className == null || (className is String && className.isEmpty)) {
+          return '/onboarding';
+        }
         return '/home';
       }
 

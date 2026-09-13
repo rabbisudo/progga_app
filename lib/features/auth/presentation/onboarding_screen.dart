@@ -1,17 +1,17 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../profile/presentation/profile_notifier.dart';
-import '../../academics/data/academics_repository.dart';
+
 import '../../../core/widgets/custom_back_button.dart';
+import '../../academics/data/academics_repository.dart';
 import '../../academics/domain/academics_model.dart';
+import '../../profile/presentation/profile_notifier.dart';
 import 'auth_notifier.dart';
-import 'package:video_player/video_player.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -19,260 +19,76 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int _step = 0;
-  String? _selectedClass;
-  String? _selectedGroup;
-  String? _selectedBatch;
+  final List<int> _history = [0];
+
+  // User Profile Data
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  String _selectedGender = 'ছাত্র'; // 'ছাত্র' or 'ছাত্রী'
+
+  // Academic Selections
   AcademicClassModel? _selectedClassModel;
   SubjectGroupModel? _selectedGroupModel;
   AcademicBatchModel? _selectedBatchModel;
-  String _selectedGender = 'ছাত্র'; // 'ছাত্র' (MALE) or 'ছাত্রী' (FEMALE)
-  DateTime? _selectedBirthday;
-  
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _institutionController = TextEditingController();
-  
+
   bool _isSubmitting = false;
-  bool _isTalking = true;
-  Timer? _talkingTimer;
-  VideoPlayerController? _sleepingController;
-  bool _isSleepingInitialized = false;
-  VideoPlayerController? _happyController;
-  bool _isHappyInitialized = false;
-  VideoPlayerController? _celebratingController;
-  bool _isCelebratingInitialized = false;
-  VideoPlayerController? _yawningController;
-  bool _isYawningInitialized = false;
-  VideoPlayerController? _scaredController;
-  bool _isScaredInitialized = false;
-  VideoPlayerController? _partyController;
-  bool _isPartyInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _startTalkingTimer();
-    _initSleepingController();
-    _initHappyController();
-    _initCelebratingController();
-    _initYawningController();
-    _initScaredController();
-    _initPartyController();
-  }
-
-  void _initSleepingController() {
-    _sleepingController = VideoPlayerController.asset('assets/images/panda_sleeping.mp4');
-    _sleepingController?.initialize().then((_) {
-      _sleepingController?.setLooping(true);
-      _sleepingController?.setVolume(0.0);
-      _sleepingController?.play();
-      _sleepingController?.addListener(() {
-        if (_sleepingController != null &&
-            _sleepingController!.value.isInitialized &&
-            _sleepingController!.value.position >= _sleepingController!.value.duration) {
-          _sleepingController?.seekTo(Duration.zero);
-          _sleepingController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isSleepingInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _initHappyController() {
-    _happyController = VideoPlayerController.asset('assets/images/panda_happy.mp4');
-    _happyController?.initialize().then((_) {
-      _happyController?.setLooping(true);
-      _happyController?.setVolume(0.0);
-      _happyController?.addListener(() {
-        if (_happyController != null &&
-            _happyController!.value.isInitialized &&
-            _happyController!.value.position >= _happyController!.value.duration) {
-          _happyController?.seekTo(Duration.zero);
-          _happyController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isHappyInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _initCelebratingController() {
-    _celebratingController = VideoPlayerController.asset('assets/images/panda_celebrating.mp4');
-    _celebratingController?.initialize().then((_) {
-      _celebratingController?.setLooping(true);
-      _celebratingController?.setVolume(0.0);
-      _celebratingController?.addListener(() {
-        if (_celebratingController != null &&
-            _celebratingController!.value.isInitialized &&
-            _celebratingController!.value.position >= _celebratingController!.value.duration) {
-          _celebratingController?.seekTo(Duration.zero);
-          _celebratingController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isCelebratingInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _initYawningController() {
-    _yawningController = VideoPlayerController.asset('assets/images/panda_yawning.mp4');
-    _yawningController?.initialize().then((_) {
-      _yawningController?.setLooping(true);
-      _yawningController?.setVolume(0.0);
-      _yawningController?.addListener(() {
-        if (_yawningController != null &&
-            _yawningController!.value.isInitialized &&
-            _yawningController!.value.position >= _yawningController!.value.duration) {
-          _yawningController?.seekTo(Duration.zero);
-          _yawningController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isYawningInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _initScaredController() {
-    _scaredController = VideoPlayerController.asset('assets/images/panda_scared.mp4');
-    _scaredController?.initialize().then((_) {
-      _scaredController?.setLooping(true);
-      _scaredController?.setVolume(0.0);
-      _scaredController?.addListener(() {
-        if (_scaredController != null &&
-            _scaredController!.value.isInitialized &&
-            _scaredController!.value.position >= _scaredController!.value.duration) {
-          _scaredController?.seekTo(Duration.zero);
-          _scaredController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isScaredInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _initPartyController() {
-    _partyController = VideoPlayerController.asset('assets/images/panda_party.mp4');
-    _partyController?.initialize().then((_) {
-      _partyController?.setLooping(true);
-      _partyController?.setVolume(0.0);
-      _partyController?.addListener(() {
-        if (_partyController != null &&
-            _partyController!.value.isInitialized &&
-            _partyController!.value.position >= _partyController!.value.duration) {
-          _partyController?.seekTo(Duration.zero);
-          _partyController?.play();
-        }
-      });
-      if (mounted) {
-        setState(() {
-          _isPartyInitialized = true;
-        });
-      }
-    }).catchError((_) {});
-  }
-
-  void _startTalkingTimer() {
-    setState(() {
-      _isTalking = true;
-    });
-    _talkingTimer?.cancel();
-    _talkingTimer = Timer(const Duration(milliseconds: 1600), () {
-      if (mounted) {
-        setState(() {
-          _isTalking = false;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
-    _talkingTimer?.cancel();
     _nameController.dispose();
     _phoneController.dispose();
-    _addressController.dispose();
-    _institutionController.dispose();
-    _sleepingController?.dispose();
-    _happyController?.dispose();
-    _celebratingController?.dispose();
-    _yawningController?.dispose();
-    _scaredController?.dispose();
-    _partyController?.dispose();
     super.dispose();
   }
 
-  void _nextStep() {
-    _talkingTimer?.cancel();
+  void _goToStep(int step) {
+    HapticFeedback.lightImpact();
     setState(() {
-      _isTalking = false;
-      _step++;
+      _history.add(step);
+      _step = step;
     });
-    if (_step == 5) {
-      _startTalkingTimer();
-    }
   }
 
   void _prevStep() {
-    _talkingTimer?.cancel();
-    if (_step > 0) {
+    HapticFeedback.lightImpact();
+    if (_history.length > 1) {
       setState(() {
-        _isTalking = false;
-        _step--;
+        _history.removeLast();
+        _step = _history.last;
       });
+    } else if (_step > 0) {
+      setState(() {
+        _step = 0;
+        _history.clear();
+        _history.add(0);
+      });
+    } else {
+      context.go('/login');
     }
   }
 
   Future<void> _submitOnboarding() async {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('অনুগ্রহ করে আপনার নাম দিন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _step = 1);
+      _showToast('অনুগ্রহ করে তোমার নাম লিখো');
+      _goToStep(1);
       return;
     }
 
     if (_selectedClassModel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('অনুগ্রহ করে শ্রেণী নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _step = 2);
+      _showToast('অনুগ্রহ করে তোমার শ্রেণী নির্বাচন করো');
+      _goToStep(2);
       return;
     }
 
-    if (_selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty && _selectedGroupModel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('অনুগ্রহ করে বিভাগ / গ্রুপ নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _step = 3);
+    if (_selectedClassModel!.hasGroup &&
+        _selectedClassModel!.groups.isNotEmpty &&
+        _selectedGroupModel == null) {
+      _showToast('অনুগ্রহ করে তোমার বিভাগ নির্বাচন করো');
+      _goToStep(3);
       return;
     }
 
@@ -284,1140 +100,686 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
 
     if (availableBatches.isNotEmpty && _selectedBatchModel == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('অনুগ্রহ করে ব্যাচ নির্বাচন করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _step = 4);
+      _showToast('অনুগ্রহ করে তোমার ব্যাচ নির্বাচন করো');
+      _goToStep(4);
       return;
     }
 
-    if (_phoneController.text.trim().isNotEmpty) {
-      final clean = _phoneController.text.trim();
-      if (clean.length != 11 || !RegExp(r'^01[3-9]\d{8}$').hasMatch(clean)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        setState(() => _step = 1);
-        return;
-      }
+    final phone = _phoneController.text.trim();
+    if (phone.isNotEmpty && (phone.length != 11 || !RegExp(r'^01[3-9]\d{8}$').hasMatch(phone))) {
+      _showToast('১১ ডিজিটের সঠিক মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)');
+      return;
     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    HapticFeedback.mediumImpact();
+    setState(() => _isSubmitting = true);
 
     try {
       await ref.read(userProfileProvider.notifier).updateProfileDetails({
         'fullName': _nameController.text.trim(),
-        'phoneNumber': _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
+        'phoneNumber': phone.isNotEmpty ? phone : null,
         'gender': _selectedGender == 'ছাত্রী' ? 'FEMALE' : 'MALE',
-        'birthday': _selectedBirthday?.toUtc().toIso8601String(),
-        'address': _addressController.text.trim(),
+        'address': '',
         'institution': '',
         'className': _selectedClassModel!.name,
         'classId': _selectedClassModel!.id,
         'groupId': _selectedGroupModel?.id,
         'batchId': _selectedBatchModel?.id,
-        'targetExam': _selectedGroupModel?.name ?? _selectedGroup ?? '',
-        'batch': _selectedBatchModel?.name ?? _selectedBatch ?? '',
+        'targetExam': _selectedGroupModel?.name ?? '',
+        'batch': _selectedBatchModel?.name ?? '',
       });
+
       if (mounted) {
         context.go('/home');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('ত্রুটি ঘটেছে: $e', style: const TextStyle(fontFamily: 'Li Ador Noirrit')),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        _showToast('ত্রুটি: $e', isError: true);
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
+        setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  void _showToast(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Li Ador Noirrit',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: isError ? const Color(0xFFE11D48) : const Color(0xFF0071F9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Preheat activeClassesProvider to load classes in the background and avoid loading screens
     ref.watch(activeClassesProvider);
-
-    // Reactively manage active step video players
-    if (_step == 0) {
-      if (_sleepingController != null && !_sleepingController!.value.isPlaying) {
-        _sleepingController?.play();
-      }
-    } else {
-      _sleepingController?.pause();
-    }
-    if (_step == 1) {
-      if (_happyController != null && !_happyController!.value.isPlaying) {
-        _happyController?.play();
-      }
-    } else {
-      _happyController?.pause();
-    }
-    if (_step == 2) {
-      if (_celebratingController != null && !_celebratingController!.value.isPlaying) {
-        _celebratingController?.play();
-      }
-    } else {
-      _celebratingController?.pause();
-    }
-    if (_step == 3) {
-      if (_yawningController != null && !_yawningController!.value.isPlaying) {
-        _yawningController?.play();
-      }
-    } else {
-      _yawningController?.pause();
-    }
-    if (_step == 4) {
-      if (_scaredController != null && !_scaredController!.value.isPlaying) {
-        _scaredController?.play();
-      }
-    } else {
-      _scaredController?.pause();
-    }
-    if (_step == 5) {
-      if (_partyController != null && !_partyController!.value.isPlaying) {
-        _partyController?.play();
-      }
-    } else {
-      _partyController?.pause();
-    }
-
-    String speechText = '';
-    String mascotState = 'wave';
-
-    switch (_step) {
-      case 0:
-        speechText = 'Hi, I am Pandu..';
-        mascotState = 'wave';
-        break;
-      case 1:
-        speechText = 'তোমার ব্যক্তিগত তথ্য দাও বন্ধু!';
-        mascotState = 'write';
-        break;
-      case 2:
-        speechText = 'তুমি কোন শ্রেণীতে পড়ো?';
-        mascotState = 'read';
-        break;
-      case 3:
-        speechText = 'তোমার বিভাগ কোনটি?';
-        mascotState = 'write';
-        break;
-      case 4:
-        speechText = 'তোমার পরীক্ষার ব্যাচ কোনটি?';
-        mascotState = 'think';
-        break;
-      case 5:
-        speechText = 'স্বাগতম ${_nameController.text.trim()}!\nProgga-এর সাথে তোমার যাত্রা শুরু হোক!';
-        mascotState = 'welcome';
-        break;
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: CustomBackButton(
-          color: Colors.black87,
-          onPressed: _step > 0 ? _prevStep : () => context.go('/login'),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black87),
-            tooltip: 'লগআউট',
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go('/login');
-              }
-            },
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      // 1. Speech Bubble
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: const Color(0xFF1E88E5).withOpacity(0.15),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF1E88E5).withOpacity(0.06),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
-                              ),
-                              child: TypewriterText(
-                                text: speechText,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1A237E), // deep indigo
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                            ),
-                            // Speech bubble triangle pointing down
-                            Transform.translate(
-                              offset: const Offset(0, -6),
-                              child: Transform.rotate(
-                                angle: 0.785, // 45 degrees
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: const Color(0xFF1E88E5).withOpacity(0.15),
-                                        width: 1.5,
-                                      ),
-                                      right: BorderSide(
-                                        color: const Color(0xFF1E88E5).withOpacity(0.15),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // 2. Animated Mascot / Panda Videos
-                      if (_step == 0)
-                        Center(
-                          child: SizedBox(
-                            height: 250,
-                            width: 250,
-                            child: _isSleepingInitialized && _sleepingController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _sleepingController!.value.size.width,
-                                        height: _sleepingController!.value.size.height,
-                                        child: VideoPlayer(_sleepingController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else if (_step == 1)
-                        Center(
-                          child: SizedBox(
-                            height: 260,
-                            width: 260,
-                            child: _isHappyInitialized && _happyController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _happyController!.value.size.width,
-                                        height: _happyController!.value.size.height,
-                                        child: VideoPlayer(_happyController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else if (_step == 2)
-                        Center(
-                          child: SizedBox(
-                            height: 250,
-                            width: 250,
-                            child: _isCelebratingInitialized && _celebratingController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _celebratingController!.value.size.width,
-                                        height: _celebratingController!.value.size.height,
-                                        child: VideoPlayer(_celebratingController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else if (_step == 3)
-                        Center(
-                          child: SizedBox(
-                            height: 250,
-                            width: 250,
-                            child: _isYawningInitialized && _yawningController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _yawningController!.value.size.width,
-                                        height: _yawningController!.value.size.height,
-                                        child: VideoPlayer(_yawningController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else if (_step == 4)
-                        Center(
-                          child: SizedBox(
-                            height: 250,
-                            width: 250,
-                            child: _isScaredInitialized && _scaredController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _scaredController!.value.size.width,
-                                        height: _scaredController!.value.size.height,
-                                        child: VideoPlayer(_scaredController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else if (_step == 5)
-                        Center(
-                          child: SizedBox(
-                            height: 250,
-                            width: 250,
-                            child: _isPartyInitialized && _partyController != null
-                                ? ClipRect(
-                                    child: FittedBox(
-                                      fit: BoxFit.cover,
-                                      alignment: Alignment.center,
-                                      child: SizedBox(
-                                        width: _partyController!.value.size.width,
-                                        height: _partyController!.value.size.height,
-                                        child: VideoPlayer(_partyController!),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF1E88E5),
-                                      strokeWidth: 2.5,
-                                    ),
-                                  ),
-                          ),
-                        )
-                      else
-                        CheeroMascot(state: mascotState, isTalking: _isTalking),
-                      const Spacer(flex: 1),
-                      // 3. Dynamic options based on Step
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                        child: _buildStepContent(),
-                      ),
-                    ],
-                  ),
-                ),
+        child: Column(
+          children: [
+            // Top Slim Segmented Progress Bar (Only for steps 1-5)
+            if (_step > 0) _buildProgressBar(),
+
+            // Main Dynamic Step Body
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.06, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: _buildStepView(),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _showInputBottomSheet({
-    required String title,
-    required String label,
-    required String hint,
-    required TextEditingController controller,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    required VoidCallback onSave,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: CustomBackButton(
+        color: const Color(0xFF1E293B),
+        onPressed: _prevStep,
       ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout_rounded, color: Color(0xFF94A3B8), size: 20),
+          tooltip: 'লগআউট',
+          onPressed: () async {
+            await ref.read(authProvider.notifier).logout();
+            if (mounted) {
+              context.go('/login');
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar() {
+    const int totalSteps = 5;
+    final int currentStep = _step.clamp(1, totalSteps);
+    final double progressRatio = currentStep / totalSteps;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: LinearProgressIndicator(
+          value: progressRatio,
+          minHeight: 4,
+          backgroundColor: const Color(0xFFF1F5F9),
+          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0071F9)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepView() {
+    switch (_step) {
+      case 0:
+        return KeyedSubtree(
+          key: const ValueKey<int>(0),
+          child: _buildWelcomeScreen(),
+        );
+      case 1:
+        return KeyedSubtree(
+          key: const ValueKey<int>(1),
+          child: _buildNameAndGenderScreen(),
+        );
+      case 2:
+        return KeyedSubtree(
+          key: const ValueKey<int>(2),
+          child: _buildClassScreen(),
+        );
+      case 3:
+        return KeyedSubtree(
+          key: const ValueKey<int>(3),
+          child: _buildGroupScreen(),
+        );
+      case 4:
+        return KeyedSubtree(
+          key: const ValueKey<int>(4),
+          child: _buildBatchScreen(),
+        );
+      case 5:
+      default:
+        return KeyedSubtree(
+          key: const ValueKey<int>(5),
+          child: _buildStudentPassScreen(),
+        );
+    }
+  }
+
+  // ==========================================
+  // 🌟 STEP 0: MINIMALIST & BOLD WELCOME SCREEN
+  // ==========================================
+  Widget _buildWelcomeScreen() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28.0),
+      child: Column(
+        children: [
+          const Spacer(flex: 2),
+
+          // Progga Unified Logo
+          SvgPicture.asset(
+            'assets/images/progga.svg',
+            width: 190,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+
+          const SizedBox(height: 36),
+
+          // Catchy Headline
+          const Text(
+            'পড়াশোনা হোক সহজ ও আনন্দদায়ক ✨',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 23,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'তোমার পছন্দের বিষয়গুলো নির্ভুলভাবে অনুশীলন করো, দুর্বলতা দূর করো এবং পরীক্ষায় সেরা সাফল্য অর্জন করো।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+              color: Color(0xFF64748B),
+              height: 1.5,
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+
+          const SizedBox(height: 36),
+
+          // 3 Clean Floating Badges
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A237E),
+              _buildFeatureBadge('🎯 প্রশ্নব্যাংক'),
+              const SizedBox(width: 8),
+              _buildFeatureBadge('⚡ মডেল টেস্ট'),
+              const SizedBox(width: 8),
+              _buildFeatureBadge('🏆 লিডারবোর্ড'),
+            ],
+          ),
+
+          const Spacer(flex: 3),
+
+          // Bottom Primary Button
+          _buildBottomButton(
+            text: 'যাত্রা শুরু করো',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: () => _goToStep(1),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF334155),
+          fontFamily: 'Li Ador Noirrit',
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // 👤 STEP 1: "তোমার নাম কী?" (NAME & GENDER)
+  // ==========================================
+  Widget _buildNameAndGenderScreen() {
+    final bool hasName = _nameController.text.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'তোমার নাম কী? ✍️',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'প্রোফাইল তৈরি করতে তোমার পূর্ণ নামটি লিখো।',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // Name Input Box (Clean, no icon, modern placeholder)
+          TextField(
+            controller: _nameController,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            onChanged: (_) => setState(() {}),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+            decoration: InputDecoration(
+              hintText: 'তোমার পূর্ণ নাম লিখো...',
+              hintStyle: const TextStyle(
+                fontSize: 15.5,
+                fontWeight: FontWeight.normal,
+                color: Color(0xFF94A3B8),
+                fontFamily: 'Li Ador Noirrit',
+              ),
+              suffixIcon: _nameController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                      onPressed: () {
+                        _nameController.clear();
+                        setState(() {});
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Color(0xFF0071F9), width: 2),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          const Text(
+            'তুমি কোন শিক্ষার্থী?',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF475569),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Two Simple & Refined Identity Cards
+          Row(
+            children: [
+              Expanded(
+                child: _buildGenderCard(
+                  gender: 'ছাত্র',
+                  label: 'ছাত্র',
+                  imagePath: 'assets/images/boy.png',
                 ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: keyboardType,
-                inputFormatters: inputFormatters,
-                cursorColor: const Color(0xFF0071F9),
-                decoration: InputDecoration(
-                  labelText: label,
-                  labelStyle: const TextStyle(color: Colors.black54),
-                  floatingLabelStyle: const TextStyle(color: Color(0xFF0071F9), fontWeight: FontWeight.bold),
-                  hintText: hint,
-                  filled: true,
-                  fillColor: const Color(0xFFECEFF1),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.clear, size: 18),
-                    onPressed: () => controller.clear(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    onSave();
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0071F9),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'সংরক্ষণ করুন',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _buildGenderCard(
+                  gender: 'ছাত্রী',
+                  label: 'ছাত্রী',
+                  imagePath: 'assets/images/girl.png',
                 ),
               ),
             ],
           ),
-        );
-      },
+
+          const Spacer(),
+
+          // Bottom Button
+          _buildBottomButton(
+            text: 'পরবর্তী ধাপ',
+            icon: Icons.arrow_forward_rounded,
+            onPressed: hasName ? () => _goToStep(2) : null,
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 
-  Widget _buildStepContent() {
-    if (_step == 0) {
-      return SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: ElevatedButton(
-          onPressed: _nextStep,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0071F9),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: const Text(
-            'চলো শুরু করি',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-        ),
-      );
-    }
+  Widget _buildGenderCard({
+    required String gender,
+    required String label,
+    required String imagePath,
+  }) {
+    final bool isSelected = _selectedGender == gender;
 
-    if (_step == 1) {
-      // Step 1: Personal Info (Name, Birthday, Gender, Address)
-      return SingleChildScrollView(
-        child: Column(
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedGender = gender);
+      },
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0071F9) : const Color(0xFFE2E8F0),
+            width: isSelected ? 2.0 : 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF0071F9).withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            // Full Name selector
-            InkWell(
-              onTap: () {
-                _showInputBottomSheet(
-                  title: 'আপনার পূর্ণ নাম লিখুন',
-                  label: 'পূর্ণ নাম',
-                  hint: 'যেমন - তানভীর আহমেদ',
-                  controller: _nameController,
-                  onSave: () => setState(() {}),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0071F9).withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.person, color: Color(0xFF0071F9), size: 20),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'পূর্ণ নাম',
-                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _nameController.text.isNotEmpty
-                                ? _nameController.text
-                                : 'যেমন - তানভীর আহমেদ',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: _nameController.text.isNotEmpty
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: _nameController.text.isNotEmpty
-                                  ? Colors.black87
-                                  : Colors.black38,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Mobile Number selector
-            InkWell(
-              onTap: () {
-                _showInputBottomSheet(
-                  title: 'আপনার মোবাইল নম্বর লিখুন',
-                  label: 'মোবাইল নম্বর',
-                  hint: 'যেমন - 017XXXXXXXX',
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(11),
-                  ],
-                  onSave: () => setState(() {}),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0071F9).withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.call_rounded, color: Color(0xFF0071F9), size: 20),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'মোবাইল নম্বর',
-                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _phoneController.text.isNotEmpty
-                                ? _phoneController.text
-                                : 'যেমন - 017XXXXXXXX',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: _phoneController.text.isNotEmpty
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: _phoneController.text.isNotEmpty
-                                  ? Colors.black87
-                                  : Colors.black38,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedBirthday ?? DateTime(2006, 1, 1),
-                        firstDate: DateTime(1970),
-                        lastDate: DateTime.now(),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: const ColorScheme.light(
-                                primary: Color(0xFF0071F9),
-                                onPrimary: Colors.white,
-                                onSurface: Colors.black87,
-                              ),
-                              textButtonTheme: TextButtonThemeData(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFF0071F9),
-                                ),
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (picked != null) {
-                        setState(() => _selectedBirthday = picked);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0071F9).withOpacity(0.08),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.cake, color: Color(0xFF0071F9), size: 20),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'জন্মতারিখ',
-                                  style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  _selectedBirthday != null
-                                      ? '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}'
-                                      : 'সিলেক্ট করো',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: _selectedBirthday != null
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: _selectedBirthday != null
-                                        ? Colors.black87
-                                        : Colors.black38,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            if (isSelected)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF0071F9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    size: 13,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 10),
-                // Gender Selector
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: ['ছাত্র', 'ছাত্রী'].map((g) {
-                        final isSelected = _selectedGender == g;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => _selectedGender = g),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF0071F9) : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  g,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: isSelected ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  imagePath,
+                  width: 58,
+                  height: 58,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? const Color(0xFF0071F9) : const Color(0xFF0F172A),
+                    fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Address selector
-            InkWell(
-              onTap: () {
-                _showInputBottomSheet(
-                  title: 'আপনার বর্তমান ঠিকানা লিখুন',
-                  label: 'বর্তমান ঠিকানা',
-                  hint: 'যেমন - ঢাকা, বাংলাদেশ',
-                  controller: _addressController,
-                  onSave: () => setState(() {}),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0071F9).withOpacity(0.08),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.location_on, color: Color(0xFF0071F9), size: 20),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'বর্তমান ঠিকানা',
-                            style: TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _addressController.text.isNotEmpty
-                                ? _addressController.text
-                                : 'যেমন - ঢাকা, বাংলাদেশ',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: _addressController.text.isNotEmpty
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: _addressController.text.isNotEmpty
-                                  ? Colors.black87
-                                  : Colors.black38,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_right, size: 20, color: Colors.black38),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Builder(
-              builder: (context) {
-                final phoneText = _phoneController.text.trim();
-                final bool isPhoneValid = phoneText.isEmpty ||
-                    (phoneText.length == 11 && RegExp(r'^01[3-9]\d{8}$').hasMatch(phoneText));
-                final bool canProceed = _nameController.text.trim().isNotEmpty && isPhoneValid;
-                return SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: canProceed ? _nextStep : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0071F9),
-                      disabledBackgroundColor: const Color(0xFFE0E0E0),
-                      elevation: canProceed ? 4 : 0,
-                      shadowColor: const Color(0xFF0071F9).withOpacity(0.4),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Text(
-                      'পরবর্তী',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: canProceed ? Colors.white : Colors.black38,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    if (_step == 2) {
-      // Step 2: Class Selection (Fetched dynamically from API)
-      final activeClassesAsync = ref.watch(activeClassesProvider);
+  // ==========================================
+  // 🏫 STEP 2: CLASS SELECTION (TACTILE GRID)
+  // ==========================================
+  Widget _buildClassScreen() {
+    final activeClassesAsync = ref.watch(activeClassesProvider);
 
-      return activeClassesAsync.when(
-        loading: () => const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24.0),
-            child: CircularProgressIndicator(color: Color(0xFF0071F9)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'তুমি কোন শ্রেণীতে পড়ো? 🏫',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+            ),
           ),
-        ),
-        error: (err, stack) => Column(
-          children: [
-            Text('ক্লাস সমূহের তালিকা লোড করতে সমস্যা হয়েছে: $err', style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => ref.refresh(activeClassesProvider),
-              child: const Text('পুনরায় চেষ্টা করো'),
+          const SizedBox(height: 6),
+          const Text(
+            'তোমার শ্রেণী অনুযায়ী প্রশ্নব্যাংক ও পরীক্ষা লোড হবে।',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontFamily: 'Li Ador Noirrit',
             ),
-          ],
-        ),
-        data: (classes) {
-          if (classes.isEmpty) {
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black26),
-              ),
-              child: const Text(
-                'বর্তমানে কোনো অ্যাক্টিভ ক্লাস নেই। এডমিন প্যানেল থেকে তৈরি করার পর এখানে দেখাবে।',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-            );
-          }
+          ),
 
-          return Column(
-            children: classes.map((cls) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10.0),
-                child: InkWell(
+          const SizedBox(height: 20),
+
+          Expanded(
+            child: activeClassesAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Color(0xFF0071F9)),
+              ),
+              error: (err, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('তালিকা লোড করা যায়নি: $err', style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () => ref.refresh(activeClassesProvider),
+                      child: const Text('আবার চেষ্টা করো'),
+                    ),
+                  ],
+                ),
+              ),
+              data: (classes) {
+                if (classes.isEmpty) {
+                  return const Center(
+                    child: Text('বর্তমানে কোনো ক্লাস তালিকাভুক্ত নেই।'),
+                  );
+                }
+
+                return ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: classes.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final cls = classes[index];
+                    final isSelected = _selectedClassModel?.id == cls.id;
+
+                    return _buildModernCardOption(
+                      title: cls.name,
+                      isSelected: isSelected,
+                      onTap: () {
+                        setState(() {
+                          _selectedClassModel = cls;
+                          _selectedGroupModel = null;
+                          _selectedBatchModel = null;
+                        });
+                        // Smoothly proceed to next step
+                        if (cls.hasGroup && cls.groups.isNotEmpty) {
+                          _goToStep(3);
+                        } else if (cls.hasBatch && cls.batches.isNotEmpty) {
+                          _goToStep(4);
+                        } else {
+                          _goToStep(5);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+          if (_selectedClassModel != null) ...[
+            const SizedBox(height: 12),
+            _buildBottomButton(
+              text: 'পরবর্তী ধাপ',
+              icon: Icons.arrow_forward_rounded,
+              onPressed: () {
+                if (_selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty) {
+                  _goToStep(3);
+                } else if (_selectedClassModel!.hasBatch && _selectedClassModel!.batches.isNotEmpty) {
+                  _goToStep(4);
+                } else {
+                  _goToStep(5);
+                }
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // 🔬 STEP 3: DEPARTMENT / GROUP SELECTION
+  // ==========================================
+  Widget _buildGroupScreen() {
+    final groups = _selectedClassModel?.groups ?? [];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'তোমার বিভাগ / গ্রুপ কোনটি? 🔬',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${_selectedClassModel?.name ?? 'শ্রেণী'}-এর জন্য সঠিক বিভাগটি নির্বাচন করো।',
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          Expanded(
+            child: ListView.separated(
+              physics: const BouncingScrollPhysics(),
+              itemCount: groups.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final group = groups[index];
+                final isSelected = _selectedGroupModel?.id == group.id;
+
+                return _buildModernCardOption(
+                  title: group.name,
+                  isSelected: isSelected,
                   onTap: () {
                     setState(() {
-                      _selectedClassModel = cls;
-                      _selectedClass = cls.name;
-                      _selectedGroupModel = null;
-                      _selectedGroup = null;
+                      _selectedGroupModel = group;
                       _selectedBatchModel = null;
-                      _selectedBatch = null;
-
-                      if (cls.hasGroup && cls.groups.isNotEmpty) {
-                        _step = 3; // Jump to group selection
-                      } else if (cls.hasBatch && cls.batches.isNotEmpty) {
-                        _step = 4; // Jump to batch selection
-                      } else {
-                        _step = 5; // Jump straight to summary
-                      }
                     });
+                    if (_selectedClassModel?.hasBatch == true &&
+                        (group.batches.isNotEmpty || _selectedClassModel!.batches.isNotEmpty)) {
+                      _goToStep(4);
+                    } else {
+                      _goToStep(5);
+                    }
                   },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0071F9).withOpacity(0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        cls.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF263238),
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          );
-        },
-      );
-    }
-
-    if (_step == 3) {
-      // Step 3: Group Selection (Dynamic from selected Class)
-      final groups = _selectedClassModel?.groups ?? [];
-
-      if (groups.isEmpty) {
-        return Column(
-          children: [
-            const Text('এই ক্লাসের জন্য কোনো সাবজেক্ট গ্রুপ পাওয়া যায়নি।'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => setState(() => _step = 2),
-              child: const Text('পেছনে যাও'),
-            ),
-          ],
-        );
-      }
-
-      return Column(
-        children: groups.map((grp) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _selectedGroupModel = grp;
-                  _selectedGroup = grp.name;
-                  _selectedBatchModel = null;
-                  _selectedBatch = null;
-
-                  if (_selectedClassModel?.hasBatch == true && (grp.batches.isNotEmpty || _selectedClassModel!.batches.isNotEmpty)) {
-                    _step = 4; // Jump to batch selection
-                  } else {
-                    _step = 5; // Jump to summary
-                  }
-                });
+                );
               },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0071F9).withOpacity(0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    grp.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF263238),
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-              ),
             ),
-          );
-        }).toList(),
-      );
-    }
+          ),
 
-    if (_step == 4) {
-      // Step 4: Batch Selection (Dynamic from selected Group or Class)
-      List<AcademicBatchModel> availableBatches = [];
-      if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
-        availableBatches = _selectedGroupModel!.batches;
-      } else if (_selectedClassModel != null && _selectedClassModel!.batches.isNotEmpty) {
-        availableBatches = _selectedClassModel!.batches;
-      }
-
-      if (availableBatches.isEmpty) {
-        return Column(
-          children: [
-            const Text('বর্তমানে কোনো অ্যাক্টিভ ব্যাচ পাওয়া যায়নি।'),
+          if (_selectedGroupModel != null) ...[
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => setState(() => _step = 5),
-              child: const Text('ব্যাচ ছাড়াই এগিয়ে যাও'),
+            _buildBottomButton(
+              text: 'পরবর্তী ধাপ',
+              icon: Icons.arrow_forward_rounded,
+              onPressed: () {
+                if (_selectedClassModel?.hasBatch == true &&
+                    (_selectedGroupModel!.batches.isNotEmpty || _selectedClassModel!.batches.isNotEmpty)) {
+                  _goToStep(4);
+                } else {
+                  _goToStep(5);
+                }
+              },
             ),
+            const SizedBox(height: 24),
           ],
-        );
-      }
+        ],
+      ),
+    );
+  }
 
-      return Column(
-        children: availableBatches.map((batch) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedBatchModel = batch;
-                    _selectedBatch = batch.name;
-                    _step = 5; // Jump to summary
-                  });
-                },
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: Color(0xFFCFD8DC), width: 1.2),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
-                  batch.name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      );
-    }
-
+  // ==========================================
+  // 🎯 STEP 4: BATCH SELECTION
+  // ==========================================
+  Widget _buildBatchScreen() {
     List<AcademicBatchModel> availableBatches = [];
     if (_selectedGroupModel != null && _selectedGroupModel!.batches.isNotEmpty) {
       availableBatches = _selectedGroupModel!.batches;
@@ -1425,993 +787,433 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       availableBatches = _selectedClassModel!.batches;
     }
 
-    final bool isClassSelected = _selectedClassModel != null;
-    final bool isGroupSelected = !(_selectedClassModel != null && _selectedClassModel!.hasGroup && _selectedClassModel!.groups.isNotEmpty) || _selectedGroupModel != null;
-    final bool isBatchSelected = availableBatches.isEmpty || _selectedBatchModel != null;
-    final bool isPhoneValid = _phoneController.text.trim().isEmpty ||
-        (_phoneController.text.trim().length == 11 && RegExp(r'^01[3-9]\d{8}$').hasMatch(_phoneController.text.trim()));
-    final bool isAllValid = isClassSelected && isGroupSelected && isBatchSelected && _nameController.text.trim().isNotEmpty && isPhoneValid;
-    final bool canSubmit = !_isSubmitting && isAllValid;
-
-    // Step 5: Summary and Final Welcome Screen
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSummaryRow('নাম:', _nameController.text.trim(), onTap: () => setState(() => _step = 1)),
-              if (_phoneController.text.trim().isNotEmpty) ...[
-                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-                _buildSummaryRow('মোবাইল নম্বর:', _phoneController.text.trim(), onTap: () => setState(() => _step = 1)),
-              ],
-              Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              _buildSummaryRow('লিঙ্গ:', _selectedGender, onTap: () => setState(() => _step = 1)),
-              if (_selectedBirthday != null) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              if (_selectedBirthday != null)
-                _buildSummaryRow('জন্মতারিখ:', '${_selectedBirthday!.day}/${_selectedBirthday!.month}/${_selectedBirthday!.year}', onTap: () => setState(() => _step = 1)),
-              if (_addressController.text.trim().isNotEmpty) Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              if (_addressController.text.trim().isNotEmpty)
-                _buildSummaryRow('ঠিকানা:', _addressController.text.trim(), onTap: () => setState(() => _step = 1)),
-              Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-              _buildSummaryRow(
-                'শ্রেণী:',
-                _selectedClass ?? 'নির্বাচন করা আবশ্যক *',
-                isMissing: _selectedClass == null,
-                onTap: () => setState(() => _step = 2),
-              ),
-              if (_selectedClassModel?.hasGroup == true && _selectedClassModel!.groups.isNotEmpty) ...[
-                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-                _buildSummaryRow(
-                  'বিভাগ:',
-                  _selectedGroup ?? 'নির্বাচন করা আবশ্যক *',
-                  isMissing: _selectedGroup == null,
-                  onTap: () => setState(() => _step = 3),
-                ),
-              ],
-              if (availableBatches.isNotEmpty) ...[
-                Container(height: 1, color: const Color(0xFFEEEEEE), margin: const EdgeInsets.symmetric(horizontal: 20)),
-                _buildSummaryRow(
-                  'ব্যাচ:',
-                  _selectedBatch ?? 'নির্বাচন করা আবশ্যক *',
-                  isMissing: _selectedBatch == null,
-                  onTap: () => setState(() => _step = 4),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: canSubmit ? _submitOnboarding : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0071F9),
-              disabledBackgroundColor: const Color(0xFFE0E0E0),
-              disabledForegroundColor: Colors.black38,
-              elevation: canSubmit ? 4 : 0,
-              shadowColor: const Color(0xFF0071F9).withOpacity(0.4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          const Text(
+            'তোমার ব্যাচ কোনটি? 🎯',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
             ),
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                  )
-                : Text(
-                    'শুরু করি!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: canSubmit ? Colors.white : Colors.black38,
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'তোমার পরীক্ষার সাল ও টার্গেট ব্যাচ নির্বাচন করো।',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          Expanded(
+            child: availableBatches.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'বর্তমানে কোনো ব্যাচ উপলব্ধ নেই। তুমি সরাসরি এগিয়ে যেতে পারো।',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Color(0xFF64748B), fontFamily: 'Li Ador Noirrit'),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => _goToStep(5),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0071F9)),
+                          child: const Text('এগিয়ে যাও', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
                     ),
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: availableBatches.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final batch = availableBatches[index];
+                      final isSelected = _selectedBatchModel?.id == batch.id;
+
+                      return _buildModernCardOption(
+                        title: batch.name,
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() => _selectedBatchModel = batch);
+                          _goToStep(5);
+                        },
+                      );
+                    },
                   ),
           ),
-        ),
-        if (!isAllValid && !_isSubmitting) ...[
-          const SizedBox(height: 10),
+
+          if (_selectedBatchModel != null) ...[
+            const SizedBox(height: 12),
+            _buildBottomButton(
+              text: 'পরবর্তী ধাপ',
+              icon: Icons.arrow_forward_rounded,
+              onPressed: () => _goToStep(5),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // 💳 STEP 5: DIGITAL STUDENT PASS & CONFIRMATION
+  // ==========================================
+  Widget _buildStudentPassScreen() {
+    final name = _nameController.text.trim();
+    final className = _selectedClassModel?.name ?? 'অনির্দিষ্ট';
+    final groupName = _selectedGroupModel?.name;
+    final batchName = _selectedBatchModel?.name;
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
           const Text(
-            '* শ্রেণী, বিভাগ ও ব্যাচ নির্বাচন সম্পন্ন করতে উপরের সারিতে ট্যাপ করুন',
+            'সব প্রস্তুত! 🎉',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
-              color: Colors.redAccent,
-              fontWeight: FontWeight.w600,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
             ),
           ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value, {bool isMissing = false, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0071F9)),
+          const SizedBox(height: 4),
+          const Text(
+            'তোমার ডিজিটাল স্টুডেন্ট কার্ড তৈরি হয়ে গেছে।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF64748B),
+              fontFamily: 'Li Ador Noirrit',
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isMissing ? Colors.redAccent : const Color(0xFF263238),
-                  ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // 💎 PREMIUM DIGITAL STUDENT PASS CARD
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0052D4), Color(0xFF4364F7), Color(0xFF6FB1FC)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0071F9).withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
                 ),
-                if (onTap != null) ...[
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.edit_outlined,
-                    size: 14,
-                    color: isMissing ? Colors.redAccent : Colors.black38,
-                  ),
-                ],
               ],
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Card Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/progga.svg',
+                      width: 110,
+                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.verified_rounded, color: Colors.white, size: 14),
+                          SizedBox(width: 4),
+                          Text(
+                            'STUDENT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 28),
+
+                // Student Identity
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          _selectedGender == 'ছাত্রী'
+                              ? 'assets/images/girl.png'
+                              : 'assets/images/boy.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name.isNotEmpty ? name : 'শিক্ষার্থী',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _selectedGender == 'ছাত্রী' ? 'নিয়মিত ছাত্রী' : 'নিয়মিত ছাত্র',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.85),
+                              fontSize: 12.5,
+                              fontFamily: 'Li Ador Noirrit',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                // Glassmorphic Info Chips
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _buildPassChip('শ্রেণী: $className'),
+                    if (groupName != null && groupName.isNotEmpty)
+                      _buildPassChip('বিভাগ: $groupName'),
+                    if (batchName != null && batchName.isNotEmpty)
+                      _buildPassChip('ব্যাচ: $batchName'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Change / Edit Link
+          Center(
+            child: TextButton.icon(
+              onPressed: () => _goToStep(1),
+              icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF64748B)),
+              label: const Text(
+                'তথ্য পরিবর্তন করতে চাও? এখানে ট্যাপ করো',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                  fontFamily: 'Li Ador Noirrit',
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // High Impact Main CTA
+          _buildBottomButton(
+            text: 'প্রজ্ঞায় প্রবেশ করো',
+            icon: Icons.rocket_launch_rounded,
+            isLoading: _isSubmitting,
+            onPressed: _isSubmitting ? null : _submitOnboarding,
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPassChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Li Ador Noirrit',
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // ⚡ REUSABLE CARD OPTION WIDGET
+  // ==========================================
+  Widget _buildModernCardOption({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF0F7FF) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0071F9) : const Color(0xFFE2E8F0),
+            width: isSelected ? 2.0 : 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? const Color(0xFF0071F9).withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? const Color(0xFF0071F9) : const Color(0xFF0F172A),
+                  fontFamily: 'Li Ador Noirrit',
+                ),
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? const Color(0xFF0071F9) : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF0071F9) : const Color(0xFFCBD5E1),
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
           ],
         ),
       ),
     );
   }
-}
 
-// Custom paint vector widget drawing Cheero Mascot
-class CheeroMascot extends StatelessWidget {
-  final String state;
-  final bool isTalking;
+  // ==========================================
+  // 🔘 PINNED BOTTOM BUTTON WIDGET
+  // ==========================================
+  Widget _buildBottomButton({
+    required String text,
+    IconData? icon,
+    bool isLoading = false,
+    VoidCallback? onPressed,
+  }) {
+    final bool isEnabled = onPressed != null;
 
-  const CheeroMascot({Key? key, required this.state, this.isTalking = false}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBobbingBody(
-      child: SizedBox(
-        height: 180,
-        width: 180,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Ears
-            Positioned(
-              top: 22,
-              left: 32,
-              child: Transform.rotate(
-                angle: -0.25,
-                child: Container(
-                  width: 32,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB71C1C),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 22,
-              right: 32,
-              child: Transform.rotate(
-                angle: 0.25,
-                child: Container(
-                  width: 32,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFB71C1C),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ),
-            // Main Body
-            Container(
-              width: 135,
-              height: 135,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE53935),
-                borderRadius: BorderRadius.circular(50),
-              ),
-            ),
-            // Belly
-            Positioned(
-              bottom: 12,
-              child: Container(
-                width: 95,
-                height: 70,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFF9C4),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(45),
-                    topRight: Radius.circular(45),
-                    bottomLeft: Radius.circular(35),
-                    bottomRight: Radius.circular(35),
-                  ),
-                ),
-              ),
-            ),
-            // Celebrating arms (dual raised waving arms)
-            if (state == 'celebrate') ...[
-              Positioned(
-                top: 22,
-                left: 4,
-                child: AnimatedCelebratingArm(
-                  isLeft: true,
-                  child: Container(
-                    width: 26,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE53935),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 22,
-                right: 4,
-                child: AnimatedCelebratingArm(
-                  isLeft: false,
-                  child: Container(
-                    width: 26,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE53935),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            // Waving hand (Animated)
-            if (state == 'wave' || state == 'welcome')
-              Positioned(
-                top: 22,
-                left: 2,
-                child: AnimatedWavingHand(
-                  child: Container(
-                    width: 28,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE53935),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            // Golden Trophy in right hand if state == 'welcome'
-            if (state == 'welcome')
-              Positioned(
-                bottom: 16,
-                right: 4,
-                child: AnimatedTrophy(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.star, size: 8, color: Colors.amber[400]),
-                          Icon(Icons.star, size: 12, color: Colors.amber[400]),
-                          Icon(Icons.star, size: 8, color: Colors.amber[400]),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 32,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: Colors.amber[600],
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(16),
-                            bottomRight: Radius.circular(16),
-                            topLeft: Radius.circular(6),
-                            topRight: Radius.circular(6),
-                          ),
-                          border: Border.all(color: Colors.black87, width: 1.5),
-                        ),
-                        child: Center(
-                          child: Icon(Icons.emoji_events, size: 16, color: Colors.amber[200]),
-                        ),
-                      ),
-                      Container(
-                        width: 8,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: Colors.amber[700],
-                          border: const Border(
-                            left: BorderSide(color: Colors.black87, width: 1.5),
-                            right: BorderSide(color: Colors.black87, width: 1.5),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 24,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[800],
-                          borderRadius: BorderRadius.circular(2),
-                          border: Border.all(color: Colors.black87, width: 1.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            // Thinking arm (Animated)
-            if (state == 'think')
-              Positioned(
-                bottom: 40,
-                right: 20,
-                child: AnimatedThinkingArm(
-                  child: Container(
-                    width: 24,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC62828),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-            // Face details - Glasses
-            Positioned(
-              top: 52,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF0071F9),
+          disabledBackgroundColor: const Color(0xFFE2E8F0),
+          foregroundColor: Colors.white,
+          disabledForegroundColor: const Color(0xFF94A3B8),
+          elevation: isEnabled ? 3 : 0,
+          shadowColor: const Color(0xFF0071F9).withValues(alpha: 0.35),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black87, width: 3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 9,
-                        height: 9,
-                        decoration: const BoxDecoration(
-                          color: Colors.black87,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
-                  Container(
-                    width: 8,
-                    height: 3,
-                    color: Colors.black87,
-                  ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black87, width: 3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 9,
-                        height: 9,
-                        decoration: const BoxDecoration(
-                          color: Colors.black87,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ),
+                  if (icon != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(icon, size: 18),
+                  ],
                 ],
               ),
-            ),
-            // Nose
-            Positioned(
-              top: 88,
-              child: Container(
-                width: 16,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ),
-            // Mouth (Animated Talking Mouth if isTalking is true)
-            Positioned(
-              top: 100,
-              child: AnimatedTalkingMouth(
-                isTalking: isTalking,
-                child: Container(
-                  width: 26,
-                  height: 14,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF880E4F),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(14),
-                      bottomRight: Radius.circular(14),
-                    ),
-                  ),
-                  child: Center(
-                    child: Container(
-                      width: 12,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF8A80),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(5),
-                          bottomRight: Radius.circular(5),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Book if state == 'read' (Animated spring open)
-            if (state == 'read')
-              Positioned(
-                bottom: 12,
-                child: AnimatedBook(
-                  child: Transform.rotate(
-                    angle: -0.05,
-                    child: Container(
-                      width: 72,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF00B0FF),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.black87, width: 2),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              margin: const EdgeInsets.all(3),
-                              color: Colors.white,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(3, (index) => Container(height: 2, color: Colors.grey[300])),
-                              ),
-                            ),
-                          ),
-                          Container(width: 2, color: Colors.black87),
-                          Expanded(
-                            child: Container(
-                              margin: const EdgeInsets.all(3),
-                              color: Colors.white,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: List.generate(3, (index) => Container(height: 2, color: Colors.grey[300])),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            // Clipboard/Note if state == 'write' (Animated pencil scribble)
-            if (state == 'write') ...[
-              Positioned(
-                bottom: 12,
-                child: Container(
-                  width: 65,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.black87, width: 2),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(width: 45, height: 2, color: Colors.grey[400]),
-                      Container(width: 35, height: 2, color: Colors.grey[400]),
-                      Container(width: 40, height: 2, color: Colors.grey[400]),
-                    ],
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 24,
-                right: 48,
-                child: AnimatedWritingPencil(
-                  child: Transform.rotate(
-                    angle: -0.5,
-                    child: Container(
-                      width: 6,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: Colors.amber[800],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: Container(
-                          width: 6,
-                          height: 4,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
-    );
-  }
-}
-
-// ----------------------------------------------------
-// Mascot Micro-Animation Loop Helper Widgets (Stable Ticker Controllers)
-// ----------------------------------------------------
-
-class AnimatedBobbingBody extends StatefulWidget {
-  final Widget child;
-  const AnimatedBobbingBody({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedBobbingBody> createState() => _AnimatedBobbingBodyState();
-}
-
-class _AnimatedBobbingBodyState extends State<AnimatedBobbingBody> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.0, end: 5.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _animation.value),
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedWavingHand extends StatefulWidget {
-  final Widget child;
-  const AnimatedWavingHand({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedWavingHand> createState() => _AnimatedWavingHandState();
-}
-
-class _AnimatedWavingHandState extends State<AnimatedWavingHand> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: -0.3, end: -0.8).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _animation.value,
-          alignment: Alignment.bottomRight,
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedTalkingMouth extends StatefulWidget {
-  final Widget child;
-  final bool isTalking;
-  const AnimatedTalkingMouth({Key? key, required this.child, required this.isTalking}) : super(key: key);
-
-  @override
-  State<AnimatedTalkingMouth> createState() => _AnimatedTalkingMouthState();
-}
-
-class _AnimatedTalkingMouthState extends State<AnimatedTalkingMouth> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-    );
-    _animation = Tween<double>(begin: 1.0, end: 0.35).animate(_controller);
-    if (widget.isTalking) {
-      _controller.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant AnimatedTalkingMouth oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isTalking != oldWidget.isTalking) {
-      if (widget.isTalking) {
-        _controller.repeat(reverse: true);
-      } else {
-        _controller.stop();
-        _controller.value = 0.0; // Reset scale to 1.0
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.scale(
-          scaleY: _animation.value,
-          alignment: Alignment.topCenter,
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedBook extends StatefulWidget {
-  final Widget child;
-  const AnimatedBook({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedBook> createState() => _AnimatedBookState();
-}
-
-class _AnimatedBookState extends State<AnimatedBook> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      alignment: Alignment.bottomCenter,
-      child: widget.child,
-    );
-  }
-}
-
-class TypewriterText extends StatefulWidget {
-  final String text;
-  final TextStyle style;
-  const TypewriterText({Key? key, required this.text, required this.style}) : super(key: key);
-
-  @override
-  State<TypewriterText> createState() => _TypewriterTextState();
-}
-
-class _TypewriterTextState extends State<TypewriterText> {
-  String _displayedText = '';
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTypewriter();
-  }
-
-  @override
-  void didUpdateWidget(covariant TypewriterText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.text != oldWidget.text) {
-      _startTypewriter();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _startTypewriter() {
-    _timer?.cancel();
-    _displayedText = '';
-    int index = 0;
-    _timer = Timer.periodic(const Duration(milliseconds: 35), (timer) {
-      if (index < widget.text.length) {
-        setState(() {
-          _displayedText += widget.text[index];
-        });
-        index++;
-      } else {
-        _timer?.cancel();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      _displayedText,
-      textAlign: TextAlign.center,
-      style: widget.style,
-    );
-  }
-}
-
-class AnimatedCelebratingArm extends StatefulWidget {
-  final Widget child;
-  final bool isLeft;
-  const AnimatedCelebratingArm({Key? key, required this.child, required this.isLeft}) : super(key: key);
-
-  @override
-  State<AnimatedCelebratingArm> createState() => _AnimatedCelebratingArmState();
-}
-
-class _AnimatedCelebratingArmState extends State<AnimatedCelebratingArm> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(
-      begin: widget.isLeft ? -0.8 : 0.8,
-      end: widget.isLeft ? -1.3 : 1.3,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _animation.value,
-          alignment: widget.isLeft ? Alignment.bottomRight : Alignment.bottomLeft,
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedWritingPencil extends StatefulWidget {
-  final Widget child;
-  const AnimatedWritingPencil({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedWritingPencil> createState() => _AnimatedWritingPencilState();
-}
-
-class _AnimatedWritingPencilState extends State<AnimatedWritingPencil> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<Offset> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..repeat(reverse: true);
-    _animation = Tween<Offset>(
-      begin: const Offset(0, 0),
-      end: const Offset(4, -4),
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: _animation.value,
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedThinkingArm extends StatefulWidget {
-  final Widget child;
-  const AnimatedThinkingArm({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedThinkingArm> createState() => _AnimatedThinkingArmState();
-}
-
-class _AnimatedThinkingArmState extends State<AnimatedThinkingArm> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.35, end: 0.15).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _animation.value,
-          alignment: Alignment.bottomCenter,
-          child: widget.child,
-        );
-      },
-    );
-  }
-}
-
-class AnimatedTrophy extends StatefulWidget {
-  final Widget child;
-  const AnimatedTrophy({Key? key, required this.child}) : super(key: key);
-
-  @override
-  State<AnimatedTrophy> createState() => _AnimatedTrophyState();
-}
-
-class _AnimatedTrophyState extends State<AnimatedTrophy> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scaleAnimation;
-  late final Animation<double> _rotationAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _rotationAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Transform.rotate(
-            angle: _rotationAnimation.value,
-            child: widget.child,
-          ),
-        );
-      },
     );
   }
 }
