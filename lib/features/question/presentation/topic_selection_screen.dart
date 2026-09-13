@@ -602,16 +602,13 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                           return '$count';
                                         }
 
+                                        solvedTextStr = '${formatCount(solvedCount)}/${formatCount(totalQ)} টি প্রশ্ন সলভ করা হয়েছে';
+
                                         final directTopics = (sItem['topics'] as List<dynamic>?) ?? [];
                                         for (var tp in directTopics) {
                                           if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
                                             final name = tp['name'] as String? ?? 'টপিক';
-                                            final stds = (tp['standards'] as List<dynamic>?)?.cast<String>() ?? [];
-                                            if (stds.isNotEmpty) {
-                                              topicNames.add('$name (${stds.join(", ")})');
-                                            } else {
-                                              topicNames.add(name);
-                                            }
+                                            topicNames.add(name);
                                           }
                                         }
 
@@ -627,12 +624,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                               for (var tp in topics) {
                                                 if (tp is Map<String, dynamic> && _selectedTopicIds.contains(tp['id'])) {
                                                   final name = tp['name'] as String? ?? chName;
-                                                  final stds = (tp['standards'] as List<dynamic>?)?.cast<String>() ?? [];
-                                                  if (stds.isNotEmpty) {
-                                                    topicNames.add('$name (${stds.join(", ")})');
-                                                  } else {
-                                                    topicNames.add(name);
-                                                  }
+                                                  topicNames.add(name);
                                                 }
                                               }
                                             }
@@ -925,8 +917,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                     ...selTopics.map((t) {
                                       final tMap = t as Map<String, dynamic>;
                                       final tName = tMap['name'] ?? 'টপিক';
-                                      final stds = (tMap['standards'] as List<dynamic>?)?.cast<String>() ?? [];
-                                      final displayName = stds.isNotEmpty ? '$tName (${stds.join(", ")})' : tName;
+                                      final displayName = tName;
                                       return Padding(
                                         padding: const EdgeInsets.only(left: 12.0, top: 2.0),
                                         child: Text(
@@ -1026,19 +1017,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (topicMap['standards'] != null && (topicMap['standards'] as List).isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              (topicMap['standards'] as List).join(', '),
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                                color: isTopicSelected
-                                    ? const Color(0xFF0071F9).withOpacity(0.7)
-                                    : subTextColor.withOpacity(0.8),
-                              ),
-                            ),
-                          ],
+
                         ],
                       ),
                     ),
@@ -1234,19 +1213,7 @@ class _TopicSelectionScreenState extends ConsumerState<TopicSelectionScreen> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      if (topicMap['standards'] != null && (topicMap['standards'] as List).isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          (topicMap['standards'] as List).join(', '),
-                                          style: TextStyle(
-                                            fontSize: 10.5,
-                                            fontWeight: FontWeight.w600,
-                                            color: isTopicSelected
-                                                ? const Color(0xFF0071F9).withOpacity(0.7)
-                                                : subTextColor.withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ],
+
                                     ],
                                   ),
                                 ),
