@@ -869,7 +869,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   // ==========================================
-  // 💳 STEP 5: DIGITAL STUDENT PASS & CONFIRMATION
+  // 💳 STEP 5: WELCOME HUB & CONFIRMATION
   // ==========================================
   Widget _buildStudentPassScreen() {
     final name = _nameController.text.trim();
@@ -877,26 +877,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final groupName = _selectedGroupModel?.name;
     final batchName = _selectedBatchModel?.name;
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 24),
+
+          // 🌟 CELEBRATION STATUS BADGE
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFBBF7D0)),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle_rounded, size: 15, color: Color(0xFF16A34A)),
+                  SizedBox(width: 6),
+                  Text(
+                    'প্রোফাইল সেটআপ সম্পন্ন',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF16A34A),
+                      fontFamily: 'Li Ador Noirrit',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
-          const Text(
-            'সব প্রস্তুত! 🎉',
+
+          Text(
+            name.isNotEmpty ? 'স্বাগতম, $name! 🎉' : 'সব প্রস্তুত! 🎉',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 24,
+            style: const TextStyle(
+              fontSize: 26,
               fontWeight: FontWeight.w800,
               color: Color(0xFF0F172A),
               fontFamily: 'Li Ador Noirrit',
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           const Text(
-            'তোমার ডিজিটাল স্টুডেন্ট কার্ড তৈরি হয়ে গেছে।',
+            'তোমার ডিজিটাল অ্যাকাডেমিক কার্ড প্রস্তুত হয়েছে',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -905,55 +934,53 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // 💎 PREMIUM DIGITAL STUDENT PASS CARD
+          // 💎 PREMIUM STUDENT ID PASS CARD
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0052D4), Color(0xFF4364F7), Color(0xFF6FB1FC)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF0071F9).withValues(alpha: 0.35),
+                  color: const Color(0xFF0071F9).withValues(alpha: 0.07),
                   blurRadius: 24,
-                  offset: const Offset(0, 12),
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Card Header
+                // Card Top: Brand Logo + Student Pill
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SvgPicture.asset(
                       'assets/images/progga.svg',
-                      width: 110,
-                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                      width: 100,
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: const Color(0xFFF0F7FF),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF0071F9).withValues(alpha: 0.2)),
                       ),
                       child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_rounded, color: Colors.white, size: 14),
+                          Icon(Icons.verified_rounded, size: 14, color: Color(0xFF0071F9)),
                           SizedBox(width: 4),
                           Text(
-                            'STUDENT',
+                            'স্টুডেন্ট আইডি',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.5,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                              color: Color(0xFF0071F9),
+                              fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
                         ],
@@ -962,78 +989,61 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 28),
+                const SizedBox(height: 20),
 
-                // Student Identity
+                // Student Personal Identity
+                Text(
+                  name.isNotEmpty ? name : 'শিক্ষার্থী',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F172A),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _selectedGender == 'ছাত্রী' ? 'নিয়মিত ছাত্রী' : 'নিয়মিত ছাত্র',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'Li Ador Noirrit',
+                  ),
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+                ),
+
+                // 3 Profile Info Tiles (Class, Group, Batch)
                 Row(
                   children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.85), width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                    Expanded(
+                      child: _buildProfileInfoTile(
+                        label: 'শ্রেণী',
+                        value: className,
                       ),
-                      child: ClipOval(
-                        child: Image.asset(
-                          _selectedGender == 'ছাত্রী'
-                              ? 'assets/images/girl.png'
-                              : 'assets/images/boy.png',
-                          fit: BoxFit.cover,
+                    ),
+                    const SizedBox(width: 8),
+                    if (groupName != null && groupName.isNotEmpty) ...[
+                      Expanded(
+                        child: _buildProfileInfoTile(
+                          label: 'বিভাগ',
+                          value: groupName,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name.isNotEmpty ? name : 'শিক্ষার্থী',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w800,
-                              fontFamily: 'Li Ador Noirrit',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _selectedGender == 'ছাত্রী' ? 'নিয়মিত ছাত্রী' : 'নিয়মিত ছাত্র',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              fontSize: 12.5,
-                              fontFamily: 'Li Ador Noirrit',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Glassmorphic Info Chips
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildPassChip('শ্রেণী: $className'),
-                    if (groupName != null && groupName.isNotEmpty)
-                      _buildPassChip('বিভাগ: $groupName'),
+                      const SizedBox(width: 8),
+                    ],
                     if (batchName != null && batchName.isNotEmpty)
-                      _buildPassChip('ব্যাচ: $batchName'),
+                      Expanded(
+                        child: _buildProfileInfoTile(
+                          label: 'ব্যাচ',
+                          value: batchName,
+                        ),
+                      ),
                   ],
                 ),
               ],
@@ -1045,8 +1055,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Change / Edit Link
           Center(
             child: TextButton.icon(
-              onPressed: () => _goToStep(1),
-              icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF64748B)),
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                _goToStep(1);
+              },
+              icon: const Icon(Icons.edit_outlined, size: 15, color: Color(0xFF64748B)),
               label: const Text(
                 'তথ্য পরিবর্তন করতে চাও? এখানে ট্যাপ করো',
                 style: TextStyle(
@@ -1059,11 +1072,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const Spacer(),
 
           // High Impact Main CTA
           _buildBottomButton(
-            text: 'প্রজ্ঞায় প্রবেশ করো',
+            text: 'হোম স্ক্রিনে প্রবেশ করো',
             icon: Icons.rocket_launch_rounded,
             isLoading: _isSubmitting,
             onPressed: _isSubmitting ? null : _submitOnboarding,
@@ -1074,22 +1087,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _buildPassChip(String text) {
+  Widget _buildProfileInfoTile({required String label, required String value}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Li Ador Noirrit',
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Li Ador Noirrit',
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Li Ador Noirrit',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
