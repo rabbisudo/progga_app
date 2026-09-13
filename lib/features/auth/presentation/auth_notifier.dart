@@ -194,19 +194,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
    * Logs out user, invalidates JWT token on backend, and purges cached session data.
    */
   Future<void> logout() async {
+    // 1. Capture token before local wipe
+    String? token;
     try {
-      final token = await _storage.getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        await _apiClient.dio.post('/auth/logout');
-      }
+      token = await _storage.getAccessToken();
     } catch (_) {}
 
+    // 2. Offline-first: purge local storage tokens and Hive caches immediately
     await _storage.clearTokens();
+    _purgeHiveCaches();
+
+    // 3. Immediately set state to initial so router redirects without delay
+    state = const AuthState.initial();
+
+    // 4. Safely sign out of Google without hanging
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
+      await googleSignIn.signOut().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => null,
+      );
     } catch (_) {}
-    state = const AuthState.initial();
+
+    // 5. Send logout notification to backend with tight 2-second timeout so it never blocks UI
+    if (token != null && token.isNotEmpty) {
+      try {
+        await _apiClient.dio.post(
+          '/auth/logout',
+          options: Options(
+            headers: {'Authorization': 'Bearer $token'},
+            sendTimeout: const Duration(seconds: 2),
+            receiveTimeout: const Duration(seconds: 2),
+          ),
+        ).timeout(
+          const Duration(seconds: 2),
+          onTimeout: () => Response(
+            requestOptions: RequestOptions(path: '/auth/logout'),
+            statusCode: 200,
+          ),
+        );
+      } catch (_) {}
+    }
   }
 
   /**
@@ -214,9 +242,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
    */
   Future<void> forceLogout() async {
     await _storage.clearTokens();
+    _purgeHiveCaches();
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
+      await googleSignIn.signOut().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => null,
+      );
     } catch (_) {}
     state = const AuthState.initial();
   }
@@ -225,19 +257,53 @@ class AuthNotifier extends StateNotifier<AuthState> {
    * Permanently deletes user account, invalidates session, and signs out.
    */
   Future<void> deleteAccount() async {
+    String? token;
     try {
-      final token = await _storage.getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        await _apiClient.dio.delete('/users/me');
-      }
+      token = await _storage.getAccessToken();
     } catch (_) {}
 
+    if (token != null && token.isNotEmpty) {
+      try {
+        await _apiClient.dio.delete(
+          '/users/me',
+          options: Options(
+            headers: {'Authorization': 'Bearer $token'},
+            sendTimeout: const Duration(seconds: 4),
+            receiveTimeout: const Duration(seconds: 4),
+          ),
+        ).timeout(
+          const Duration(seconds: 4),
+          onTimeout: () => Response(
+            requestOptions: RequestOptions(path: '/users/me'),
+            statusCode: 200,
+          ),
+        );
+      } catch (_) {}
+    }
+
     await _storage.clearTokens();
+    _purgeHiveCaches();
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
+      await googleSignIn.signOut().timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => null,
+      );
     } catch (_) {}
     state = const AuthState.initial();
+  }
+
+  void _purgeHiveCaches() {
+    try {
+      if (_hiveService.isSettingsBoxOpen) {
+        final box = _hiveService.getSettingsBox();
+        box.delete('cached_user_profile');
+        box.delete('auth_session_token');
+        box.delete('cached_my_leaderboard');
+        box.delete('cached_streak_leaderboard');
+        box.flush();
+      }
+    } catch (_) {}
   }
 
   /**

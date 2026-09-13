@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:go_router/go_router.dart';
-import 'package:video_player/video_player.dart';
 import 'auth_notifier.dart';
 import '../../profile/presentation/profile_notifier.dart';
 import '../../leaderboard/presentation/leaderboard_notifier.dart';
@@ -17,33 +16,13 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
-
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.asset('assets/images/panda_login.mp4');
-    _controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-        _controller.setLooping(true);
-        _controller.setVolume(0.0);
-        _controller.play();
-      }
-    }).catchError((_) {});
-  }
-
-  @override
   void dispose() {
-    _controller.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -153,22 +132,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
                         
                         // Logo
                         Center(
                           child: SvgPicture.asset(
                             'assets/images/logo_vector.svg',
-                            height: 44,
+                            height: 52,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         
                         const Center(
                           child: Text(
                             'Enterprise MCQ Exam Platform',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 13.5,
                               color: Colors.black38,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0.5,
@@ -176,39 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         
-                        const SizedBox(height: 32),
-                        
-                        // Panda Video Container
-                        Center(
-                          child: SizedBox(
-                            height: 240,
-                            width: 320,
-                            child: _isInitialized
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Transform.scale(
-                                      scale: 1.15,
-                                      child: FittedBox(
-                                        fit: BoxFit.cover,
-                                        alignment: Alignment.center,
-                                        child: SizedBox(
-                                          width: _controller.value.size.width,
-                                          height: _controller.value.size.height,
-                                          child: VideoPlayer(_controller),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Color(0xFF0071F9),
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 36),
+                        const SizedBox(height: 48),
 
                         // Email Field
                         TextFormField(

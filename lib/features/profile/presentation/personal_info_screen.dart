@@ -333,7 +333,10 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
         loading: () => const Center(child: CircularProgressIndicator(color: brandTealColor)),
         error: (err, stack) => Center(child: Text('Error loading profile: $err')),
         data: (user) {
-          final profile = user.profile!;
+          final profile = user.profile;
+          if (profile == null) {
+            return const Center(child: CircularProgressIndicator(color: brandTealColor));
+          }
           _initialize(profile);
 
           if (activeClassesAsync.hasValue) {

@@ -218,10 +218,13 @@ class ProfileScreen extends ConsumerWidget {
             : null,
       ),
       body: profileAsync.when(
-        loading: () => Center(child: CircularProgressIndicator(color: brandTealColor)),
+        loading: () => const Center(child: CircularProgressIndicator(color: brandTealColor)),
         error: (err, stack) => Center(child: Text('Error loading profile: $err')),
         data: (user) {
-          final profile = user.profile!;
+          final profile = user.profile;
+          if (profile == null) {
+            return const Center(child: CircularProgressIndicator(color: brandTealColor));
+          }
 
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -515,10 +518,10 @@ class ProfileScreen extends ConsumerWidget {
                         );
 
                         if (shouldLogout == true) {
-                          ref.invalidate(userProfileProvider);
                           ref.invalidate(leaderboardProvider);
                           ref.invalidate(practiceProvider);
                           await ref.read(authProvider.notifier).logout();
+                          ref.invalidate(userProfileProvider);
                           if (context.mounted) {
                             context.go('/login');
                           }
@@ -578,10 +581,10 @@ class ProfileScreen extends ConsumerWidget {
                         );
 
                         if (shouldDelete == true) {
-                          ref.invalidate(userProfileProvider);
                           ref.invalidate(leaderboardProvider);
                           ref.invalidate(practiceProvider);
                           await ref.read(authProvider.notifier).deleteAccount();
+                          ref.invalidate(userProfileProvider);
                           if (context.mounted) {
                             context.go('/login');
                           }

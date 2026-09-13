@@ -96,9 +96,14 @@ class SecureStorageService {
     } catch (_) {}
 
     try {
-      if (Hive.isBoxOpen(_hiveBackupBoxName)) {
-        await Hive.box(_hiveBackupBoxName).delete(_hiveTokenKey);
-      }
+      final box = Hive.isBoxOpen(_hiveBackupBoxName)
+          ? Hive.box(_hiveBackupBoxName)
+          : await Hive.openBox(_hiveBackupBoxName);
+      await box.delete(_hiveTokenKey);
+      await box.delete('cached_user_profile');
+      await box.delete('cached_my_leaderboard');
+      await box.delete('cached_streak_leaderboard');
+      await box.flush();
     } catch (_) {}
   }
 
