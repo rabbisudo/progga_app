@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart' show CupertinoIcons;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -20,7 +22,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isHoldingEye = false;
   bool _isGoogleLoading = false;
+  String? _formError;
+  bool _emailHasError = false;
+  bool _passwordHasError = false;
 
   @override
   void dispose() {
@@ -30,16 +36,57 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleEmailLogin() async {
-    if (_formKey.currentState!.validate()) {
-      FocusScope.of(context).unfocus();
-      ref.invalidate(userProfileProvider);
-      ref.invalidate(myLeaderboardProvider);
-      ref.invalidate(leaderboardProvider);
-      await ref.read(authProvider.notifier).loginWithEmailAndPassword(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-          );
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    String? errorMsg;
+    bool emailErr = false;
+    bool passwordErr = false;
+
+    if (email.isEmpty && password.isEmpty) {
+      errorMsg = 'অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড লিখুন';
+      emailErr = true;
+      passwordErr = true;
+    } else if (email.isEmpty) {
+      errorMsg = 'অনুগ্রহ করে ইমেইল ঠিকানা লিখুন';
+      emailErr = true;
+    } else {
+      final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (!emailRegExp.hasMatch(email)) {
+        errorMsg = 'অনুগ্রহ করে সঠিক ইমেইল ঠিকানা লিখুন';
+        emailErr = true;
+      }
     }
+
+    if (password.isEmpty && errorMsg == null) {
+      errorMsg = 'অনুগ্রহ করে পাসওয়ার্ড লিখুন';
+      passwordErr = true;
+    }
+
+    if (errorMsg != null) {
+      HapticFeedback.mediumImpact();
+      setState(() {
+        _formError = errorMsg;
+        _emailHasError = emailErr;
+        _passwordHasError = passwordErr;
+      });
+      return;
+    }
+
+    setState(() {
+      _formError = null;
+      _emailHasError = false;
+      _passwordHasError = false;
+    });
+
+    FocusScope.of(context).unfocus();
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(myLeaderboardProvider);
+    ref.invalidate(leaderboardProvider);
+    await ref.read(authProvider.notifier).loginWithEmailAndPassword(
+          email,
+          password,
+        );
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -108,12 +155,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     required String label,
     required TextEditingController controller,
     required String hintText,
-    required IconData prefixIcon,
+    bool hasError = false,
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
     TextInputAction textInputAction = TextInputAction.next,
     List<String>? autofillHints,
-    String? Function(String?)? validator,
+    void Function(String)? onChanged,
     void Function(String)? onFieldSubmitted,
   }) {
     return Column(
@@ -138,6 +185,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           autofillHints: autofillHints,
+          onChanged: onChanged,
           onFieldSubmitted: onFieldSubmitted,
           style: const TextStyle(
             color: Color(0xFF0F172A),
@@ -145,7 +193,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             fontWeight: FontWeight.w500,
             fontFamily: 'Li Ador Noirrit',
           ),
-          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(
@@ -153,59 +200,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               fontSize: 13.5,
               fontFamily: 'Li Ador Noirrit',
             ),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Icon(
-                prefixIcon,
-                color: const Color(0xFF0071F9),
-                size: 20,
-              ),
-            ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             suffixIcon: isPassword
-                ? IconButton(
-                    splashRadius: 20,
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: const Color(0xFF94A3B8),
-                      size: 20,
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      onLongPressStart: (_) {
+                        HapticFeedback.mediumImpact();
+                        setState(() {
+                          _isHoldingEye = true;
+                          _obscurePassword = false;
+                        });
+                      },
+                      onLongPressEnd: (_) {
+                        HapticFeedback.lightImpact();
+                        setState(() {
+                          _isHoldingEye = false;
+                          _obscurePassword = true;
+                        });
+                      },
+                      onLongPressCancel: () {
+                        if (_isHoldingEye) {
+                          setState(() {
+                            _isHoldingEye = false;
+                            _obscurePassword = true;
+                          });
+                        }
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: _isHoldingEye
+                              ? const Color(0xFF0071F9).withValues(alpha: 0.12)
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: AnimatedScale(
+                          scale: _isHoldingEye ? 1.15 : 1.0,
+                          duration: const Duration(milliseconds: 150),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            transitionBuilder: (child, animation) {
+                              return ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              );
+                            },
+                            child: Icon(
+                              _obscurePassword
+                                  ? CupertinoIcons.eye_slash
+                                  : CupertinoIcons.eye,
+                              key: ValueKey<bool>(_obscurePassword),
+                              color: _obscurePassword
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF0071F9),
+                              size: 21,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
                   )
                 : null,
             filled: true,
-            fillColor: const Color(0xFFF8FAFC),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            fillColor: hasError ? const Color(0xFFFFF8F8) : const Color(0xFFF8FAFC),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+              borderSide: BorderSide(
+                color: hasError ? const Color(0xFFFDA4AF) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1.2),
+              borderSide: BorderSide(
+                color: hasError ? const Color(0xFFFDA4AF) : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFF0071F9), width: 1.8),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 1.2),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFF43F5E), width: 1.6),
-            ),
-            errorStyle: const TextStyle(
-              fontFamily: 'Li Ador Noirrit',
-              fontSize: 12.5,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFFDC2626),
-              height: 1.3,
+              borderSide: BorderSide(
+                color: hasError ? const Color(0xFFF43F5E) : const Color(0xFF0071F9),
+                width: 1.8,
+              ),
             ),
           ),
         ),
@@ -298,27 +385,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Column(
                               children: [
                                 SvgPicture.asset(
-                                  'assets/images/logo_vector.svg',
-                                  height: 54,
-                                  colorFilter: const ColorFilter.mode(
-                                    Color(0xFF0F172A),
-                                    BlendMode.srcIn,
-                                  ),
+                                  'assets/images/progga.svg',
+                                  width: 180,
                                 ),
-                                const SizedBox(height: 10),
-                                const Text(
-                                  'প্রজ্ঞা',
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'Li Ador Noirrit',
-                                    color: Color(0xFF0F172A),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 12),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF0071F9).withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(20),
@@ -326,7 +398,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: const Text(
                                     'স্মার্ট প্রস্তুতি • নিশ্চিত সাফল্য',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Li Ador Noirrit',
                                       color: Color(0xFF0071F9),
@@ -339,46 +411,90 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                           const SizedBox(height: 32),
 
-                          // 2. Welcome Headline
-                          const Text(
-                            'স্বাগতম!',
-                            style: TextStyle(
-                              fontSize: 21,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Li Ador Noirrit',
-                              color: Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'আপনার অ্যাকাউন্টে লগইন করে অনুশীলন শুরু করুন',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                              fontFamily: 'Li Ador Noirrit',
-                            ),
+                          // Google / GitHub style Form Error Alert Card
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(sizeFactor: animation, child: child),
+                              );
+                            },
+                            child: _formError != null
+                                ? Container(
+                                    key: ValueKey<String>(_formError!),
+                                    margin: const EdgeInsets.only(bottom: 20),
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFF1F2),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFFFECDD3), width: 1.0),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFFFFE4E6),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.error_outline_rounded,
+                                            color: Color(0xFFE11D48),
+                                            size: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            _formError!,
+                                            style: const TextStyle(
+                                              fontSize: 13.5,
+                                              fontFamily: 'Li Ador Noirrit',
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF9F1239),
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _formError = null;
+                                              _emailHasError = false;
+                                              _passwordHasError = false;
+                                            });
+                                          },
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(2),
+                                            child: Icon(
+                                              Icons.close_rounded,
+                                              size: 18,
+                                              color: Color(0xFF9F1239),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
                           ),
 
-                          const SizedBox(height: 24),
-
-                          // 3. Email Field
+                          // Email Field
                           _buildModernInput(
-                            label: 'ইমেইল বা মোবাইল নম্বর',
+                            label: 'ইমেইল',
                             controller: _emailController,
                             hintText: 'আপনার ইমেইল ঠিকানা লিখুন',
-                            prefixIcon: Icons.email_outlined,
+                            hasError: _emailHasError,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email, AutofillHints.username],
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'অনুগ্রহ করে ইমেইল বা মোবাইল নম্বর লিখুন';
+                            onChanged: (val) {
+                              if (_emailHasError || _formError != null) {
+                                setState(() {
+                                  _emailHasError = false;
+                                  if (!_passwordHasError) _formError = null;
+                                });
                               }
-                              final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                              if (!emailRegExp.hasMatch(value.trim())) {
-                                return 'সঠিক ইমেইল ঠিকানা লিখুন';
-                              }
-                              return null;
                             },
                           ),
 
@@ -389,17 +505,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             label: 'পাসওয়ার্ড',
                             controller: _passwordController,
                             hintText: 'আপনার গোপন পাসওয়ার্ড লিখুন',
-                            prefixIcon: Icons.lock_outline_rounded,
+                            hasError: _passwordHasError,
                             isPassword: true,
                             textInputAction: TextInputAction.done,
                             autofillHints: const [AutofillHints.password],
-                            onFieldSubmitted: (_) => _handleEmailLogin(),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'অনুগ্রহ করে পাসওয়ার্ড লিখুন';
+                            onChanged: (val) {
+                              if (_passwordHasError || _formError != null) {
+                                setState(() {
+                                  _passwordHasError = false;
+                                  if (!_emailHasError) _formError = null;
+                                });
                               }
-                              return null;
                             },
+                            onFieldSubmitted: (_) => _handleEmailLogin(),
                           ),
 
                           const SizedBox(height: 24),
@@ -536,7 +654,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                       SizedBox(width: 12),
                                       Text(
-                                        'Google দিয়ে সরাসরি এগিয়ে যান',
+                                        'Google',
                                         style: TextStyle(
                                           fontSize: 14.5,
                                           fontWeight: FontWeight.w600,
