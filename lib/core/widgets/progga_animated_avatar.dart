@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -284,7 +284,7 @@ class _ProggaAnimatedAvatarState extends State<ProggaAnimatedAvatar> with Ticker
               borderRadius: widget.isCircle ? null : effectiveBorderRadius.add(BorderRadius.circular(4)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF086057).withValues(alpha: 0.22),
+                  color: const Color(0xFF0071F9).withValues(alpha: 0.22),
                   blurRadius: 16,
                   spreadRadius: 2,
                 ),

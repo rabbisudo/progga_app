@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../domain/app_update_model.dart';
 
@@ -52,11 +52,11 @@ class AppUpdateDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? const Color(0xFF1E2621) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF2C3831) : const Color(0xFFE5E7EB);
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE5E7EB);
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
     final messageColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF4B5563);
-    const primaryColor = Color(0xFF017A47);
+    const primaryColor = Color(0xFF0071F9);
 
     return PopScope(
       canPop: !isForceUpdate,

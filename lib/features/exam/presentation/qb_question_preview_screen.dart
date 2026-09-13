@@ -1,4 +1,4 @@
-
+﻿
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -177,10 +177,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1B2A20) : const Color(0xFFF1F8F5),
+              color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC),
+                color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD),
                 width: 1.2,
               ),
             ),
@@ -192,7 +192,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     Icon(
                       Icons.lightbulb_outline_rounded,
                       size: 17,
-                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                     ),
                     const SizedBox(width: 7),
                     Text(
@@ -200,7 +200,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                         fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
@@ -214,10 +214,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF24382B) : Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(100),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF00C569).withOpacity(0.3) : const Color(0xFF017A47).withOpacity(0.2),
+                          color: isDark ? const Color(0xFF38BDF8).withOpacity(0.3) : const Color(0xFF0071F9).withOpacity(0.2),
                           width: 1,
                         ),
                         boxShadow: [
@@ -249,10 +249,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF00381C).withOpacity(0.5) : const Color(0xFFE8F5E9),
+              color: isDark ? const Color(0xFF0C203D).withOpacity(0.5) : const Color(0xFFE8F1FF),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0),
+                color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD),
                 width: 1.2,
               ),
             ),
@@ -264,7 +264,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     Icon(
                       Icons.check_circle_rounded,
                       size: 17,
-                      color: Color(0xFF017A47),
+                      color: Color(0xFF0071F9),
                     ),
                     SizedBox(width: 7),
                     Text(
@@ -272,7 +272,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF017A47),
+                        color: Color(0xFF0071F9),
                         fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
@@ -286,10 +286,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1B3B2B) : Colors.white,
+                        color: isDark ? const Color(0xFF0C273D) : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF00C569).withOpacity(0.3) : const Color(0xFF81C784),
+                          color: isDark ? const Color(0xFF38BDF8).withOpacity(0.3) : const Color(0xFF81C784),
                           width: 1,
                         ),
                       ),
@@ -301,7 +301,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                             ),
                           ),
                           Text(
@@ -432,10 +432,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
     final label = _getOptionLabel(optIdx);
 
     final bgColor = showGreen
-        ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+        ? (isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF))
         : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
 
-    final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+    final labelBgColor = showGreen ? const Color(0xFF0071F9) : (isDark ? Colors.white10 : Colors.white);
     final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
     final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
 
@@ -445,7 +445,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
         color: bgColor,
         borderRadius: BorderRadius.circular(12),
         border: showGreen
-            ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
+            ? Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.5)
             : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
       ),
       child: Column(
@@ -481,7 +481,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     fontSize: 12.5,
                     fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
                     color: showGreen
-                        ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                        ? (isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9))
                         : (isDark ? Colors.white70 : Colors.black87),
                     fontFamily: 'Li Ador Noirrit',
                   ),
@@ -490,7 +490,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
               if (showGreen)
                 const Icon(
                   Icons.check_circle_rounded,
-                  color: Color(0xFF017A47),
+                  color: Color(0xFF0071F9),
                   size: 16,
                 ),
             ],
@@ -531,7 +531,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF017A47),
+                      color: Color(0xFF0071F9),
                       fontFamily: 'Li Ador Noirrit',
                     ),
                   ),
@@ -682,7 +682,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -711,17 +711,17 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF4F9F6),
+                          color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
+                          border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
                         ),
                         child: AppMathText(
                           text: latexFormula,
                           fontSize: 16,
-                          mathColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                          mathColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                           textStyle: TextStyle(
                             fontSize: 16,
-                            color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -769,7 +769,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                     style: const TextStyle(
                                       fontSize: 14.5,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF017A47),
+                                      color: Color(0xFF0071F9),
                                       fontFamily: 'Li Ador Noirrit',
                                     ),
                                   ),
@@ -834,10 +834,10 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
 
                           // Design styles for option cards
                           final bgColor = showGreen
-                              ? (isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9))
+                              ? (isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF))
                               : (isDark ? Colors.white.withOpacity(0.015) : const Color(0xFFFAFAFA));
 
-                          final labelBgColor = showGreen ? const Color(0xFF017A47) : (isDark ? Colors.white10 : Colors.white);
+                          final labelBgColor = showGreen ? const Color(0xFF0071F9) : (isDark ? Colors.white10 : Colors.white);
                           final labelTextColor = showGreen ? Colors.white : (isDark ? Colors.white70 : Colors.black54);
                           final labelBorder = showGreen ? null : Border.all(color: isDark ? Colors.white24 : const Color(0xFFCFD8DC), width: 1.5);
 
@@ -849,7 +849,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                 color: bgColor,
                                 borderRadius: BorderRadius.circular(12),
                                 border: showGreen
-                                    ? Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0), width: 1.5)
+                                    ? Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.5)
                                     : Border.all(color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.shade100, width: 1.0),
                               ),
                               child: Column(
@@ -885,7 +885,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                             fontSize: 13.5,
                                             fontWeight: showGreen ? FontWeight.bold : FontWeight.w500,
                                             color: showGreen
-                                                ? (isDark ? const Color(0xFF00C569) : const Color(0xFF017A47))
+                                                ? (isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9))
                                                 : (isDark ? Colors.white70 : Colors.black87),
                                             fontFamily: 'Li Ador Noirrit',
                                           ),
@@ -894,7 +894,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
                                       if (showGreen)
                                         const Icon(
                                           Icons.check_circle_rounded,
-                                          color: Color(0xFF017A47),
+                                          color: Color(0xFF0071F9),
                                           size: 18,
                                         ),
                                     ],
@@ -934,7 +934,7 @@ class _QbQuestionPreviewScreenState extends ConsumerState<QbQuestionPreviewScree
             _showSolutions = !_showSolutions;
           });
         },
-        backgroundColor: const Color(0xFF017A47),
+        backgroundColor: const Color(0xFF0071F9),
         elevation: 5,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
@@ -1055,7 +1055,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -1093,9 +1093,9 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+        color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+        border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
       ),
       child: Column(
         children: [
@@ -1109,10 +1109,10 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      color: const Color(0xFF0071F9).withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF0071F9), size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -1124,7 +1124,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -1145,12 +1145,12 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
                     const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0071F9)),
                     )
                   else
                     Icon(
                       _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      color: const Color(0xFF017A47),
+                      color: const Color(0xFF0071F9),
                     ),
                 ],
               ),
@@ -1162,7 +1162,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                  Divider(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
                   const SizedBox(height: 6),
                   ..._explanations.map((expData) {
                     final expMap = expData as Map<String, dynamic>;

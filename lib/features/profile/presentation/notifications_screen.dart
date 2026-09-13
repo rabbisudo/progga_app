@@ -107,7 +107,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const brandTealColor = Color(0xFF086057);
+    const brandTealColor = Color(0xFF0071F9);
 
     final notificationsAsync = ref.watch(notificationsProvider);
     final unreadCount = ref.watch(unreadNotificationsCountProvider);
@@ -160,7 +160,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
           await ref.read(notificationsProvider.notifier).fetchNotifications(isRefresh: true);
         },
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           slivers: [
             // 1. Permission Warning Banner (if disabled)
             if (!_isLoadingStatus && hasNoPermission)
@@ -345,8 +345,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? (isRead ? const Color(0xFF1E1E1E) : const Color(0xFF262A29))
-                                  : (isRead ? Colors.white : const Color(0xFFEAF5F2)),
+                                  ? (isRead ? const Color(0xFF1E1E1E) : const Color(0xFF0C203D))
+                                  : (isRead ? Colors.white : const Color(0xFFE8F1FF)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isDark

@@ -203,7 +203,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
           ? _buildDashboardSkeleton(isDark)
           : RefreshIndicator(
               key: const ValueKey('home_dashboard_content'),
-              color: const Color(0xFF017A47),
+              color: const Color(0xFF0071F9),
               onRefresh: () async {
                 try {
                   // 1. Spaced Repetition (retention) cards stay cached on screen; sync in background
@@ -349,10 +349,10 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF017A47).withOpacity(0.1),
+                                    color: const Color(0xFF0071F9).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: const Color(0xFF017A47).withOpacity(0.2),
+                                      color: const Color(0xFF0071F9).withOpacity(0.2),
                                       width: 1,
                                     ),
                                   ),
@@ -367,7 +367,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                         errorBuilder: (_, __, ___) => const Icon(
                                           Icons.shield_outlined,
                                           size: 12,
-                                          color: Color(0xFF017A47),
+                                          color: Color(0xFF0071F9),
                                         ),
                                       ),
                                       const SizedBox(width: 4),
@@ -376,7 +376,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                         style: const TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF017A47),
+                                          color: Color(0xFF0071F9),
                                           fontFamily: 'Li Ador Noirrit',
                                         ),
                                       ),
@@ -392,14 +392,14 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF017A47),
+                                    color: const Color(0xFF0071F9),
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
                                   Icons.arrow_forward_ios, 
                                   size: 12, 
-                                  color: const Color(0xFF017A47),
+                                  color: const Color(0xFF0071F9),
                                 ),
                               ],
                             ),
@@ -722,7 +722,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       height: 48,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        return Icon(fallbackIcon, size: 38, color: const Color(0xFF017A47));
+        return Icon(fallbackIcon, size: 38, color: const Color(0xFF0071F9));
       },
     );
   }
@@ -781,7 +781,7 @@ class _HomeDashboardViewState extends ConsumerState<HomeDashboardView> {
       onTap: () => context.push('/leaderboard'),
       child: Container(
         color: isCurrentUser
-            ? const Color(0xFF017A47).withValues(alpha: isDark ? 0.12 : 0.06)
+            ? const Color(0xFF0071F9).withValues(alpha: isDark ? 0.12 : 0.06)
             : Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         child: Row(

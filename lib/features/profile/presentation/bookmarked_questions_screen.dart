@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import '../../exam/data/exam_repository.dart';
@@ -200,10 +200,10 @@ class _BookmarkedQuestionsScreenState
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1B2A20) : const Color(0xFFF1F8F5),
+              color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC),
+                color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD),
                 width: 1.2,
               ),
             ),
@@ -215,7 +215,7 @@ class _BookmarkedQuestionsScreenState
                     Icon(
                       Icons.lightbulb_outline_rounded,
                       size: 17,
-                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                     ),
                     const SizedBox(width: 7),
                     Text(
@@ -223,7 +223,7 @@ class _BookmarkedQuestionsScreenState
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                         fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
@@ -237,10 +237,10 @@ class _BookmarkedQuestionsScreenState
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF24382B) : Colors.white,
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(100),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF00C569).withValues(alpha: 0.3) : const Color(0xFF017A47).withValues(alpha: 0.2),
+                          color: isDark ? const Color(0xFF38BDF8).withValues(alpha: 0.3) : const Color(0xFF0071F9).withValues(alpha: 0.2),
                           width: 1,
                         ),
                         boxShadow: [
@@ -272,10 +272,10 @@ class _BookmarkedQuestionsScreenState
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF00381C).withValues(alpha: 0.5) : const Color(0xFFE8F5E9),
+              color: isDark ? const Color(0xFF0C203D).withValues(alpha: 0.5) : const Color(0xFFE8F1FF),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0),
+                color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD),
                 width: 1.2,
               ),
             ),
@@ -287,7 +287,7 @@ class _BookmarkedQuestionsScreenState
                     Icon(
                       Icons.check_circle_rounded,
                       size: 17,
-                      color: Color(0xFF017A47),
+                      color: Color(0xFF0071F9),
                     ),
                     SizedBox(width: 7),
                     Text(
@@ -295,7 +295,7 @@ class _BookmarkedQuestionsScreenState
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF017A47),
+                        color: Color(0xFF0071F9),
                         fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
@@ -309,10 +309,10 @@ class _BookmarkedQuestionsScreenState
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1B3B2B) : Colors.white,
+                        color: isDark ? const Color(0xFF0C273D) : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF00C569).withValues(alpha: 0.3) : const Color(0xFF81C784),
+                          color: isDark ? const Color(0xFF38BDF8).withValues(alpha: 0.3) : const Color(0xFF81C784),
                           width: 1,
                         ),
                       ),
@@ -324,7 +324,7 @@ class _BookmarkedQuestionsScreenState
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                             ),
                           ),
                           Text(
@@ -383,13 +383,13 @@ class _BookmarkedQuestionsScreenState
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      color: const Color(0xFF0071F9).withOpacity(0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${_toBengaliDigits(questions.length.toString())}টি প্রশ্ন',
                       style: const TextStyle(
-                        color: Color(0xFF017A47),
+                        color: Color(0xFF0071F9),
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                         fontFamily: 'Li Ador Noirrit',
@@ -404,7 +404,7 @@ class _BookmarkedQuestionsScreenState
         ],
       ),
       body: RefreshIndicator(
-        color: const Color(0xFF017A47),
+        color: const Color(0xFF0071F9),
         onRefresh: () =>
             ref.read(bookmarkedQuestionsProvider.notifier).fetchBookmarks(isSilent: true),
         child: bookmarksAsync.when(
@@ -438,7 +438,7 @@ class _BookmarkedQuestionsScreenState
                     const SizedBox(height: 16),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF017A47),
+                        backgroundColor: const Color(0xFF0071F9),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
@@ -470,11 +470,11 @@ class _BookmarkedQuestionsScreenState
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFF017A47).withOpacity(0.08),
+                            color: const Color(0xFF0071F9).withOpacity(0.08),
                           ),
                           child: const Icon(
                             Icons.bookmark_border_rounded,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             size: 64,
                           ),
                         ),
@@ -564,7 +564,7 @@ class _BookmarkedQuestionsScreenState
                             backgroundColor: isDark
                                 ? const Color(0xFF1E1E1E)
                                 : Colors.white,
-                            selectedColor: const Color(0xFF017A47),
+                            selectedColor: const Color(0xFF0071F9),
                             checkmarkColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(100),
@@ -634,14 +634,14 @@ class _BookmarkedQuestionsScreenState
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF017A47)
+                                      color: const Color(0xFF0071F9)
                                           .withOpacity(0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(
                                       'প্রশ্ন ${_toBengaliDigits((index + 1).toString())}',
                                       style: const TextStyle(
-                                        color: Color(0xFF017A47),
+                                        color: Color(0xFF0071F9),
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         fontFamily: 'Li Ador Noirrit',
@@ -808,21 +808,21 @@ class _BookmarkedQuestionsScreenState
                                       horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF14221A)
-                                        : const Color(0xFFF4F9F6),
+                                        ? const Color(0xFF0C273D)
+                                        : const Color(0xFFF0F9FF),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                         color: isDark
-                                            ? const Color(0xFF0D5E35)
-                                            : const Color(0xFFD4E8DC)),
+                                            ? const Color(0xFF0284C7)
+                                            : const Color(0xFFBAE6FD)),
                                   ),
                                   child: AppMathText(
                                     text: latexFormula,
                                     fontSize: 16,
-                                    mathColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                                    mathColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                     textStyle: TextStyle(
                                       fontSize: 16,
-                                      color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                       fontFamily: 'Li Ador Noirrit',
                                     ),
                                   ),
@@ -859,9 +859,9 @@ class _BookmarkedQuestionsScreenState
 
                                   if (isCorrect) {
                                     bgColor = isDark
-                                        ? const Color(0xFF00381C)
-                                        : const Color(0xFFE8F5E9);
-                                    labelBgColor = const Color(0xFF017A47);
+                                        ? const Color(0xFF0C203D)
+                                        : const Color(0xFFE8F1FF);
+                                    labelBgColor = const Color(0xFF0071F9);
                                     labelTextColor = Colors.white;
                                     labelBorder = null;
                                   }
@@ -877,7 +877,7 @@ class _BookmarkedQuestionsScreenState
                                             BorderRadius.circular(14),
                                         border: Border.all(
                                           color: isCorrect
-                                              ? const Color(0xFF017A47)
+                                              ? const Color(0xFF0071F9)
                                               : (isDark
                                                   ? Colors.white
                                                       .withOpacity(0.04)
@@ -924,7 +924,7 @@ class _BookmarkedQuestionsScreenState
                                                         : FontWeight.w400,
                                                     color: isCorrect
                                                         ? const Color(
-                                                            0xFF017A47)
+                                                            0xFF0071F9)
                                                         : (isDark
                                                             ? Colors.white70
                                                             : Colors.black87),
@@ -936,7 +936,7 @@ class _BookmarkedQuestionsScreenState
                                               if (isCorrect)
                                                 const Icon(
                                                   Icons.check_circle_rounded,
-                                                  color: Color(0xFF017A47),
+                                                  color: Color(0xFF0071F9),
                                                   size: 18,
                                                 ),
                                             ],
@@ -1161,7 +1161,7 @@ class _BookmarkedQuestionsScreenState
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.2,
-                  color: const Color(0xFF017A47).withOpacity(0.7),
+                  color: const Color(0xFF0071F9).withOpacity(0.7),
                 ),
               ),
             );
@@ -1304,7 +1304,7 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -1329,9 +1329,9 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E3A24) : const Color(0xFFF0FDF4),
+        color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+        border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
       ),
       child: Column(
         children: [
@@ -1345,10 +1345,10 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      color: const Color(0xFF0071F9).withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF0071F9), size: 18),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -1360,7 +1360,7 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -1371,12 +1371,12 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
                     const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0071F9)),
                     )
                   else
                     Icon(
                       _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      color: const Color(0xFF017A47),
+                      color: const Color(0xFF0071F9),
                     ),
                 ],
               ),
@@ -1388,7 +1388,7 @@ class _BookmarkedExplanationCardState extends ConsumerState<BookmarkedExplanatio
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Divider(color: Color(0xFFA7F3D0)),
+                  const Divider(color: Color(0xFFBAE6FD)),
                   const SizedBox(height: 6),
                   ..._explanations.map((expData) {
                     final expMap = expData as Map<String, dynamic>;

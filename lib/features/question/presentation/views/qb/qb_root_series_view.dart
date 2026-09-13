@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/bouncing_card.dart';
@@ -162,7 +162,7 @@ class QbRootSeriesView extends ConsumerWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
                                     color: subSeriesListIds.isNotEmpty
-                                        ? const Color(0xFF017A47).withOpacity(isDark ? 0.16 : 0.08)
+                                        ? const Color(0xFF0071F9).withOpacity(isDark ? 0.16 : 0.08)
                                         : const Color(0xFF1E88E5).withOpacity(isDark ? 0.16 : 0.08),
                                     borderRadius: BorderRadius.circular(10),
                                   ),

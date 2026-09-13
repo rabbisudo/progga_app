@@ -36,7 +36,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
     if (classId == null || classId.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          leading: const CustomBackButton(color: Color(0xFF017A47)),
+          leading: const CustomBackButton(color: Color(0xFF0071F9)),
           title: Text(widget.subSeriesName ?? 'পরীক্ষাসমূহ'),
           centerTitle: true,
         ),
@@ -51,7 +51,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const CustomBackButton(color: Color(0xFF017A47)),
+        leading: const CustomBackButton(color: Color(0xFF0071F9)),
         title: Text(
           widget.subSeriesName ?? 'পরীক্ষাসমূহ',
           style: TextStyle(
@@ -155,7 +155,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.5),
+                          borderSide: const BorderSide(color: Color(0xFF0071F9), width: 1.5),
                         ),
                         filled: true,
                         fillColor: isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5),
@@ -185,19 +185,19 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: isSelected
-                                   ? const Color(0xFF017A47)
+                                   ? const Color(0xFF0071F9)
                                   : (isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F3F5)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF017A47)
+                                    ? const Color(0xFF0071F9)
                                     : Colors.transparent,
                                 width: 1.2,
                               ),
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF017A47).withOpacity(0.2),
+                                        color: const Color(0xFF0071F9).withOpacity(0.2),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       )
@@ -353,9 +353,9 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
-                                              color: isDark ? const Color(0xFF00381C) : const Color(0xFFE6FCF5),
+                                              color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF),
                                               borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFC3FAE8), width: 1),
+                                              border: Border.all(color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.3) : const Color(0xFF0071F9).withValues(alpha: 0.18), width: 1),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -363,7 +363,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                                 Icon(
                                                   Icons.edit_note_outlined,
                                                   size: 14,
-                                                  color: isDark ? const Color(0xFF00C569) : const Color(0xFF099268),
+                                                  color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
@@ -371,7 +371,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                                                   style: TextStyle(
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.bold,
-                                                    color: isDark ? const Color(0xFF00C569) : const Color(0xFF087F5B),
+                                                    color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                                     fontFamily: 'Li Ador Noirrit',
                                                   ),
                                                 ),
@@ -436,8 +436,8 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                               const SizedBox(height: 12),
                               TextButton.icon(
                                 onPressed: () => ref.refresh(qbExamsProvider(idsToLoad.join(','))),
-                                icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF017A47)),
-                                label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Color(0xFF017A47))),
+                                icon: const Icon(Icons.refresh_rounded, size: 16, color: Color(0xFF0071F9)),
+                                label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Color(0xFF0071F9))),
                               ),
                             ],
                           ),
@@ -474,7 +474,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -555,7 +555,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE6FCF5),
+                            color: isDark ? Colors.white.withOpacity(0.03) : const Color(0xFFE8F1FF),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const ShimmerSkeleton(width: 50, height: 11, borderRadius: 4),
@@ -681,7 +681,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                         children: [
                           Icon(
                             Icons.edit_note_rounded,
-                            color: isDark ? const Color(0xFF00C569) : const Color(0xFF2B8A3E),
+                            color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                             size: 24,
                           ),
                           const SizedBox(width: 6),
@@ -706,7 +706,7 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     context.push('/exam/$examId');
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -730,8 +730,8 @@ class _QbExamsListScreenState extends ConsumerState<QbExamsListScreen> {
                     context.push('/exam-preview/$examId', extra: title);
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
-                    side: BorderSide(color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47), width: 1.5),
+                    foregroundColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
+                    side: BorderSide(color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9), width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: isDark ? Colors.white.withOpacity(0.02) : const Color(0xFFECEFF1).withOpacity(0.5),
                     shape: RoundedRectangleBorder(

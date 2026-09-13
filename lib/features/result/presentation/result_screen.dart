@@ -263,7 +263,7 @@ Widget _buildQuestionImage(String? imageKey) {
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.2,
-                color: const Color(0xFF017A47).withOpacity(0.7),
+                color: const Color(0xFF0071F9).withOpacity(0.7),
               ),
             ),
           );
@@ -405,7 +405,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -435,9 +435,9 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+        color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+        border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
       ),
       child: Column(
         children: [
@@ -451,10 +451,10 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
                   Container(
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF017A47).withOpacity(0.12),
+                      color: const Color(0xFF0071F9).withOpacity(0.12),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 18),
+                    child: const Icon(Icons.auto_awesome, color: Color(0xFF0071F9), size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -466,7 +466,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -491,12 +491,12 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
                     const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0071F9)),
                     )
                   else
                     Icon(
                       _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      color: const Color(0xFF017A47),
+                      color: const Color(0xFF0071F9),
                     ),
                 ],
               ),
@@ -508,7 +508,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                  Divider(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
                   const SizedBox(height: 6),
                   ...explanations.map((expData) {
                     final expMap = expData is Map<String, dynamic> ? expData : <String, dynamic>{};
@@ -540,7 +540,7 @@ class _ExplanationCardState extends ConsumerState<_ExplanationCard> with Automat
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Divider(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                  Divider(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
                   const SizedBox(height: 6),
                   Text(
                     'কোনো ব্যাখ্যা পাওয়া যায়নি।',
@@ -811,7 +811,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
             centerTitle: true,
           ),
           body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             cacheExtent: 500,
             slivers: [
               // Top Stats Cards & Status Pills Header
@@ -886,12 +886,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF162E24) : const Color(0xFFECFDF5),
+                                  color: isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: isDark ? const Color(0xFF1D5A3F) : const Color(0xFFA7F3D0), width: 1.2),
+                                  border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.2),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF017A47).withOpacity(isDark ? 0.2 : 0.06),
+                                      color: const Color(0xFF0071F9).withOpacity(isDark ? 0.2 : 0.06),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -903,7 +903,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.symmetric(vertical: 6),
                                       decoration: const BoxDecoration(
-                                        color: Color(0xFF017A47),
+                                        color: Color(0xFF0071F9),
                                         borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
                                       ),
                                       child: const Text(
@@ -921,14 +921,14 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          const Icon(Icons.check_circle_rounded, color: Color(0xFF017A47), size: 20),
+                                          const Icon(Icons.check_circle_rounded, color: Color(0xFF0071F9), size: 20),
                                           const SizedBox(width: 4),
                                           Text(
                                             '${_toBengaliDigit(score.toInt() == score ? score.toInt() : score)} / ${_toBengaliDigit(totalQuestions)}',
                                             style: TextStyle(
                                               fontSize: 15,
                                               fontWeight: FontWeight.bold,
-                                              color: isDark ? const Color(0xFF34D399) : const Color(0xFF064E3B),
+                                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                             ),
                                           ),
                                         ],
@@ -944,9 +944,9 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                             Expanded(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF162D3D) : const Color(0xFFF0F9FF),
+                                  color: isDark ? const Color(0xFF0C203D) : const Color(0xFFF0F9FF),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: isDark ? const Color(0xFF1D5273) : const Color(0xFFBAE6FD), width: 1.2),
+                                  border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD), width: 1.2),
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0xFF0EA5E9).withOpacity(isDark ? 0.2 : 0.06),
@@ -986,7 +986,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0C4A6E),
+                                              color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                             ),
                                           ),
                                         ],
@@ -1008,10 +1008,10 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                               child: _buildFilterTab(
                                 label: 'সব (${_toBengaliDigit(examQuestionsList.length)})',
                                 isSelected: _selectedFilter == ResultQuestionFilter.all,
-                                activeColor: const Color(0xFF017A47),
-                                activeBgColor: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
-                                activeBorderColor: const Color(0xFF017A47),
-                                dotColor: const Color(0xFF017A47),
+                                activeColor: const Color(0xFF0071F9),
+                                activeBgColor: isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF),
+                                activeBorderColor: const Color(0xFF0071F9),
+                                dotColor: const Color(0xFF0071F9),
                                 isDark: isDark,
                                 onTap: () => setState(() => _selectedFilter = ResultQuestionFilter.all),
                               ),
@@ -1024,7 +1024,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                                 label: '${_toBengaliDigit(correctCount)} সঠিক',
                                 isSelected: _selectedFilter == ResultQuestionFilter.correct,
                                 activeColor: const Color(0xFF16A34A),
-                                activeBgColor: isDark ? const Color(0xFF00381C) : const Color(0xFFDCFCE7),
+                                activeBgColor: isDark ? const Color(0xFF0C203D) : const Color(0xFFDCFCE7),
                                 activeBorderColor: const Color(0xFF16A34A),
                                 dotColor: const Color(0xFF16A34A),
                                 isDark: isDark,
@@ -1092,7 +1092,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                               color: _selectedFilter == ResultQuestionFilter.wrong
                                   ? const Color(0xFF16A34A)
                                   : (_selectedFilter == ResultQuestionFilter.skipped
-                                      ? const Color(0xFF017A47)
+                                      ? const Color(0xFF0071F9)
                                       : Colors.grey),
                             ),
                           ),
@@ -1304,7 +1304,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                     return RadioListTile<String>(
                       value: reason,
                       groupValue: selectedReason,
-                      activeColor: const Color(0xFF017A47),
+                      activeColor: const Color(0xFF0071F9),
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         reason,
@@ -1345,7 +1345,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF017A47)),
+                        borderSide: const BorderSide(color: Color(0xFF0071F9)),
                       ),
                     ),
                   ),
@@ -1371,7 +1371,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF017A47),
+                        backgroundColor: const Color(0xFF0071F9),
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade300,
                         disabledForegroundColor: isDark ? Colors.white30 : Colors.grey.shade500,
@@ -1401,7 +1401,7 @@ class _QuestionActionButtonsState extends ConsumerState<_QuestionActionButtons> 
           icon: Icon(
             _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
             size: 19,
-            color: _isBookmarked ? const Color(0xFF017A47) : Colors.grey.shade600,
+            color: _isBookmarked ? const Color(0xFF0071F9) : Colors.grey.shade600,
           ),
           onPressed: _toggleBookmark,
           constraints: const BoxConstraints(),
@@ -1615,16 +1615,16 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                         child: Container(
                           height: 38,
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9).withOpacity(0.8), // light green
+                            color: isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF).withOpacity(0.8), // light green
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
+                            border: Border.all(color: (isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)).withOpacity(0.5)),
                           ),
                           child: Center(
                             child: Container(
                               width: 50,
                               height: 12,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF017A47).withOpacity(opacity * 0.3),
+                                color: const Color(0xFF0071F9).withOpacity(opacity * 0.3),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -1774,9 +1774,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                             height: 44,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+                              color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
+                              border: Border.all(color: (isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)).withOpacity(0.5)),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             child: Row(
@@ -1785,7 +1785,7 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                   width: 24,
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color: isDark ? const Color(0xFF00381C) : const Color(0xFFD1FAE5),
+                                    color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF),
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -1794,12 +1794,12 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                   width: 80,
                                   height: 12,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF017A47).withOpacity(opacity * 0.3),
+                                    color: const Color(0xFF0071F9).withOpacity(opacity * 0.3),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                 ),
                                 const Spacer(),
-                                Icon(Icons.keyboard_arrow_down, color: const Color(0xFF017A47).withOpacity(opacity)),
+                                Icon(Icons.keyboard_arrow_down, color: const Color(0xFF0071F9).withOpacity(opacity)),
                               ],
                             ),
                           ),
@@ -1811,9 +1811,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 width: 50,
                                 height: 20,
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
+                                  color: isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
+                                  border: Border.all(color: (isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)).withOpacity(0.5)),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -1821,9 +1821,9 @@ class _SkeletonResultScreenState extends State<_SkeletonResultScreen>
                                 width: 50,
                                 height: 20,
                                 decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9),
+                                  color: isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: (isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)).withOpacity(0.5)),
+                                  border: Border.all(color: (isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)).withOpacity(0.5)),
                                 ),
                               ),
                               const Spacer(),
@@ -1969,9 +1969,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
     Color textColor;
 
     if (isCorrect) {
-      bgColor = isDark ? const Color(0xFF00381C) : const Color(0xFFE8F5E9);
-      borderColor = isDark ? const Color(0xFF0D5E35) : const Color(0xFF81C784);
-      textColor = isDark ? const Color(0xFF00C569) : const Color(0xFF017A47);
+      bgColor = isDark ? const Color(0xFF0C203D) : const Color(0xFFE8F1FF);
+      borderColor = isDark ? const Color(0xFF0284C7) : const Color(0xFF81C784);
+      textColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9);
     } else if (isSkipped) {
       bgColor = isDark ? const Color(0xFF2B2516) : const Color(0xFFFFFBEB);
       borderColor = isDark ? const Color(0xFF5D4A16) : const Color(0xFFFCD34D);
@@ -2171,7 +2171,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -2318,7 +2318,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                   style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF017A47),
+                    color: Color(0xFF0071F9),
                     fontFamily: 'Li Ador Noirrit',
                   ),
                 ),
@@ -2385,7 +2385,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),
@@ -2437,9 +2437,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                           labelBorder = null;
                         } else if (isCorrect) {
                           // Correct option -> Soft Green
-                          bgColor = isDark ? const Color(0xFF042817) : const Color(0xFFE8F5E9);
+                          bgColor = isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF);
                           borderColor = const Color(0xFF10B981);
-                          labelBgColor = const Color(0xFF017A47);
+                          labelBgColor = const Color(0xFF0071F9);
                           labelTextColor = Colors.white;
                           labelBorder = null;
                         } else {
@@ -2493,7 +2493,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                                           fontSize: 13.5,
                                           fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
                                           color: isCorrect
-                                              ? (isDark ? const Color(0xFF34D399) : const Color(0xFF017A47))
+                                              ? (isDark ? const Color(0xFF34D399) : const Color(0xFF0071F9))
                                               : (isUserSelected
                                                   ? (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))
                                                   : (isDark ? Colors.white70 : Colors.black87)),
@@ -2554,16 +2554,16 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF017A47).withOpacity(0.08),
+                            color: const Color(0xFF0071F9).withOpacity(0.08),
                             borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: const Color(0xFF017A47).withOpacity(0.15), width: 1.0),
+                            border: Border.all(color: const Color(0xFF0071F9).withOpacity(0.15), width: 1.0),
                           ),
                           child: Text(
                             tStr,
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF017A47),
+                              color: Color(0xFF0071F9),
                               fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
@@ -2603,7 +2603,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                 style: const TextStyle(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF017A47),
+                  color: Color(0xFF0071F9),
                   fontFamily: 'Li Ador Noirrit',
                 ),
               ),
@@ -2635,17 +2635,17 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF4F9F6),
+                color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFD4E8DC)),
+                border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
               ),
               child: AppMathText(
                 text: latexFormula,
                 fontSize: 16,
-                mathColor: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                mathColor: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                 textStyle: TextStyle(
                   fontSize: 16,
-                  color: isDark ? const Color(0xFF00C569) : const Color(0xFF017A47),
+                  color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                   fontFamily: 'Li Ador Noirrit',
                 ),
               ),
@@ -2771,9 +2771,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFF0FDF4),
+                              color: isDark ? const Color(0xFF0C273D) : const Color(0xFFF0F9FF),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: isDark ? const Color(0xFF0D5E35) : const Color(0xFFA7F3D0)),
+                              border: Border.all(color: isDark ? const Color(0xFF0284C7) : const Color(0xFFBAE6FD)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -2782,23 +2782,23 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                                   const SizedBox(
                                     width: 12,
                                     height: 12,
-                                    child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFF017A47)),
+                                    child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFF0071F9)),
                                   )
                                 else
-                                  const Icon(Icons.auto_awesome, color: Color(0xFF017A47), size: 13),
+                                  const Icon(Icons.auto_awesome, color: Color(0xFF0071F9), size: 13),
                                 const SizedBox(width: 6),
                                 Text(
                                   isExpanded ? 'ব্যাখ্যা বন্ধ করো' : '$label এর ব্যাখ্যা',
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF017A47),
+                                    color: Color(0xFF0071F9),
                                   ),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(
                                   isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                  color: const Color(0xFF017A47),
+                                  color: const Color(0xFF0071F9),
                                   size: 14,
                                 ),
                               ],
@@ -2858,9 +2858,9 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                 labelBorder = null;
               } else if (isCorrect) {
                 // Correct option -> Soft Green
-                bgColor = isDark ? const Color(0xFF042817) : const Color(0xFFE8F5E9);
+                bgColor = isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF);
                 borderColor = const Color(0xFF10B981);
-                labelBgColor = const Color(0xFF017A47);
+                labelBgColor = const Color(0xFF0071F9);
                 labelTextColor = Colors.white;
                 labelBorder = null;
               } else {
@@ -2915,7 +2915,7 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                                 fontSize: 14,
                                 fontWeight: (isCorrect || isUserSelected) ? FontWeight.w600 : FontWeight.w400,
                                 color: isCorrect
-                                    ? (isDark ? const Color(0xFF34D399) : const Color(0xFF017A47))
+                                    ? (isDark ? const Color(0xFF34D399) : const Color(0xFF0071F9))
                                     : (isUserSelected
                                         ? (isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626))
                                         : (isDark ? Colors.white70 : Colors.black87)),
@@ -2961,16 +2961,16 @@ class _QuestionReviewCardState extends ConsumerState<_QuestionReviewCard> with A
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF017A47).withOpacity(0.08),
+                          color: const Color(0xFF0071F9).withOpacity(0.08),
                           borderRadius: BorderRadius.circular(100),
-                          border: Border.all(color: const Color(0xFF017A47).withOpacity(0.15), width: 1.0),
+                          border: Border.all(color: const Color(0xFF0071F9).withOpacity(0.15), width: 1.0),
                         ),
                         child: Text(
                           tStr,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                             fontFamily: 'Li Ador Noirrit',
                           ),
                         ),

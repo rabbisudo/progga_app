@@ -76,7 +76,7 @@ class QuestionBankView extends ConsumerWidget {
                     indicatorSize: TabBarIndicatorSize.tab,
                     overlayColor: WidgetStateProperty.all(Colors.transparent),
                     indicator: BoxDecoration(
-                      color: const Color(0xFF017A47),
+                      color: const Color(0xFF0071F9),
                       borderRadius: BorderRadius.circular(22),
                     ),
                     labelColor: Colors.white,
@@ -155,7 +155,7 @@ class QuestionBankView extends ConsumerWidget {
 
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
+        parent: ClampingScrollPhysics(),
       ),
       cacheExtent: 600,
       addAutomaticKeepAlives: true,

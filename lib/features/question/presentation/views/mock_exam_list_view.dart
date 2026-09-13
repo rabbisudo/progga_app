@@ -50,7 +50,7 @@ class MockExamListView extends ConsumerWidget {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => ref.refresh(studentCurriculumProvider),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF017A47)),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0071F9)),
                 child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(color: Colors.white)),
               ),
             ],
@@ -88,7 +88,7 @@ class MockExamListView extends ConsumerWidget {
         });
 
         return ListView.separated(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(16, 16, 16, getFloatingBottomBarPadding(context, extraClearance: 16.0)),
           itemCount: subjects.length,
           separatorBuilder: (context, index) => const SizedBox(height: 12),

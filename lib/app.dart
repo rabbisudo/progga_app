@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/theme/progga_scroll_behavior.dart';
 import 'core/navigation/app_router.dart';
 
 class ProggaApp extends ConsumerStatefulWidget {
@@ -45,10 +46,7 @@ class _ProggaAppState extends ConsumerState<ProggaApp> with WidgetsBindingObserv
       themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        overscroll: false,
-      ),
+      scrollBehavior: const ProggaScrollBehavior(),
     );
   }
 }

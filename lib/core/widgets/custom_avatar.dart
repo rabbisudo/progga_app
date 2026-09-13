@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'progga_animated_avatar.dart';
@@ -19,7 +19,7 @@ class CustomAvatar extends StatelessWidget {
     this.animate = true,
   });
 
-  static const String defaultAvatarKey = 'progga:bg=086057&skin=ffdbb4&hair=shortCurly&hairColor=2c1b18&eyes=default&mouth=smile&clothing=shirtCrewNeck&clothingColor=086057';
+  static const String defaultAvatarKey = 'progga:bg=0071f9&skin=ffdbb4&hair=shortCurly&hairColor=2c1b18&eyes=default&mouth=smile&clothing=shirtCrewNeck&clothingColor=0071f9';
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class CustomAvatar extends StatelessWidget {
     
     // Default fallback color if not specified
     final bg = backgroundColor ?? 
-        (isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE8F5E9));
+        (isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE8F1FF));
 
     // Fallback widget if url fails
     final defaultFallback = fallbackWidget ?? 

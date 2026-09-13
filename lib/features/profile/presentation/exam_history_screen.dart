@@ -159,7 +159,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
         ),
       ),
       body: RefreshIndicator(
-        color: const Color(0xFF017A47),
+        color: const Color(0xFF0071F9),
         onRefresh: _onRefresh,
         child: _buildBody(isDark),
       ),
@@ -201,7 +201,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                 ElevatedButton(
                   onPressed: _onRefresh,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text(
@@ -228,10 +228,10 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1B3B2B) : const Color(0xFFE6F4EA),
+                    color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.history_toggle_off, size: 48, color: Color(0xFF017A47)),
+                  child: const Icon(Icons.history_toggle_off, size: 48, color: Color(0xFF0071F9)),
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -269,7 +269,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF017A47),
+                color: Color(0xFF0071F9),
                 strokeWidth: 2,
               ),
             ),
@@ -343,7 +343,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF00381C) : const Color(0xFFE6F4EA),
+                            color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
@@ -351,7 +351,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF017A47),
+                              color: Color(0xFF0071F9),
                               fontFamily: 'Li Ador Noirrit',
                             ),
                           ),
@@ -366,7 +366,7 @@ class _ExamHistoryScreenState extends ConsumerState<ExamHistoryScreen> {
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.green.shade300 : const Color(0xFF017A47),
+                          color: isDark ? Colors.green.shade300 : const Color(0xFF0071F9),
                           fontFamily: 'Li Ador Noirrit',
                         ),
                       ),

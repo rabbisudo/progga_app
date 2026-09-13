@@ -196,12 +196,12 @@ class PremiumBottomNavBar extends StatelessWidget {
                                 gradient: LinearGradient(
                                   colors: isDark
                                       ? [
-                                          const Color(0xFF017A47).withValues(alpha: 0.18),
-                                          const Color(0xFF017A47).withValues(alpha: 0.08)
+                                          const Color(0xFF0071F9).withValues(alpha: 0.18),
+                                          const Color(0xFF0071F9).withValues(alpha: 0.08)
                                         ]
                                       : [
-                                          const Color(0xFFE0ECE6),
-                                          const Color(0xFFB9D8C9).withValues(alpha: 0.4)
+                                          const Color(0xFFE8F1FF),
+                                          const Color(0xFFD6E6FE).withValues(alpha: 0.5)
                                         ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -209,8 +209,8 @@ class PremiumBottomNavBar extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: isDark 
-                                      ? const Color(0xFF017A47).withValues(alpha: 0.15) 
-                                      : const Color(0xFF017A47).withValues(alpha: 0.06),
+                                      ? const Color(0xFF0071F9).withValues(alpha: 0.18) 
+                                      : const Color(0xFF0071F9).withValues(alpha: 0.12),
                                   width: 1,
                                 ),
                               ),
@@ -261,7 +261,7 @@ class PremiumBottomNavBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    const activeColor = Color(0xFF017A47);
+    const activeColor = Color(0xFF0071F9);
     final inactiveColor = isDark ? Colors.grey[400]! : const Color(0xFF495057);
 
     return Expanded(

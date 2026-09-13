@@ -190,7 +190,7 @@ class _SafeErrorWidgetState extends State<SafeErrorWidget> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F6F5),
+      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       body: SafeArea(
         child: EmptyStateWidget(
           title: isNetwork ? 'নেটওয়ার্ক সংযোগ নেই' : 'একটি ত্রুটি ঘটেছে',

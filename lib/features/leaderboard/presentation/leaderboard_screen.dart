@@ -202,10 +202,10 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F1014) : const Color(0xFFF6F8F7);
-    final cardBg = isDark ? const Color(0xFF16171B) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF26282E) : const Color(0xFFE5ECE8);
-    const brandGreen = Color(0xFF017A47);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    const brandGreen = Color(0xFF0071F9);
 
     final profileAsync = ref.watch(userProfileProvider);
     final profile = profileAsync.value?.profile;
@@ -244,7 +244,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         title: Text(
           'লিডারবোর্ড ও লিগ',
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF16241C),
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontWeight: FontWeight.bold,
             fontSize: 17,
             fontFamily: 'Li Ador Noirrit',
@@ -260,7 +260,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         ),
         child: SingleChildScrollView(
           controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -347,7 +347,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
             child: PageView.builder(
               controller: _pageController,
               itemCount: defaultLeagues.length,
-              physics: const BouncingScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               onPageChanged: (index) {
                 if (_selectedLeagueIndex != index) {
                   _onSelectLeagueIndex(index, animatePage: false);
@@ -820,8 +820,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       forceRefresh: true,
                     ),
                     style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFF017A47).withValues(alpha: 0.1),
-                      foregroundColor: const Color(0xFF017A47),
+                      backgroundColor: const Color(0xFF0071F9).withValues(alpha: 0.1),
+                      foregroundColor: const Color(0xFF0071F9),
                     ),
                     child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
                   ),
@@ -864,7 +864,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
                     child: Center(
-                      child: CircularProgressIndicator(color: Color(0xFF017A47), strokeWidth: 2),
+                      child: CircularProgressIndicator(color: Color(0xFF0071F9), strokeWidth: 2),
                     ),
                   );
                 }
@@ -897,7 +897,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
     return Container(
       color: isMe
-          ? const Color(0xFF017A47).withValues(alpha: isDark ? 0.12 : 0.06)
+          ? const Color(0xFF0071F9).withValues(alpha: isDark ? 0.12 : 0.06)
           : Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(

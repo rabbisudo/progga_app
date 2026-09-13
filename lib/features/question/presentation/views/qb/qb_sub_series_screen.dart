@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,7 +28,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
     if (classId == null || classId.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          leading: const CustomBackButton(color: Color(0xFF017A47)),
+          leading: const CustomBackButton(color: Color(0xFF0071F9)),
           title: Text(seriesName ?? 'CQ/MCQ'),
           centerTitle: true,
         ),
@@ -43,7 +43,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const CustomBackButton(color: Color(0xFF017A47)),
+        leading: const CustomBackButton(color: Color(0xFF0071F9)),
         title: Text(
           seriesName ?? 'CQ/MCQ',
           style: TextStyle(
@@ -113,7 +113,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
                 icon = '📚';
                 title = 'ক ভাণ্ডার';
               } else if (subNameLower.contains('khabhandar') || subNameLower.contains('খ ভাণ্ডার')) {
-                cardColor = const Color(0xFFE8F5E9);
+                cardColor = const Color(0xFFE8F1FF);
                 textColor = const Color(0xFF4CAF50);
                 icon = '📚';
                 title = 'খ ভাণ্ডার';
@@ -235,7 +235,7 @@ class QbSubSeriesScreen extends ConsumerWidget {
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),

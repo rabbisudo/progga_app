@@ -58,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         fontFamily: 'Li Ador Noirrit',
         fontWeight: FontWeight.w500,
       ),
-      prefixIcon: Icon(icon, color: const Color(0xFF086057).withOpacity(0.7)),
+      prefixIcon: Icon(icon, color: const Color(0xFF0071F9).withOpacity(0.7)),
       filled: true,
       fillColor: const Color(0xFFF8F9FA),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -76,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF086057), width: 2),
+        borderSide: const BorderSide(color: Color(0xFF0071F9), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -201,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   )
                                 : const Center(
                                     child: CircularProgressIndicator(
-                                      color: Color(0xFF086057),
+                                      color: Color(0xFF0071F9),
                                       strokeWidth: 2,
                                     ),
                                   ),
@@ -252,7 +252,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: const Color(0xFF086057).withOpacity(0.6),
+                                color: const Color(0xFF0071F9).withOpacity(0.6),
                               ),
                               onPressed: () {
                                 setState(() {
@@ -269,7 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           loading: () => const Center(
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 12.0),
-                              child: CircularProgressIndicator(color: Color(0xFF086057)),
+                              child: CircularProgressIndicator(color: Color(0xFF0071F9)),
                             ),
                           ),
                           orElse: () => Column(
@@ -288,11 +288,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF086057),
+                                  backgroundColor: const Color(0xFF0071F9),
                                   foregroundColor: Colors.white,
                                   minimumSize: const Size(double.infinity, 54),
                                   elevation: 2,
-                                  shadowColor: const Color(0xFF086057).withOpacity(0.3),
+                                  shadowColor: const Color(0xFF0071F9).withOpacity(0.3),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),

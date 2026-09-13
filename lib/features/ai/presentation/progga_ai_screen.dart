@@ -166,10 +166,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: const BoxDecoration(
-                              color: Color(0xFFE8F5E9),
+                              color: Color(0xFFE8F1FF),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt, color: Color(0xFF017A47), size: 28),
+                            child: const Icon(Icons.camera_alt, color: Color(0xFF0071F9), size: 28),
                           ),
                           const SizedBox(height: 8),
                           const Text('ক্যামেরা', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -187,10 +187,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: const BoxDecoration(
-                              color: Color(0xFFE8F5E9),
+                              color: Color(0xFFE8F1FF),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.photo_library, color: Color(0xFF017A47), size: 28),
+                            child: const Icon(Icons.photo_library, color: Color(0xFF0071F9), size: 28),
                           ),
                           const SizedBox(height: 8),
                           const Text('গ্যালারি', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -229,7 +229,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF017A47),
+                backgroundColor: const Color(0xFF0071F9),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('ঠিক আছে', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -399,7 +399,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
 
   Widget _buildSkeletonHistoryLoading() {
     return ListView.builder(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       itemCount: 6,
       itemBuilder: (context, index) {
@@ -472,7 +472,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF017A47), Color(0xFF015A34)],
+                  colors: [Color(0xFF0071F9), Color(0xFF0058B7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -586,7 +586,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                                       margin: const EdgeInsets.only(top: 4),
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFE8F5E9),
+                                        color: const Color(0xFFE8F1FF),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -594,7 +594,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                                         style: const TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF017A47),
+                                          color: Color(0xFF0071F9),
                                         ),
                                       ),
                                     ),
@@ -729,13 +729,13 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                    color: isSelected ? const Color(0xFF017A47) : const Color(0xFF334155),
+                                    color: isSelected ? const Color(0xFF0071F9) : const Color(0xFF334155),
                                   ),
                                 ),
                                 if (isSelected)
                                   const Icon(
                                     Icons.check_rounded,
-                                    color: Color(0xFF017A47),
+                                    color: Color(0xFF0071F9),
                                     size: 20,
                                   ),
                               ],
@@ -759,7 +759,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     return Scaffold(
       key: _scaffoldKey,
       endDrawer: _buildHistorySidebar(),
-      backgroundColor: const Color(0xFFF4F6F4),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
@@ -786,9 +786,9 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                 height: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
+                  color: const Color(0xFFE8F1FF),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF017A47), width: 1),
+                  border: Border.all(color: const Color(0xFF0071F9), width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -799,7 +799,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF017A47),
+                        color: Color(0xFF0071F9),
                         height: 1.0,
                       ),
                       strutStyle: const StrutStyle(
@@ -809,7 +809,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF017A47), size: 16),
+                    const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF0071F9), size: 16),
                   ],
                 ),
               ),
@@ -821,10 +821,10 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
             margin: const EdgeInsets.only(right: 4, top: 12, bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+              color: const Color(0xFFE8F1FF),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF017A47),
+                color: const Color(0xFF0071F9),
               ),
             ),
             child: Row(
@@ -832,7 +832,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                 const Icon(
                   Icons.bolt,
                   size: 13,
-                  color: Color(0xFF017A47),
+                  color: Color(0xFF0071F9),
                 ),
                 const SizedBox(width: 2),
                 Text(
@@ -840,7 +840,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF017A47),
+                    color: Color(0xFF0071F9),
                   ),
                 ),
               ],
@@ -869,7 +869,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Row(
                   children: const [
-                    Icon(Icons.add_circle_outline_rounded, size: 22, color: Color(0xFF017A47)),
+                    Icon(Icons.add_circle_outline_rounded, size: 22, color: Color(0xFF0071F9)),
                     SizedBox(width: 12),
                     Text('নতুন চ্যাট', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                   ],
@@ -881,7 +881,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Row(
                   children: const [
-                    Icon(Icons.history_rounded, size: 22, color: Color(0xFF017A47)),
+                    Icon(Icons.history_rounded, size: 22, color: Color(0xFF0071F9)),
                     SizedBox(width: 12),
                     Text('চ্যাট হিস্ট্রি', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                   ],
@@ -974,12 +974,12 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
-                          color: Color(0xFFE8F5E9),
+                          color: Color(0xFFE8F1FF),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.camera_alt_outlined,
-                          color: Color(0xFF017A47),
+                          color: Color(0xFF0071F9),
                           size: 20,
                         ),
                       ),
@@ -1008,7 +1008,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF017A47),
+                          color: Color(0xFF0071F9),
                           shape: BoxShape.circle,
                         ),
                         child: _isLoading
@@ -1041,8 +1041,8 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: ActionChip(
-        label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF017A47))),
-        backgroundColor: const Color(0xFFE8F5E9),
+        label: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0071F9))),
+        backgroundColor: const Color(0xFFE8F1FF),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         side: BorderSide.none,
         onPressed: () => _sendMessage(label),
@@ -1065,7 +1065,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF017A47),
+                  color: Color(0xFF0071F9),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(4),
@@ -1181,7 +1181,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                       SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF017A47)),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0071F9)),
                       ),
                       SizedBox(width: 10),
                       Text(
@@ -1207,7 +1207,7 @@ class _ProggaAiScreenState extends ConsumerState<ProggaAiScreen> {
                   const SizedBox(height: 4),
                   const Text(
                     '• Composing Answer (Formatting step-by-step solution...)',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF017A47), fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 11, color: Color(0xFF0071F9), fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -1377,7 +1377,7 @@ class _AiMessageActionBarState extends State<_AiMessageActionBar> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
+            color: const Color(0xFFE8F1FF),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -1385,7 +1385,7 @@ class _AiMessageActionBarState extends State<_AiMessageActionBar> {
             style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF017A47),
+              color: Color(0xFF0071F9),
             ),
           ),
         ),
@@ -1413,7 +1413,7 @@ class _AiMessageActionBarState extends State<_AiMessageActionBar> {
             child: Icon(
               _isLiked ? Icons.thumb_up_rounded : Icons.thumb_up_outlined,
               size: 16,
-              color: _isLiked ? const Color(0xFF017A47) : Colors.black54,
+              color: _isLiked ? const Color(0xFF0071F9) : Colors.black54,
             ),
           ),
         ),
@@ -1460,10 +1460,10 @@ class MathMarkdown extends StatelessWidget {
             child: AppMathText(
               text: part.trim(),
               fontSize: 16,
-              mathColor: const Color(0xFF017A47),
+              mathColor: const Color(0xFF0071F9),
               textStyle: const TextStyle(
                 fontSize: 16,
-                color: Color(0xFF017A47),
+                color: Color(0xFF0071F9),
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Li Ador Noirrit',
               ),
@@ -1506,18 +1506,18 @@ class MathMarkdown extends StatelessWidget {
       selectable: true,
       styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
         p: textStyle,
-        h1: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
-        h2: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
+        h1: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0071F9)),
+        h2: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0071F9)),
         h3: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
-        listBullet: const TextStyle(fontSize: 14, color: Color(0xFF017A47), fontWeight: FontWeight.bold),
-        code: const TextStyle(backgroundColor: Color(0xFFF0F2F0), fontFamily: 'monospace'),
+        listBullet: const TextStyle(fontSize: 14, color: Color(0xFF0071F9), fontWeight: FontWeight.bold),
+        code: const TextStyle(backgroundColor: Color(0xFFF1F5F9), fontFamily: 'monospace'),
         horizontalRuleDecoration: const BoxDecoration(
           border: Border(
             top: BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
           ),
         ),
         blockquoteDecoration: BoxDecoration(
-          color: const Color(0xFFE8F5E9),
+          color: const Color(0xFFE8F1FF),
           borderRadius: BorderRadius.circular(8),
         ),
       ),

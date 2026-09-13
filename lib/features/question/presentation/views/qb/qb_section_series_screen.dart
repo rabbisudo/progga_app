@@ -29,7 +29,7 @@ class QbSectionSeriesScreen extends ConsumerWidget {
     if (classId == null || classId.isEmpty) {
       return Scaffold(
         appBar: AppBar(
-          leading: const CustomBackButton(color: Color(0xFF017A47)),
+          leading: const CustomBackButton(color: Color(0xFF0071F9)),
           title: Text(sectionName ?? 'প্রশ্নব্যাংক'),
           centerTitle: true,
         ),
@@ -44,7 +44,7 @@ class QbSectionSeriesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: const CustomBackButton(color: Color(0xFF017A47)),
+        leading: const CustomBackButton(color: Color(0xFF0071F9)),
         title: Text(
           sectionName ?? 'প্রশ্নব্যাংক',
           style: TextStyle(
@@ -100,7 +100,7 @@ class QbSectionSeriesScreen extends ConsumerWidget {
 
             return GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
+                parent: ClampingScrollPhysics(),
               ),
               cacheExtent: 600,
               addAutomaticKeepAlives: true,

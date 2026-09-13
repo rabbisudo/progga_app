@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -80,8 +80,8 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     final textColor = isDark ? Colors.white : Colors.black87;
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
     final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade300;
-    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
-    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F7F6);
+    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
+    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
 
     final controller = TextEditingController(text: '$currentCount');
     int localCount = currentCount;
@@ -146,7 +146,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
+                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF0071F9)),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -169,7 +169,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.8),
+                              borderSide: const BorderSide(color: Color(0xFF0071F9), width: 1.8),
                             ),
                           ),
                           onChanged: (val) {
@@ -201,7 +201,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
+                          child: const Icon(Icons.add, size: 20, color: Color(0xFF0071F9)),
                         ),
                       ),
                     ],
@@ -219,7 +219,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                         Navigator.pop(ctx);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF017A47),
+                        backgroundColor: const Color(0xFF0071F9),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
@@ -245,8 +245,8 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     final textColor = isDark ? Colors.white : Colors.black87;
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
     final borderColor = isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade300;
-    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
-    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF5F7F6);
+    final counterBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
+    final textInputBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
 
     final controller = TextEditingController(text: '$_totalTimeMinutes');
     int localTime = _totalTimeMinutes;
@@ -307,7 +307,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF017A47)),
+                          child: const Icon(Icons.remove, size: 20, color: Color(0xFF0071F9)),
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -330,7 +330,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF017A47), width: 1.8),
+                              borderSide: const BorderSide(color: Color(0xFF0071F9), width: 1.8),
                             ),
                           ),
                           onChanged: (val) {
@@ -362,7 +362,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: borderColor),
                           ),
-                          child: const Icon(Icons.add, size: 20, color: Color(0xFF017A47)),
+                          child: const Icon(Icons.add, size: 20, color: Color(0xFF0071F9)),
                         ),
                       ),
                     ],
@@ -379,7 +379,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                         Navigator.pop(ctx);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF017A47),
+                        backgroundColor: const Color(0xFF0071F9),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
@@ -557,9 +557,9 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
     final subTextColor = isDark ? Colors.white70 : Colors.black54;
     final mutedTextColor = isDark ? Colors.white54 : Colors.black45;
     final borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFECEFF1);
-    final progressTrackBg = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE3E7E4);
-    final stepsBgColor = isDark ? const Color(0xFF017A47).withOpacity(0.2) : const Color(0xFFD4E8DC);
-    final selectPillBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF0F4F1);
+    final progressTrackBg = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE2E8F0);
+    final stepsBgColor = isDark ? const Color(0xFF0071F9).withOpacity(0.2) : const Color(0xFFBAE6FD);
+    final selectPillBgColor = isDark ? const Color(0xFF2C2C2C) : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -596,13 +596,13 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
               decoration: BoxDecoration(
                 color: stepsBgColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
+                border: Border.all(color: const Color(0xFF0071F9).withOpacity(0.12)),
               ),
               child: const Center(
                 child: Text(
                   '২/২ স্টেপস',
                   style: TextStyle(
-                    color: Color(0xFF017A47),
+                    color: Color(0xFF0071F9),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -623,11 +623,11 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                     child: Container(
                       height: 5,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF017A47),
+                        color: const Color(0xFF0071F9),
                         borderRadius: BorderRadius.circular(2.5),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF017A47).withOpacity(0.2),
+                            color: const Color(0xFF0071F9).withOpacity(0.2),
                             blurRadius: 2,
                             offset: const Offset(0, 1),
                           )
@@ -653,11 +653,11 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                             widthFactor: value,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF017A47),
+                                color: const Color(0xFF0071F9),
                                 borderRadius: BorderRadius.circular(2.5),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF017A47).withOpacity(0.35),
+                                    color: const Color(0xFF0071F9).withOpacity(0.35),
                                     blurRadius: 4,
                                     offset: const Offset(0, 1),
                                   ),
@@ -696,7 +696,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF017A47),
+                            color: Color(0xFF0071F9),
                           ),
                         ),
                       ],
@@ -737,7 +737,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                         width: 6,
                                         height: 6,
                                         decoration: const BoxDecoration(
-                                          color: Color(0xFF017A47),
+                                          color: Color(0xFF0071F9),
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -755,21 +755,21 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF017A47).withOpacity(0.06),
+                                      color: const Color(0xFF0071F9).withOpacity(0.06),
                                       borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: const Color(0xFF017A47).withOpacity(0.12)),
+                                      border: Border.all(color: const Color(0xFF0071F9).withOpacity(0.12)),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF017A47)),
+                                        const Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF0071F9)),
                                         const SizedBox(width: 4),
                                         Text(
                                           '$count',
                                           style: const TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF017A47),
+                                            color: Color(0xFF0071F9),
                                           ),
                                         ),
                                         const SizedBox(width: 2),
@@ -778,7 +778,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
-                                            color: Color(0xFF017A47),
+                                            color: Color(0xFF0071F9),
                                           ),
                                         ),
                                       ],
@@ -839,7 +839,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                 height: 38,
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF017A47),
+                                    color: const Color(0xFF0071F9),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
@@ -925,12 +925,12 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                 duration: const Duration(milliseconds: 200),
                                 decoration: BoxDecoration(
                                   color: isSelected 
-                                      ? const Color(0xFF017A47).withOpacity(0.04) 
+                                      ? const Color(0xFF0071F9).withOpacity(0.04) 
                                       : cardColor,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isSelected 
-                                        ? const Color(0xFF017A47) 
+                                        ? const Color(0xFF0071F9) 
                                         : borderColor,
                                     width: isSelected ? 1.5 : 1.0,
                                   ),
@@ -955,7 +955,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                         fontSize: 12.0,
                                         fontWeight: FontWeight.bold,
                                         color: isSelected 
-                                            ? const Color(0xFF017A47) 
+                                            ? const Color(0xFF0071F9) 
                                             : textColor.withOpacity(0.7),
                                       ),
                                     ),
@@ -1049,7 +1049,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                                           const Icon(
                                                             Icons.circle,
                                                             size: 8,
-                                                            color: Color(0xFF017A47),
+                                                            color: Color(0xFF0071F9),
                                                           ),
                                                           const SizedBox(width: 8),
                                                           Text(
@@ -1057,7 +1057,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                                             style: const TextStyle(
                                                               fontSize: 14,
                                                               fontWeight: FontWeight.bold,
-                                                              color: Color(0xFF017A47),
+                                                              color: Color(0xFF0071F9),
                                                             ),
                                                           ),
                                                         ],
@@ -1067,7 +1067,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                                         style: const TextStyle(
                                                           fontSize: 12,
                                                           fontWeight: FontWeight.bold,
-                                                          color: Color(0xFF017A47),
+                                                          color: Color(0xFF0071F9),
                                                         ),
                                                       ),
                                                     ],
@@ -1172,7 +1172,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF017A47),
+                                    color: Color(0xFF0071F9),
                                   ),
                                 ),
                                 const Row(
@@ -1182,11 +1182,11 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF017A47),
+                                        color: Color(0xFF0071F9),
                                       ),
                                     ),
                                     SizedBox(width: 4),
-                                    Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF017A47)),
+                                    Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFF0071F9)),
                                   ],
                                 ),
                               ],
@@ -1233,7 +1233,7 @@ class _ExamConfirmScreenState extends ConsumerState<ExamConfirmScreen> {
                               context.push(examUri.toString());
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF017A47),
+                        backgroundColor: const Color(0xFF0071F9),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         elevation: 0,
                         shape: RoundedRectangleBorder(

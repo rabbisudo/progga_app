@@ -140,13 +140,13 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? const Color(0xFF064E3B).withValues(alpha: 0.35)
-                                    : const Color(0xFFE6FCF5),
+                                    ? const Color(0xFF0071F9).withValues(alpha: 0.15)
+                                    : const Color(0xFFE8F1FF),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isDark
-                                      ? const Color(0xFF0CA678).withValues(alpha: 0.4)
-                                      : const Color(0xFF96F2D7),
+                                      ? const Color(0xFF0071F9).withValues(alpha: 0.3)
+                                      : const Color(0xFF0071F9).withValues(alpha: 0.18),
                                   width: 1.2,
                                 ),
                               ),
@@ -158,7 +158,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                     width: 16,
                                     height: 16,
                                     colorFilter: ColorFilter.mode(
-                                      isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                      isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                       BlendMode.srcIn,
                                     ),
                                   ),
@@ -166,7 +166,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   Text(
                                     _toBengaliDigits('${profile.currentStreak}'),
                                     style: TextStyle(
-                                      color: isDark ? const Color(0xFF38D9A9) : const Color(0xFF086057),
+                                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
                                       fontFamily: 'Li Ador Noirrit',
@@ -215,13 +215,13 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: isDark
-                                          ? const Color(0xFF0CA678).withValues(alpha: 0.5)
-                                          : const Color(0xFF086057).withValues(alpha: 0.25),
+                                          ? const Color(0xFF0071F9).withValues(alpha: 0.5)
+                                          : const Color(0xFF0071F9).withValues(alpha: 0.25),
                                       width: 1.5,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: (isDark ? Colors.black : const Color(0xFF086057))
+                                        color: (isDark ? Colors.black : const Color(0xFF0071F9))
                                             .withValues(alpha: 0.06),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
@@ -231,7 +231,7 @@ class _PracticeDashboardScreenState extends ConsumerState<PracticeDashboardScree
                                   child: CustomAvatar(
                                     avatarUrl: profile.avatarKey,
                                     radius: 17,
-                                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE6FCF5),
+                                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F1FF),
                                     fallbackWidget: const Text(
                                       '👨‍🎓',
                                       style: TextStyle(fontSize: 16),

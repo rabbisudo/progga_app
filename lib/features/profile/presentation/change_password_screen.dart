@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'profile_notifier.dart';
 
@@ -20,7 +20,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _obscureConfirm = true;
   bool _isSaving = false;
 
-  static const Color brandTealColor = Color(0xFF086057);
+  static const Color brandTealColor = Color(0xFF0071F9);
 
   @override
   void dispose() {

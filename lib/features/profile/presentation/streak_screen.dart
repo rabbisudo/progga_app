@@ -8,6 +8,7 @@ import '../../../core/widgets/custom_avatar.dart';
 import '../../../core/widgets/custom_back_button.dart';
 import '../../leaderboard/data/leaderboard_repository.dart';
 import '../../leaderboard/domain/leaderboard_model.dart';
+import '../../../core/storage/hive_service.dart';
 
 // --- Premium Vector SVG Assets ---
 const String _heroFlameSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24">
@@ -115,10 +116,10 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final bgColor = isDark ? const Color(0xFF0D120F) : const Color(0xFFF8FAF9);
-    final cardBg = isDark ? const Color(0xFF141C17) : Colors.white;
-    final borderColor = isDark ? const Color(0xFF222F26) : const Color(0xFFE5ECE8);
-    const brandGreen = Color(0xFF017A47);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    const brandGreen = Color(0xFF0071F9);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -134,7 +135,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
         title: Text(
           'ডেইলি স্ট্রিক',
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF16241C),
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontWeight: FontWeight.bold,
             fontSize: 17,
             fontFamily: 'Li Ador Noirrit',
@@ -146,9 +147,9 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             height: 40,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF162019) : const Color(0xFFEEF4F0),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE8F1FF),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
+              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFD6E4FF)),
             ),
             child: TabBar(
               controller: _tabController,
@@ -158,11 +159,11 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
               indicatorSize: TabBarIndicatorSize.tab,
               dividerColor: Colors.transparent,
               indicator: BoxDecoration(
-                color: isDark ? const Color(0xFF213227) : Colors.white,
+                color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.28) : Colors.white,
                 borderRadius: BorderRadius.circular(10),
               ),
-              labelColor: brandGreen,
-              unselectedLabelColor: isDark ? Colors.white38 : const Color(0xFF5E7A69),
+              labelColor: isDark ? Colors.white : brandGreen,
+              unselectedLabelColor: isDark ? Colors.white60 : const Color(0xFF64748B),
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 13.5,
@@ -176,54 +177,63 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           ),
         ),
       ),
-      body: profileAsync.when(
-        loading: () => TabBarView(
-          controller: _tabController,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            _buildPersonalTabSkeleton(isDark, borderColor),
-            _buildLeaderboardSkeleton(isDark, cardBg, borderColor),
-          ],
-        ),
-        error: (err, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      body: Builder(
+        builder: (context) {
+          final userData = profileAsync.value;
+          final isColdLoading = userData == null && profileAsync.isLoading;
+
+          if (isColdLoading) {
+            return TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
               children: [
-                const Icon(Icons.info_outline_rounded, color: Colors.redAccent, size: 36),
-                const SizedBox(height: 12),
-                Text(
-                  'তথ্য লোড করা সম্ভব হয়নি',
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    fontFamily: 'Li Ador Noirrit',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => ref.refresh(userProfileProvider),
-                  style: TextButton.styleFrom(
-                    backgroundColor: brandGreen.withValues(alpha: 0.1),
-                    foregroundColor: brandGreen,
-                  ),
-                  child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
-                ),
+                _buildPersonalTabSkeleton(isDark, borderColor),
+                _buildLeaderboardSkeleton(isDark, cardBg, borderColor),
               ],
-            ),
-          ),
-        ),
-        data: (userData) {
-          final profile = userData.profile;
+            );
+          }
+
+          if (userData == null && profileAsync.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: Colors.redAccent, size: 36),
+                    const SizedBox(height: 12),
+                    Text(
+                      'তথ্য লোড করা সম্ভব হয়নি',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        fontFamily: 'Li Ador Noirrit',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () => ref.read(userProfileProvider.notifier).refreshProfile(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: brandGreen.withValues(alpha: 0.1),
+                        foregroundColor: brandGreen,
+                      ),
+                      child: const Text('পুনরায় চেষ্টা করুন', style: TextStyle(fontFamily: 'Li Ador Noirrit')),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final profile = userData?.profile;
           final currentStreak = profile?.currentStreak ?? 0;
           final longestStreak = profile?.longestStreak ?? 0;
           final streakFreezes = profile?.streakFreezes ?? 5;
           final usedStreakFreezes = profile?.usedStreakFreezes ?? 0;
-          final streakHistory = userData.streakHistory ?? List.filled(7, false);
-          final monthlyActiveDates = userData.monthlyActiveDates ?? [];
-          final frozenStreakDates = userData.frozenStreakDates ?? [];
+          final streakHistory = userData?.streakHistory ?? List.filled(7, false);
+          final monthlyActiveDates = userData?.monthlyActiveDates ?? [];
+          final frozenStreakDates = userData?.frozenStreakDates ?? [];
 
           return TabBarView(
             controller: _tabController,
@@ -255,7 +265,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
               _buildGlobalTab(
                 context,
                 ref: ref,
-                myUserId: userData.id,
+                myUserId: userData?.id ?? '',
                 profile: profile,
                 isDark: isDark,
                 cardBg: cardBg,
@@ -292,7 +302,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
         (selectedMonth.year == now.year && selectedMonth.month >= now.month);
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
       child: Column(
         children: [
@@ -364,7 +374,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     Color cardBg,
     Color borderColor,
   ) {
-    const brandGreen = Color(0xFF017A47);
+    const brandGreen = Color(0xFF0071F9);
 
     return Container(
       width: double.infinity,
@@ -391,7 +401,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                 style: TextStyle(
                   fontSize: 52,
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : const Color(0xFF111D15),
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
                   fontFamily: 'Li Ador Noirrit',
                   letterSpacing: -1.5,
                   height: 1,
@@ -403,7 +413,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white70 : const Color(0xFF4A6052),
+                  color: isDark ? Colors.white70 : const Color(0xFF64748B),
                   fontFamily: 'Li Ador Noirrit',
                 ),
               ),
@@ -463,7 +473,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     const days = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র'];
     final now = DateTime.now();
     final currentDay = now.getDayBanglaIndex();
-    const brandGreen = Color(0xFF017A47);
+    const brandGreen = Color(0xFF0071F9);
     const freezeCyan = Color(0xFF0284C7);
     final completedCount = streakHistory.where((e) => e).length;
     final saturday = now.subtract(Duration(days: currentDay));
@@ -487,7 +497,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white60 : const Color(0xFF4A6052),
+                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   fontFamily: 'Li Ador Noirrit',
                 ),
               ),
@@ -544,7 +554,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                           ? (isFrozen ? freezeCyan : brandGreen)
                           : (isToday
                               ? brandGreen.withValues(alpha: isDark ? 0.18 : 0.1)
-                              : (isDark ? const Color(0xFF19231D) : const Color(0xFFF3F6F4))),
+                              : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9))),
                       shape: BoxShape.circle,
                       border: isToday && !isCompleted
                           ? Border.all(color: brandGreen, width: 1.5)
@@ -651,7 +661,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     required VoidCallback onPrevMonth,
     required VoidCallback onNextMonth,
   }) {
-    const brandGreen = Color(0xFF017A47);
+    const brandGreen = Color(0xFF0071F9);
     const List<String> weekdays = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র'];
     final now = DateTime.now();
 
@@ -689,7 +699,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                 icon: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E2A22) : const Color(0xFFF1F5F2),
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(Icons.chevron_left_rounded, size: 18, color: isDark ? Colors.white70 : const Color(0xFF374151)),
@@ -733,7 +743,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                   decoration: BoxDecoration(
                     color: isNextMonthDisabled
                         ? (isDark ? Colors.white10 : Colors.grey.shade100)
-                        : (isDark ? const Color(0xFF1E2A22) : const Color(0xFFF1F5F2)),
+                        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -754,7 +764,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A251E) : const Color(0xFFF2F6F3),
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -767,7 +777,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white54 : const Color(0xFF526359),
+                        color: isDark ? Colors.white54 : const Color(0xFF64748B),
                         fontFamily: 'Li Ador Noirrit',
                       ),
                     ),
@@ -883,7 +893,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF19231D) : const Color(0xFFF3F6F4),
+                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -943,7 +953,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
               const SizedBox(width: 20),
               _buildDotLegend(const Color(0xFF0284C7), 'স্ট্রিক ফ্রিজ', isDark),
               const SizedBox(width: 20),
-              _buildDotLegend(isDark ? const Color(0xFF28362D) : const Color(0xFFE5ECE8), 'ছুটি / বাকি', isDark),
+              _buildDotLegend(isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), 'ছুটি / বাকি', isDark),
             ],
           ),
         ],
@@ -969,7 +979,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
     if (isActive) {
       message = 'সফলভাবে পরীক্ষা দিয়ে স্ট্রিক সক্রিয় রেখেছ!';
       icon = Icons.local_fire_department_rounded;
-      iconColor = const Color(0xFF017A47);
+      iconColor = const Color(0xFF0071F9);
     } else if (isFreeze) {
       message = 'স্ট্রিক ফ্রিজ ব্যবহার করে স্ট্রিক সুরক্ষিত রাখা হয়েছিল।';
       icon = Icons.shield_rounded;
@@ -990,7 +1000,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        backgroundColor: isDark ? const Color(0xFF1E2922) : const Color(0xFF16241C),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
         duration: const Duration(seconds: 2),
         content: Row(
           children: [
@@ -1057,7 +1067,7 @@ class _StreakScreenState extends ConsumerState<StreakScreen> with SingleTickerPr
 
   // --- Personal Tab Skeleton Loading View ---
   Widget _buildPersonalTabSkeleton(bool isDark, Color borderColor) {
-    final cardBg = isDark ? const Color(0xFF141C17) : Colors.white;
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 36),
@@ -1257,8 +1267,8 @@ class _ShimmerBoxState extends State<_ShimmerBox> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? const Color(0xFF1B261F) : const Color(0xFFE8EFEA);
-    final highlightColor = isDark ? const Color(0xFF26382D) : const Color(0xFFF4F9F5);
+    final baseColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    final highlightColor = isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -1323,7 +1333,7 @@ class _BreathingFlameWidgetState extends State<_BreathingFlameWidget> with Singl
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const brandGreen = Color(0xFF017A47);
+    const brandGreen = Color(0xFF0071F9);
 
     return AnimatedBuilder(
       animation: _scale,
@@ -1390,8 +1400,27 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
   @override
   void initState() {
     super.initState();
-    _fetchPage(isInitial: true);
+    _loadCachedEntries();
+    _fetchPage(isInitial: true, forceRefresh: false);
     _scrollController.addListener(_onScroll);
+  }
+
+  void _loadCachedEntries() {
+    try {
+      final hive = ref.read(hiveServiceProvider);
+      final cached = hive.getCachedList('cached_streak_leaderboard');
+      if (cached != null && cached.isNotEmpty) {
+        final cachedList = cached
+            .map((e) => LeaderboardEntryModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList();
+        if (cachedList.isNotEmpty) {
+          _entries.clear();
+          _entries.addAll(cachedList);
+          _offset = cachedList.length;
+          _isLoadingInitial = false;
+        }
+      }
+    } catch (_) {}
   }
 
   @override
@@ -1408,12 +1437,16 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
     }
   }
 
-  Future<void> _fetchPage({required bool isInitial}) async {
+  Future<void> _fetchPage({required bool isInitial, bool forceRefresh = false}) async {
+    final bool isSilentRefresh = isInitial && _entries.isNotEmpty;
+
     if (isInitial) {
       setState(() {
-        _isLoadingInitial = true;
+        if (!isSilentRefresh) {
+          _isLoadingInitial = true;
+          _entries.clear();
+        }
         _errorMessage = null;
-        _entries.clear();
         _offset = 0;
         _hasMore = true;
       });
@@ -1427,25 +1460,41 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
       final repo = ref.read(leaderboardRepositoryProvider);
       final newEntries = await repo.fetchStreakLeaderboard(
         limit: _limit,
-        offset: _offset,
-        forceRefresh: isInitial,
+        offset: isInitial ? 0 : _offset,
+        forceRefresh: forceRefresh,
       );
 
       if (mounted) {
         setState(() {
+          if (isInitial) {
+            _entries.clear();
+          }
           _entries.addAll(newEntries);
-          _offset += _limit;
+          _offset = _entries.length;
           _isLoadingInitial = false;
           _isLoadingMore = false;
           if (newEntries.length < _limit) {
             _hasMore = false;
           }
         });
+
+        // Persist first page to Hive (offline cache for 0ms instant display next time)
+        if (isInitial && newEntries.isNotEmpty) {
+          try {
+            final hive = ref.read(hiveServiceProvider);
+            hive.cacheList(
+              'cached_streak_leaderboard',
+              newEntries.map((e) => e.toJson()).toList(),
+            );
+          } catch (_) {}
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          if (_entries.isEmpty) {
+            _errorMessage = e.toString();
+          }
           _isLoadingInitial = false;
           _isLoadingMore = false;
         });
@@ -1456,9 +1505,9 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    const brandGreen = Color(0xFF017A47);
+    const brandGreen = Color(0xFF0071F9);
 
-    if (_isLoadingInitial) {
+    if (_isLoadingInitial && _entries.isEmpty) {
       return _buildLeaderboardSkeleton(widget.isDark, widget.cardBg, widget.borderColor);
     }
 
@@ -1480,7 +1529,7 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () => _fetchPage(isInitial: true),
+                onPressed: () => _fetchPage(isInitial: true, forceRefresh: true),
                 style: TextButton.styleFrom(
                   backgroundColor: brandGreen.withValues(alpha: 0.1),
                   foregroundColor: brandGreen,
@@ -1524,20 +1573,46 @@ class _GlobalStreakLeaderboardViewState extends ConsumerState<GlobalStreakLeader
     });
 
     if (reRanked.isEmpty) {
-      return const Center(
-        child: Text(
-          'লিডারবোর্ডে কেউ নেই',
-          style: TextStyle(fontFamily: 'Li Ador Noirrit'),
+      return RefreshIndicator(
+        onRefresh: () async {
+          try {
+            await Future.wait([
+              _fetchPage(isInitial: true, forceRefresh: true),
+              ref.read(userProfileProvider.notifier).refreshProfile(),
+            ]);
+          } catch (_) {}
+        },
+        color: brandGreen,
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: const Center(
+                child: Text(
+                  'লিডারবোর্ডে কেউ নেই',
+                  style: TextStyle(fontFamily: 'Li Ador Noirrit'),
+                ),
+              ),
+            ),
+          ),
         ),
       );
     }
 
     return RefreshIndicator(
-      onRefresh: () => _fetchPage(isInitial: true),
+      onRefresh: () async {
+        try {
+          await Future.wait([
+            _fetchPage(isInitial: true, forceRefresh: true),
+            ref.read(userProfileProvider.notifier).refreshProfile(),
+          ]);
+        } catch (_) {}
+      },
       color: brandGreen,
       child: SingleChildScrollView(
         controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        physics: const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics()),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         child: Container(
           decoration: BoxDecoration(

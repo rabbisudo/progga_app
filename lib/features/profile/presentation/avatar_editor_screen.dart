@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'profile_notifier.dart';
@@ -440,7 +440,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                             color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF086057).withValues(alpha: 0.15),
+                              color: const Color(0xFF0071F9).withValues(alpha: 0.15),
                             ),
                           ),
                           child: Column(
@@ -499,7 +499,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
               'অ্যাভাটার সফলভাবে সংরক্ষণ করা হয়েছে!',
               style: TextStyle(fontFamily: 'Li Ador Noirrit'),
             ),
-            backgroundColor: Color(0xFF017A47),
+            backgroundColor: Color(0xFF0071F9),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -526,7 +526,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    const brandTealColor = Color(0xFF086057);
+    const brandTealColor = Color(0xFF0071F9);
     final canvasBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFE8F3FA);
     final topBarFgColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
@@ -848,7 +848,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
   }
 
   Widget _buildSectionHeader(int index, String title) {
-    const brandTealColor = Color(0xFF086057);
+    const brandTealColor = Color(0xFF0071F9);
 
     return Container(
       key: _sectionKeys[index],
@@ -899,7 +899,7 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    const selectedColor = Color(0xFF017A47);
+    const selectedColor = Color(0xFF0071F9);
 
     return GestureDetector(
       onTap: onTap,
@@ -1314,14 +1314,14 @@ class _AvatarEditorScreenState extends ConsumerState<AvatarEditorScreen> with Si
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF086057)
+                      ? const Color(0xFF0071F9)
                       : (hex == 'ffffff' ? Colors.grey.shade400 : Colors.transparent),
                   width: isSelected ? 3.0 : 1.0,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF086057).withValues(alpha: 0.3),
+                          color: const Color(0xFF0071F9).withValues(alpha: 0.3),
                           blurRadius: 6,
                           spreadRadius: 1,
                         )

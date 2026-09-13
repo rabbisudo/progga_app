@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -216,7 +216,7 @@ class _BannerSliderWidgetState extends State<BannerSliderWidget> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFD9746E), Color(0xFFF18881)],
+                      colors: [Color(0xFF0058B7), Color(0xFF0071F9)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),

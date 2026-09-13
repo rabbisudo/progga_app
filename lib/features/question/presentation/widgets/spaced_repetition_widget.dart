@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'bouncing_card.dart';
 import '../views/spaced_repetition_notifier.dart';
@@ -89,11 +89,11 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
     const optionPrefixes = ['ক', 'খ', 'গ', 'ঘ', 'ঙ', 'চ'];
     
     final feedbackBgColor = isSelectedCorrect
-        ? const Color(0xFF017A47).withOpacity(isDark ? 0.08 : 0.04)
+        ? const Color(0xFF0071F9).withOpacity(isDark ? 0.08 : 0.04)
         : const Color(0xFFD32F2F).withOpacity(isDark ? 0.08 : 0.04);
         
     final feedbackBorderColor = isSelectedCorrect
-        ? const Color(0xFF017A47).withOpacity(0.25)
+        ? const Color(0xFF0071F9).withOpacity(0.25)
         : const Color(0xFFD32F2F).withOpacity(0.25);
 
     // Formatting Bengali digits
@@ -134,12 +134,12 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                       Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF017A47).withOpacity(0.1),
+                          color: const Color(0xFF0071F9).withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.psychology_rounded,
-                          color: Color(0xFF017A47),
+                          color: Color(0xFF0071F9),
                           size: 16,
                         ),
                       ),
@@ -149,7 +149,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF017A47),
+                          color: Color(0xFF0071F9),
                           fontFamily: 'Li Ador Noirrit',
                         ),
                       ),
@@ -218,11 +218,11 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                 if (_hasAnswered) {
                   if (isCorrect) {
                     // Correct answer highlighted with subtle green tint & border
-                    tileColor = const Color(0xFF017A47).withOpacity(isDark ? 0.10 : 0.05);
-                    borderColor = const Color(0xFF017A47).withOpacity(0.32);
-                    prefixBgColor = const Color(0xFF017A47);
+                    tileColor = const Color(0xFF0071F9).withOpacity(isDark ? 0.10 : 0.05);
+                    borderColor = const Color(0xFF0071F9).withOpacity(0.32);
+                    prefixBgColor = const Color(0xFF0071F9);
                     prefixTextColor = Colors.white;
-                    optionTextColor = isDark ? const Color(0xFF38D9A9) : const Color(0xFF017A47);
+                    optionTextColor = isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9);
                   } else if (isUserSelected) {
                     // Wrong selection highlighted with subtle red tint & border
                     tileColor = const Color(0xFFD32F2F).withOpacity(isDark ? 0.10 : 0.05);
@@ -326,7 +326,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                         children: [
                           Icon(
                             isSelectedCorrect ? Icons.verified_rounded : Icons.info_outline_rounded,
-                            color: isSelectedCorrect ? const Color(0xFF017A47) : const Color(0xFFD32F2F),
+                            color: isSelectedCorrect ? const Color(0xFF0071F9) : const Color(0xFFD32F2F),
                             size: 18,
                           ),
                           const SizedBox(width: 8),
@@ -338,7 +338,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                               style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.bold,
-                                color: isSelectedCorrect ? const Color(0xFF017A47) : const Color(0xFFD32F2F),
+                                color: isSelectedCorrect ? const Color(0xFF0071F9) : const Color(0xFFD32F2F),
                                 fontFamily: 'Li Ador Noirrit',
                               ),
                             ),
@@ -420,7 +420,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF017A47),
+                          color: const Color(0xFF0071F9),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Row(
@@ -519,7 +519,7 @@ class _SpacedRepetitionWidgetState extends ConsumerState<SpacedRepetitionWidget>
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.2,
-                color: Color(0xFF017A47),
+                color: Color(0xFF0071F9),
               ),
             ),
           ),

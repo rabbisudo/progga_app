@@ -736,11 +736,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 autofocus: true,
                 keyboardType: keyboardType,
                 inputFormatters: inputFormatters,
-                cursorColor: const Color(0xFF017A47),
+                cursorColor: const Color(0xFF0071F9),
                 decoration: InputDecoration(
                   labelText: label,
                   labelStyle: const TextStyle(color: Colors.black54),
-                  floatingLabelStyle: const TextStyle(color: Color(0xFF017A47), fontWeight: FontWeight.bold),
+                  floatingLabelStyle: const TextStyle(color: Color(0xFF0071F9), fontWeight: FontWeight.bold),
                   hintText: hint,
                   filled: true,
                   fillColor: const Color(0xFFECEFF1),
@@ -763,7 +763,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF017A47),
+                    backgroundColor: const Color(0xFF0071F9),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -793,7 +793,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: ElevatedButton(
           onPressed: _nextStep,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF017A47),
+            backgroundColor: const Color(0xFF0071F9),
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -843,10 +843,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        color: const Color(0xFF0071F9).withOpacity(0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.person, color: Color(0xFF017A47), size: 20),
+                      child: const Icon(Icons.person, color: Color(0xFF0071F9), size: 20),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -917,10 +917,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        color: const Color(0xFF0071F9).withOpacity(0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.call_rounded, color: Color(0xFF017A47), size: 20),
+                      child: const Icon(Icons.call_rounded, color: Color(0xFF0071F9), size: 20),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -969,13 +969,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           return Theme(
                             data: Theme.of(context).copyWith(
                               colorScheme: const ColorScheme.light(
-                                primary: Color(0xFF017A47),
+                                primary: Color(0xFF0071F9),
                                 onPrimary: Colors.white,
                                 onSurface: Colors.black87,
                               ),
                               textButtonTheme: TextButtonThemeData(
                                 style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFF017A47),
+                                  foregroundColor: const Color(0xFF0071F9),
                                 ),
                               ),
                             ),
@@ -1007,10 +1007,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF017A47).withOpacity(0.08),
+                              color: const Color(0xFF0071F9).withOpacity(0.08),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.cake, color: Color(0xFF017A47), size: 20),
+                            child: const Icon(Icons.cake, color: Color(0xFF0071F9), size: 20),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -1071,7 +1071,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF017A47) : Colors.transparent,
+                                color: isSelected ? const Color(0xFF0071F9) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Center(
@@ -1125,10 +1125,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF017A47).withOpacity(0.08),
+                        color: const Color(0xFF0071F9).withOpacity(0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.location_on, color: Color(0xFF017A47), size: 20),
+                      child: const Icon(Icons.location_on, color: Color(0xFF0071F9), size: 20),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -1175,10 +1175,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   child: ElevatedButton(
                     onPressed: canProceed ? _nextStep : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF017A47),
+                      backgroundColor: const Color(0xFF0071F9),
                       disabledBackgroundColor: const Color(0xFFE0E0E0),
                       elevation: canProceed ? 4 : 0,
-                      shadowColor: const Color(0xFF017A47).withOpacity(0.4),
+                      shadowColor: const Color(0xFF0071F9).withOpacity(0.4),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     child: Text(
@@ -1206,7 +1206,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         loading: () => const Center(
           child: Padding(
             padding: EdgeInsets.all(24.0),
-            child: CircularProgressIndicator(color: Color(0xFF017A47)),
+            child: CircularProgressIndicator(color: Color(0xFF0071F9)),
           ),
         ),
         error: (err, stack) => Column(
@@ -1268,7 +1268,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF017A47).withOpacity(0.04),
+                          color: const Color(0xFF0071F9).withOpacity(0.04),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -1339,7 +1339,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   border: Border.all(color: const Color(0xFFE0E0E0), width: 1.2),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF017A47).withOpacity(0.04),
+                      color: const Color(0xFF0071F9).withOpacity(0.04),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1502,11 +1502,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: ElevatedButton(
             onPressed: canSubmit ? _submitOnboarding : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF017A47),
+              backgroundColor: const Color(0xFF0071F9),
               disabledBackgroundColor: const Color(0xFFE0E0E0),
               disabledForegroundColor: Colors.black38,
               elevation: canSubmit ? 4 : 0,
-              shadowColor: const Color(0xFF017A47).withOpacity(0.4),
+              shadowColor: const Color(0xFF0071F9).withOpacity(0.4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1554,7 +1554,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF017A47)),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0071F9)),
             ),
             Row(
               mainAxisSize: MainAxisSize.min,

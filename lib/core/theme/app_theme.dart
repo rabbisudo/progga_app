@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AppTheme {
-  // Brand colors matching a premium coral design system
-  static const Color primaryColor = Color(0xFFF18881);
-  static const Color primaryDarkColor = Color(0xFFD9746E);
+  // Brand colors matching the Progga electric blue (#0071F9) design system
+  static const Color primaryColor = Color(0xFF0071F9);
+  static const Color primaryDarkColor = Color(0xFF0058B7);
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkCard = Color(0xFF2C2C2C);

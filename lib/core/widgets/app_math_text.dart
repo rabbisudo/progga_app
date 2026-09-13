@@ -502,7 +502,7 @@ class AppMathText extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 2.0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   child: Math.tex(
                     latexStr,
                     textStyle: TextStyle(
@@ -557,7 +557,7 @@ class AppMathText extends StatelessWidget {
       return RepaintBoundary(
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           child: Math.tex(
             formula,
             textStyle: TextStyle(
@@ -679,7 +679,7 @@ class AppMathText extends StatelessWidget {
         (clean.contains(RegExp(r'[\^_{}\\]')) || clean.contains(RegExp(r'[=+\-*/]')))) {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+        physics: const ClampingScrollPhysics(),
         child: Math.tex(
           cleanLatexFormula(clean),
           textStyle: TextStyle(
@@ -851,7 +851,7 @@ class AppMathText extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 2.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 child: Math.tex(
                   clean,
                   textStyle: TextStyle(
@@ -906,7 +906,7 @@ class AppMathText extends StatelessWidget {
               height: 24,
               child: CircularProgressIndicator(
                 strokeWidth: 2.2,
-                color: Color(0xFF017A47),
+                color: Color(0xFF0071F9),
               ),
             ),
           ),
@@ -997,7 +997,7 @@ class AppMathText extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           child: Table(
             defaultColumnWidth: const IntrinsicColumnWidth(),
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,

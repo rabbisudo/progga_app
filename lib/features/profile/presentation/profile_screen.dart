@@ -87,7 +87,7 @@ const String _cameraSvg = '''<svg xmlns="http://www.w3.org/2000/svg" width="1em"
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  static const Color brandTealColor = Color(0xFF086057); // Deep teal color
+  static const Color brandTealColor = Color(0xFF0071F9); // Deep teal color
 
   Widget _buildSectionCard({required List<Widget> children, required bool isDark}) {
     final List<Widget> items = [];
@@ -160,14 +160,14 @@ class ProfileScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark ? brandTealColor.withOpacity(0.15) : const Color(0xFFE6FCF5),
-        border: Border.all(color: isDark ? brandTealColor.withOpacity(0.3) : const Color(0xFFC3FAE8)),
+        color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF),
+        border: Border.all(color: isDark ? const Color(0xFF0071F9).withValues(alpha: 0.3) : const Color(0xFF0071F9).withValues(alpha: 0.18)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: isDark ? const Color(0xFF00C569) : const Color(0xFF086057),
+          color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0071F9),
           fontWeight: FontWeight.bold,
           fontSize: 11,
           fontFamily: 'Li Ador Noirrit',
@@ -295,12 +295,12 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     _buildFlatMenuTile(
                       theme: theme,
-                      color: const Color(0xFF00C569),
+                      color: const Color(0xFF38BDF8),
                       customIcon: SvgPicture.string(
                         _personSvg,
                         width: 18,
                         height: 18,
-                        colorFilter: const ColorFilter.mode(Color(0xFF00C569), BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(Color(0xFF38BDF8), BlendMode.srcIn),
                       ),
                       title: 'ব্যক্তিগত তথ্য',
                       isDark: isDark,
@@ -370,7 +370,7 @@ class ProfileScreen extends ConsumerWidget {
                         scale: 0.8,
                         child: Switch(
                           value: isDark,
-                          activeColor: const Color(0xFF017A47),
+                          activeColor: const Color(0xFF0071F9),
                           onChanged: (val) {
                             ref.read(themeModeProvider.notifier).setThemeMode(
                               val ? ThemeMode.dark : ThemeMode.light,

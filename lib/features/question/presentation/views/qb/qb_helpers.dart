@@ -121,7 +121,7 @@ void showQbSubSeriesBottomSheet({
                 // List of sub-series
                 Flexible(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisSize: MainAxisSize.min,

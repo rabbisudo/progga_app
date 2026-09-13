@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 class UserNotificationModel {
   final String id;
@@ -136,7 +136,7 @@ class UserNotificationModel {
       return const Color(0xFFFF3B30);
     }
     if (t == 'EXAM' || lowTitle.contains('পরীক্ষা') || lowTitle.contains('মডেল টেস্ট')) {
-      return const Color(0xFF086057);
+      return const Color(0xFF0071F9);
     }
     if (t == 'LEADERBOARD' || lowTitle.contains('লিডারবোর্ড')) {
       return const Color(0xFFFF9F0A);
@@ -144,6 +144,6 @@ class UserNotificationModel {
     if (lowTitle.contains('রসায়ন') || lowTitle.contains('পদার্থ')) {
       return const Color(0xFF0284C7);
     }
-    return const Color(0xFF086057);
+    return const Color(0xFF0071F9);
   }
 }

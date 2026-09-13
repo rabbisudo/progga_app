@@ -35,7 +35,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
   bool _isAcademicsInitialized = false;
   bool _showValidationErrors = false;
 
-  static const Color brandTealColor = Color(0xFF086057); // Deep teal color
+  static const Color brandTealColor = Color(0xFF0071F9); // Deep teal color
 
   void _initialize(UserProfile profile) {
     if (_isInitialized) return;
@@ -885,7 +885,7 @@ class _PersonalInfoScreenState extends ConsumerState<PersonalInfoScreen> {
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(
                   isSelected 
-                      ? (isDark ? brandTealColor.withOpacity(0.15) : const Color(0xFFE6FCF5))
+                      ? (isDark ? const Color(0xFF0071F9).withValues(alpha: 0.15) : const Color(0xFFE8F1FF))
                       : Colors.transparent
                 ),
                 padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),

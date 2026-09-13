@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class EmptyStateWidget extends StatelessWidget {
@@ -47,20 +47,20 @@ class EmptyStateWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.04) : const Color(0xFF017A47).withOpacity(0.06),
+                color: isDark ? Colors.white.withOpacity(0.04) : const Color(0xFF0071F9).withOpacity(0.06),
                 shape: BoxShape.circle,
               ),
               child: icon != null
                   ? Icon(
                       icon,
                       size: 64,
-                      color: const Color(0xFF017A47),
+                      color: const Color(0xFF0071F9),
                     )
                   : SvgPicture.string(
                       customSvg ?? _defaultBookSvg,
                       width: 64,
                       height: 64,
-                      colorFilter: const ColorFilter.mode(Color(0xFF017A47), BlendMode.srcIn),
+                      colorFilter: const ColorFilter.mode(Color(0xFF0071F9), BlendMode.srcIn),
                     ),
             ),
             const SizedBox(height: 24),
@@ -103,7 +103,7 @@ class EmptyStateWidget extends StatelessWidget {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF017A47),
+                  backgroundColor: const Color(0xFF0071F9),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
