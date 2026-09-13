@@ -39,12 +39,13 @@ class _BouncingCardState extends State<BouncingCard> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
+      onTapCancel: () => _controller.reverse(),
+      onTap: () {
         _controller.reverse();
         widget.onTap();
       },
-      onTapCancel: () => _controller.reverse(),
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
